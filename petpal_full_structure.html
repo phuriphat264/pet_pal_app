@@ -1,0 +1,167 @@
+
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans)}
+.wrap{padding:20px 0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:20px}
+.tab{padding:7px 14px;border-radius:20px;border:1.5px solid var(--color-border-secondary);background:var(--color-background-secondary);color:var(--color-text-secondary);font-size:13px;cursor:pointer;transition:all .18s;font-weight:500}
+.tab.active{background:var(--color-text-primary);color:var(--color-background-primary);border-color:transparent}
+.section{display:none}
+.section.active{display:block}
+.screen-title{font-size:16px;font-weight:500;color:var(--color-text-primary);margin-bottom:4px}
+.screen-sub{font-size:13px;color:var(--color-text-secondary);margin-bottom:18px;line-height:1.5}
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;margin-bottom:24px}
+.grid2{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:24px}
+.card{border-radius:12px;border:1px solid var(--color-border-tertiary);background:var(--color-background-secondary);padding:14px}
+.card-head{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+.dot{width:8px;height:8px;border-radius:50%;flex-shrink:0}
+.dot-teal{background:#1D9E75}
+.dot-coral{background:#D85A30}
+.dot-pink{background:#D4537E}
+.dot-purple{background:#7F77DD}
+.dot-amber{background:#BA7517}
+.dot-blue{background:#378ADD}
+.dot-gray{background:#888780}
+.dot-green{background:#639922}
+.card-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.tag-list{display:flex;flex-wrap:wrap;gap:5px;margin-top:8px}
+.tag{font-size:11px;padding:3px 8px;border-radius:10px;border:1px solid var(--color-border-tertiary);color:var(--color-text-secondary);background:var(--color-background-primary)}
+.section-label{font-size:11px;font-weight:500;letter-spacing:.5px;color:var(--color-text-tertiary);text-transform:uppercase;margin-bottom:10px;margin-top:20px}
+.flow{display:flex;flex-wrap:wrap;align-items:center;gap:8px;margin-bottom:16px}
+.flow-box{padding:7px 12px;border-radius:8px;border:1px solid var(--color-border-secondary);background:var(--color-background-secondary);font-size:12px;color:var(--color-text-primary)}
+.flow-arr{color:var(--color-text-tertiary);font-size:14px}
+.badge{display:inline-block;font-size:10px;padding:2px 7px;border-radius:8px;font-weight:500;margin-left:6px;vertical-align:middle}
+.badge-must{background:#E1F5EE;color:#0F6E56}
+.badge-later{background:#FAEEDA;color:#854F0B}
+.badge-opt{background:#F1EFE8;color:#5F5E5A}
+.db-table{border-radius:10px;border:1px solid var(--color-border-tertiary);overflow:hidden;margin-bottom:12px}
+.db-head{padding:9px 14px;background:var(--color-background-secondary);font-size:12px;font-weight:500;color:var(--color-text-primary);border-bottom:1px solid var(--color-border-tertiary)}
+.db-row{padding:7px 14px;font-size:12px;color:var(--color-text-secondary);border-bottom:1px solid var(--color-border-tertiary);display:flex;justify-content:space-between}
+.db-row:last-child{border-bottom:none}
+.db-type{font-size:11px;color:var(--color-text-tertiary);font-family:var(--font-mono)}
+.notif-row{display:flex;gap:10px;padding:10px 0;border-bottom:1px solid var(--color-border-tertiary);align-items:flex-start}
+.notif-row:last-child{border-bottom:none}
+.notif-icon{width:32px;height:32px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0;background:var(--color-background-secondary);color:var(--color-text-primary)}
+.notif-body{flex:1}
+.notif-title{font-size:13px;font-weight:500;color:var(--color-text-primary)}
+.notif-desc{font-size:12px;color:var(--color-text-secondary);margin-top:2px}
+</style>
+<div class="wrap">
+<div class="tabs">
+  <div class="tab active" onclick="show('overview',this)">ภาพรวม</div>
+  <div class="tab" onclick="show('home',this)">หน้าหลัก</div>
+  <div class="tab" onclick="show('cam',this)">กล้อง</div>
+  <div class="tab" onclick="show('match',this)">จับคู่</div>
+  <div class="tab" onclick="show('profile',this)">โปรไฟล์</div>
+  <div class="tab" onclick="show('services',this)">บริการ</div>
+  <div class="tab" onclick="show('notif',this)">แจ้งเตือน</div>
+  <div class="tab" onclick="show('data',this)">ข้อมูล / DB</div>
+  <div class="tab" onclick="show('userflow',this)">User flow</div>
+</div>
+
+<div id="overview" class="section active">
+  <div class="screen-title">PetPal — โครงสร้างแอปทั้งหมด</div>
+  <div class="screen-sub">4 Bottom Tab หลัก + หน้าแยกที่เข้าถึงได้จากหลายจุด</div>
+  <div class="section-label">Bottom navigation</div>
+  <div class="grid">
+    <div class="card"><div class="card-head"><div class="dot dot-teal"></div><div class="card-title">หน้าหลัก</div></div>
+      <div class="tag-list"><span class="tag">Live status card</span><span class="tag">สถิติวันนี้</span><span class="tag">บริการ shortcut</span><span class="tag">โรงแรมใกล้คุณ</span><span class="tag">เคล็ดลับ</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-coral"></div><div class="card-title">กล้อง Live</div></div>
+      <div class="tag-list"><span class="tag">Live feed</span><span class="tag">ถ่ายรูป</span><span class="tag">บันทึกวิดีโอ</span><span class="tag">เรียกน้อง</span><span class="tag">History</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-pink"></div><div class="card-title">จับคู่</div></div>
+      <div class="tag-list"><span class="tag">Swipe สัตว์</span><span class="tag">Filter สายพันธุ์</span><span class="tag">แชทเจ้าของ</span><span class="tag">Community</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-purple"></div><div class="card-title">โปรไฟล์</div></div>
+      <div class="tag-list"><span class="tag">ข้อมูลเจ้าของ</span><span class="tag">ข้อมูลน้อง</span><span class="tag">ประวัติสุขภาพ</span><span class="tag">วัคซีน</span><span class="tag">นัดหมอ</span></div>
+    </div>
+  </div>
+  <div class="section-label">หน้าแยก (Modal / Push screen)</div>
+  <div class="grid">
+    <div class="card"><div class="card-head"><div class="dot dot-amber"></div><div class="card-title">Pet profile detail</div></div>
+      <div class="tag-list"><span class="tag">Timeline กิจกรรม</span><span class="tag">อัลบั้มภาพ</span><span class="tag">แก้ไขข้อมูล</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-amber"></div><div class="card-title">Notifications</div></div>
+      <div class="tag-list"><span class="tag">กล้องแจ้งเตือน</span><span class="tag">match ใหม่</span><span class="tag">นัดหมอใกล้</span><span class="tag">โปรโมชั่น</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-amber"></div><div class="card-title">Booking detail</div></div>
+      <div class="tag-list"><span class="tag">เลือกวันที่</span><span class="tag">ชำระเงิน</span><span class="tag">ยืนยัน</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-amber"></div><div class="card-title">Settings</div></div>
+      <div class="tag-list"><span class="tag">Push notification</span><span class="tag">ภาษา</span><span class="tag">บัญชี</span><span class="tag">Logout</span></div>
+    </div>
+  </div>
+  <div class="section-label">Auth (ก่อนเข้าแอป)</div>
+  <div class="grid">
+    <div class="card"><div class="card-head"><div class="dot dot-gray"></div><div class="card-title">Login / Register</div></div>
+      <div class="tag-list"><span class="tag">อีเมล + password</span><span class="tag">Google</span><span class="tag">Facebook</span><span class="tag">ลืมรหัส</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-gray"></div><div class="card-title">Onboarding</div></div>
+      <div class="tag-list"><span class="tag">ชื่อน้อง</span><span class="tag">สายพันธุ์</span><span class="tag">อายุ</span><span class="tag">รูปโปรไฟล์</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="home" class="section">
+  <div class="screen-title">หน้าหลัก (Home)</div>
+  <div class="screen-sub">Dashboard หลักที่เจ้าของเห็นก่อนเลย — ออกแบบให้เห็นสถานะน้องและเข้าถึงทุกบริการได้เร็วที่สุด</div>
+  <div class="section-label">Sections บนหน้า</div>
+  <div class="grid2">
+    <div class="card"><div class="card-head"><div class="dot dot-coral"></div><div class="card-title">Live status card <span class="badge badge-must">สำคัญ</span></div></div>
+      <div class="tag-list"><span class="tag">ภาพจากกล้องล่าสุด</span><span class="tag">สถานะน้อง (นอน/เล่น)</span><span class="tag">LIVE badge</span><span class="tag">ปุ่ม ดู Live</span><span class="tag">ปุ่ม เรียกน้อง</span><span class="tag">badge ปลอดภัย</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-teal"></div><div class="card-title">สถิติวันนี้ <span class="badge badge-must">สำคัญ</span></div></div>
+      <div class="tag-list"><span class="tag">เวลานอน (ชม.)</span><span class="tag">ระยะเดิน (กม.)</span><span class="tag">จำนวนมื้ออาหาร</span><span class="tag">น้ำที่ดื่ม</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-purple"></div><div class="card-title">บริการ shortcut</div></div>
+      <div class="tag-list"><span class="tag">หาที่พัก</span><span class="tag">จับคู่</span><span class="tag">นัดหมอ</span><span class="tag">ร้านค้า</span><span class="tag">ประกัน</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-amber"></div><div class="card-title">โรงแรมสัตว์เลี้ยงใกล้คุณ</div></div>
+      <div class="tag-list"><span class="tag">Horizontal scroll card</span><span class="tag">คะแนน + ระยะทาง</span><span class="tag">ราคา/คืน</span><span class="tag">badge ยอดนิยม</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-green"></div><div class="card-title">เคล็ดลับดูแลน้อง</div></div>
+      <div class="tag-list"><span class="tag">บทความ</span><span class="tag">วิดีโอสั้น</span><span class="tag">เลือกตามสายพันธุ์</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-pink"></div><div class="card-title">App Bar</div></div>
+      <div class="tag-list"><span class="tag">ชื่อเจ้าของ</span><span class="tag">คำทักทาย</span><span class="tag">กระดิ่ง Notification</span><span class="tag">avatar</span></div>
+    </div>
+  </div>
+</div>
+
+<div id="cam" class="section">
+  <div class="screen-title">กล้อง Live (Camera)</div>
+  <div class="screen-sub">ดูน้องแบบ real-time กล้องเดียว พร้อมฟีเจอร์ควบคุมและประวัติ</div>
+  <div class="section-label">Live view area</div>
+  <div class="grid2">
+    <div class="card"><div class="card-head"><div class="dot dot-coral"></div><div class="card-title">Video player <span class="badge badge-must">หลัก</span></div></div>
+      <div class="tag-list"><span class="tag">LIVE badge + pulse dot</span><span class="tag">REC badge เมื่อบันทึก</span><span class="tag">timestamp overlay</span><span class="tag">กด = toggle controls</span><span class="tag">ปุ่ม fullscreen</span><span class="tag">signal bar</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-coral"></div><div class="card-title">Status น้อง</div></div>
+      <div class="tag-list"><span class="tag">สถานะปัจจุบัน</span><span class="tag">badge ปลอดภัย/เช็ค</span><span class="tag">เวลาอัปเดต</span></div>
+    </div>
+  </div>
+  <div class="section-label">ปุ่มควบคุม</div>
+  <div class="grid">
+    <div class="card"><div class="card-head"><div class="dot dot-teal"></div><div class="card-title">พูดคุย (Mic)</div></div>
+      <div class="tag-list"><span class="tag">toggle เปิด/ปิดไมค์</span><span class="tag">indicator บน video</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-coral"></div><div class="card-title">บันทึกวิดีโอ</div></div>
+      <div class="tag-list"><span class="tag">start / stop recording</span><span class="tag">บันทึกลง gallery</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-teal"></div><div class="card-title">ถ่ายรูป</div></div>
+      <div class="tag-list"><span class="tag">snapshot ภาพนิ่ง</span><span class="tag">บันทึกลง gallery</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-pink"></div><div class="card-title">เรียกน้อง</div></div>
+      <div class="tag-list"><span class="tag">ส่งเสียงผ่านลำโพงกล้อง</span><span class="tag">confirm dialog</span></div>
+    </div>
+  </div>
+  <div class="section-label">ส่วนเพิ่มเติม</div>
+  <div class="grid2">
+    <div class="card"><div class="card-head"><div class="dot dot-amber"></div><div class="card-title">กิจกรรมวันนี้ (Timeline)</div></div>
+      <div class="tag-list"><span class="tag">log เวลา + กิจกรรม</span><span class="tag">icon ประเภท event</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-gray"></div><div class="card-title">Settings กล้อง (Sheet)</div></div>
+      <div class="tag-list"><span class="tag">ความละเอียด</span><span class="tag">โหมดกลางคืน</span><span class="tag">เสียงจากกล้อง</span><span class="tag">หมุนภาพ</span></div>
+    </div>
+    <div class="card"><div class="card-head"><div class="dot dot-purple"></div><div class="card-ti
