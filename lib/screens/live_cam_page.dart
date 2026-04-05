@@ -1,6 +1,7 @@
 // lib/screens/live_cam_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'hotel_list_page.dart';
 
 class LiveCamPage extends StatefulWidget {
   const LiveCamPage({super.key});
@@ -22,6 +23,7 @@ class _LiveCamPageState extends State<LiveCamPage>
   static const Color _alertRed   = Color(0xFFBF4A30);
 
   // ─── State ────────────────────────────────────────────────────
+  bool _hasActiveBooking = false; // สถานะเบื้องต้น: ยังไม่จอง
   bool _isMicOn      = false;
   bool _isRecording  = false;
   bool _isFullscreen = false;
@@ -71,7 +73,7 @@ class _LiveCamPageState extends State<LiveCamPage>
     ScaffoldMessenger.of(context).clearSnackBars();
     ScaffoldMessenger.of(context).showSnackBar(SnackBar(
       content: Text(msg,
-          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 13)),
+          style: const TextStyle(fontWeight: FontWeight.w500, fontSize: 15)),
       backgroundColor: bg ?? _deepBrown,
       behavior: SnackBarBehavior.floating,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -127,7 +129,7 @@ class _LiveCamPageState extends State<LiveCamPage>
             Container(
               width: 64, height: 64,
               decoration: BoxDecoration(
-                  color: _alertRed.withOpacity(0.12),
+                  color: _alertRed.withValues(alpha:0.12),
                   shape: BoxShape.circle),
               child: const Icon(Icons.notifications_active_rounded,
                   color: _alertRed, size: 30),
@@ -135,13 +137,13 @@ class _LiveCamPageState extends State<LiveCamPage>
             const SizedBox(height: 14),
             const Text('เรียกน้อง',
                 style: TextStyle(
-                    fontSize: 18,
+                    fontSize: 22,
                     fontWeight: FontWeight.w700,
                     color: _darkBrown)),
             const SizedBox(height: 6),
             const Text(
               'ส่งสัญญาณเสียงเรียกน้องผ่านลำโพงกล้อง',
-              style: TextStyle(fontSize: 13, color: _mutedBrown),
+              style: TextStyle(fontSize: 15, color: _mutedBrown),
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
@@ -192,6 +194,8 @@ class _LiveCamPageState extends State<LiveCamPage>
   // ─── Build ─────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
+    if (!_hasActiveBooking) return _buildEmptyState();
+
     return Scaffold(
       backgroundColor: _bgCream,
       body: Column(
@@ -221,6 +225,51 @@ class _LiveCamPageState extends State<LiveCamPage>
     );
   }
 
+  Widget _buildEmptyState() {
+    return Scaffold(
+      backgroundColor: _bgCream,
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+          padding: const EdgeInsets.all(32.0),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                width: 120, height: 120,
+                decoration: BoxDecoration(color: _border.withValues(alpha:0.3), shape: BoxShape.circle),
+                child: const Icon(Icons.videocam_off_rounded, size: 50, color: _brown),
+              ),
+              const SizedBox(height: 24),
+              const Text('ยังไม่มีกล้อง Live Cam', style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _darkBrown)),
+              const SizedBox(height: 12),
+              const Text('คุณสามารถดูน้องๆ ผ่านกล้องได้สดตลอด 24 ชั่วโมง เมื่อทำการจองและเข้าพักที่โรงแรมสัตว์เลี้ยง', textAlign: TextAlign.center, style: TextStyle(fontSize: 15, color: _mutedBrown, height: 1.5)),
+              const SizedBox(height: 32),
+              ElevatedButton(
+                onPressed: () {
+                  Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const HotelListPage()));
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _brown,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: const Text('จองห้องพักเลย', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+              const SizedBox(height: 20),
+              TextButton(
+                onPressed: () => setState(() => _hasActiveBooking = true),
+                child: const Text('ดูตัวอย่างหน้ากล้อง (Demo)', style: TextStyle(color: _mutedBrown)),
+              ),
+            ],
+          ),
+        ),
+      ),
+      ),
+    );
+  }
+
   // ─── AppBar ────────────────────────────────────────────────────
   Widget _buildAppBar(BuildContext context) {
     return Container(
@@ -245,14 +294,14 @@ class _LiveCamPageState extends State<LiveCamPage>
               const Text(
                 'Live Cam',
                 style: TextStyle(
-                    fontSize: 17,
+                    fontSize: 20,
                     fontWeight: FontWeight.w800,
                     color: _darkBrown,
                     letterSpacing: -0.3),
               ),
               Text(
                 '$_roomLabel · 24 ชั่วโมง',
-                style: const TextStyle(fontSize: 11, color: _mutedBrown),
+                style: const TextStyle(fontSize: 13, color: _mutedBrown),
               ),
             ],
           ),
@@ -264,7 +313,7 @@ class _LiveCamPageState extends State<LiveCamPage>
           const SizedBox(width: 8),
           _circleBtn(
             onTap: () => _showPetSheet(context),
-            child: const Text('🐶', style: TextStyle(fontSize: 17)),
+            child: const Text('🐶', style: TextStyle(fontSize: 20)),
           ),
         ],
       ),
@@ -277,7 +326,7 @@ class _LiveCamPageState extends State<LiveCamPage>
       child: Container(
         width: 40, height: 40,
         decoration: BoxDecoration(
-          color: _border.withOpacity(0.5),
+          color: _border.withValues(alpha:0.5),
           shape: BoxShape.circle,
         ),
         child: Center(child: child),
@@ -292,7 +341,7 @@ class _LiveCamPageState extends State<LiveCamPage>
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 300),
         width: double.infinity,
-        height: _isFullscreen ? 340 : 240,
+        height: _isFullscreen ? 380 : 280,
         color: _deepBrown,
         child: Stack(
           fit: StackFit.expand,
@@ -316,10 +365,10 @@ class _LiveCamPageState extends State<LiveCamPage>
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   colors: [
-                    Colors.black.withOpacity(0.55),
+                    Colors.black.withValues(alpha:0.55),
                     Colors.transparent,
                     Colors.transparent,
-                    Colors.black.withOpacity(0.55),
+                    Colors.black.withValues(alpha:0.55),
                   ],
                   stops: const [0, 0.28, 0.72, 1],
                 ),
@@ -342,14 +391,14 @@ class _LiveCamPageState extends State<LiveCamPage>
                   child: Container(
                     width: 32, height: 32,
                     decoration: BoxDecoration(
-                      color: Colors.black.withOpacity(0.45),
+                      color: Colors.black.withValues(alpha:0.45),
                       borderRadius: BorderRadius.circular(8),
                     ),
                     child: Icon(
                       _isFullscreen
                           ? Icons.fullscreen_exit_rounded
                           : Icons.fullscreen_rounded,
-                      color: Colors.white.withOpacity(0.9),
+                      color: Colors.white.withValues(alpha:0.9),
                       size: 18,
                     ),
                   ),
@@ -365,7 +414,7 @@ class _LiveCamPageState extends State<LiveCamPage>
                   padding: const EdgeInsets.symmetric(
                       horizontal: 8, vertical: 5),
                   decoration: BoxDecoration(
-                    color: Colors.black.withOpacity(0.5),
+                    color: Colors.black.withValues(alpha:0.5),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Row(
@@ -376,7 +425,7 @@ class _LiveCamPageState extends State<LiveCamPage>
                       Text('ไมค์เปิดอยู่',
                           style: TextStyle(
                               color: Colors.white,
-                              fontSize: 11,
+                              fontSize: 13,
                               fontWeight: FontWeight.w500)),
                     ],
                   ),
@@ -389,8 +438,8 @@ class _LiveCamPageState extends State<LiveCamPage>
               child: Text(
                 '00:14:38',
                 style: TextStyle(
-                    color: Colors.white.withOpacity(0.7),
-                    fontSize: 11,
+                    color: Colors.white.withValues(alpha:0.7),
+                    fontSize: 13,
                     fontFamily: 'monospace',
                     letterSpacing: 0.5),
               ),
@@ -428,7 +477,7 @@ class _LiveCamPageState extends State<LiveCamPage>
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
       decoration: BoxDecoration(
-        color: Colors.black.withOpacity(0.6),
+        color: Colors.black.withValues(alpha:0.6),
         borderRadius: BorderRadius.circular(8),
       ),
       child: Row(
@@ -446,7 +495,7 @@ class _LiveCamPageState extends State<LiveCamPage>
           const Text('REC',
               style: TextStyle(
                   color: Colors.white,
-                  fontSize: 10,
+                  fontSize: 12,
                   fontWeight: FontWeight.w800,
                   letterSpacing: 1)),
         ],
@@ -464,12 +513,12 @@ class _LiveCamPageState extends State<LiveCamPage>
             Icon(
               loading ? Icons.videocam_rounded : Icons.videocam_off_rounded,
               color: Colors.white30,
-              size: 40,
+              size: 52,
             ),
             const SizedBox(height: 10),
             Text(
               loading ? 'กำลังโหลดภาพ...' : 'ไม่สามารถเชื่อมต่อได้',
-              style: const TextStyle(color: Colors.white38, fontSize: 13),
+              style: const TextStyle(color: Colors.white38, fontSize: 15),
             ),
           ],
         ),
@@ -485,11 +534,11 @@ class _LiveCamPageState extends State<LiveCamPage>
       child: Row(
         children: [
           const Icon(Icons.signal_wifi_4_bar_rounded,
-              color: Color(0xFFC8845A), size: 14),
+              color: Color(0xFFC8845A), size: 16),
           const SizedBox(width: 6),
           const Text(
             'สัญญาณดี · 1080p · 30fps',
-            style: TextStyle(fontSize: 11, color: Color(0xFFB8926C)),
+            style: TextStyle(fontSize: 13, color: Color(0xFFB8926C)),
           ),
           const Spacer(),
           Row(
@@ -527,8 +576,8 @@ class _LiveCamPageState extends State<LiveCamPage>
           borderRadius: BorderRadius.circular(18),
           border: Border.all(
             color: _isSafe
-                ? const Color(0xFF81C784).withOpacity(0.5)
-                : const Color(0xFFFFB74D).withOpacity(0.5),
+                ? const Color(0xFF81C784).withValues(alpha:0.5)
+                : const Color(0xFFFFB74D).withValues(alpha:0.5),
           ),
         ),
         child: Row(
@@ -559,7 +608,7 @@ class _LiveCamPageState extends State<LiveCamPage>
                   Text(
                     _petStatus,
                     style: TextStyle(
-                      fontSize: 15,
+                      fontSize: 18,
                       fontWeight: FontWeight.w700,
                       color: _isSafe
                           ? const Color(0xFF2E6B28)
@@ -569,7 +618,7 @@ class _LiveCamPageState extends State<LiveCamPage>
                   const SizedBox(height: 2),
                   const Text(
                     'อัปเดตเมื่อ 2 นาทีที่แล้ว',
-                    style: TextStyle(fontSize: 11, color: _mutedBrown),
+                    style: TextStyle(fontSize: 13, color: _mutedBrown),
                   ),
                 ],
               ),
@@ -578,14 +627,14 @@ class _LiveCamPageState extends State<LiveCamPage>
               padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
               decoration: BoxDecoration(
                 color: _isSafe
-                    ? const Color(0xFF81C784).withOpacity(0.2)
-                    : const Color(0xFFFFB74D).withOpacity(0.2),
+                    ? const Color(0xFF81C784).withValues(alpha:0.2)
+                    : const Color(0xFFFFB74D).withValues(alpha:0.2),
                 borderRadius: BorderRadius.circular(20),
               ),
               child: Text(
                 _isSafe ? 'ปลอดภัย' : 'ตรวจสอบ',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w700,
                   color: _isSafe
                       ? const Color(0xFF2E6B28)
@@ -609,7 +658,7 @@ class _LiveCamPageState extends State<LiveCamPage>
           const Text(
             'ควบคุม',
             style: TextStyle(
-                fontSize: 13,
+                fontSize: 16,
                 fontWeight: FontWeight.w700,
                 color: _darkBrown,
                 letterSpacing: 0.1),
@@ -623,7 +672,7 @@ class _LiveCamPageState extends State<LiveCamPage>
               border: Border.all(color: _border),
               boxShadow: [
                 BoxShadow(
-                  color: _brown.withOpacity(0.06),
+                  color: _brown.withValues(alpha:0.06),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -685,14 +734,14 @@ class _LiveCamPageState extends State<LiveCamPage>
         children: [
           AnimatedContainer(
             duration: const Duration(milliseconds: 200),
-            width: 56, height: 56,
+            width: 64, height: 64,
             decoration: BoxDecoration(
-              color: active ? color : color.withOpacity(0.12),
+              color: active ? color : color.withValues(alpha:0.12),
               shape: BoxShape.circle,
               boxShadow: active
                   ? [
                       BoxShadow(
-                          color: color.withOpacity(0.4),
+                          color: color.withValues(alpha:0.4),
                           blurRadius: 12,
                           offset: const Offset(0, 4))
                     ]
@@ -701,14 +750,14 @@ class _LiveCamPageState extends State<LiveCamPage>
             child: Icon(
               icon,
               color: active ? Colors.white : color,
-              size: 22,
+              size: 28,
             ),
           ),
           const SizedBox(height: 7),
           Text(
             label,
             style: TextStyle(
-              fontSize: 11,
+              fontSize: 13,
               fontWeight: FontWeight.w600,
               color: active ? color : _mutedBrown,
             ),
@@ -720,11 +769,11 @@ class _LiveCamPageState extends State<LiveCamPage>
 
   // ─── Timeline ─────────────────────────────────────────────────
   Widget _buildTimelineSection() {
-    final events = [
-      {'time': '22:30', 'event': 'เข้าไปในห้องนอน', 'icon': '🏠'},
-      {'time': '22:35', 'event': 'เริ่มนอนหลับ', 'icon': '😴'},
-      {'time': '01:14', 'event': 'ขยับตัว 1 ครั้ง', 'icon': '🐾'},
-      {'time': '03:02', 'event': 'ลุกไปดื่มน้ำ', 'icon': '💧'},
+    final List<Map<String, dynamic>> events = [
+      {'time': '22:30', 'event': 'พาเข้าห้องนอนเรียบร้อย', 'icon': Icons.bed_rounded},
+      {'time': '22:35', 'event': 'ห่มผ้าให้น้องแล้ว หลับสนิทค่ะ', 'icon': Icons.nights_stay_rounded},
+      {'time': '07:30', 'event': 'น้องตื่นแล้ว อารมณ์ดีมาก', 'icon': Icons.wb_sunny_rounded},
+      {'time': '08:00', 'event': 'ทานข้าวเช้าหมดชามเลยค่ะ', 'icon': Icons.restaurant_rounded},
     ];
 
     return Padding(
@@ -733,7 +782,7 @@ class _LiveCamPageState extends State<LiveCamPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text(
-            'กิจกรรมคืนนี้',
+            'สมุดบันทึกจากพี่เลี้ยง',
             style: TextStyle(
                 fontSize: 13,
                 fontWeight: FontWeight.w700,
@@ -749,7 +798,7 @@ class _LiveCamPageState extends State<LiveCamPage>
               border: Border.all(color: _border),
               boxShadow: [
                 BoxShadow(
-                  color: _brown.withOpacity(0.06),
+                  color: _brown.withValues(alpha:0.06),
                   blurRadius: 16,
                   offset: const Offset(0, 4),
                 ),
@@ -772,8 +821,7 @@ class _LiveCamPageState extends State<LiveCamPage>
                             border: Border.all(color: _border),
                           ),
                           child: Center(
-                            child: Text(e['icon']!,
-                                style: const TextStyle(fontSize: 15)),
+                            child: Icon(e['icon'] as IconData, size: 20, color: _brown),
                           ),
                         ),
                         if (!isLast)
@@ -793,17 +841,17 @@ class _LiveCamPageState extends State<LiveCamPage>
                         child: Row(
                           children: [
                             Text(
-                              e['event']!,
+                              e['event'] as String,
                               style: const TextStyle(
-                                  fontSize: 13,
+                                  fontSize: 15,
                                   color: _darkBrown,
                                   fontWeight: FontWeight.w500),
                             ),
                             const Spacer(),
                             Text(
-                              e['time']!,
+                              e['time'] as String,
                               style: const TextStyle(
-                                  fontSize: 11, color: _mutedBrown),
+                                  fontSize: 13, color: _mutedBrown),
                             ),
                           ],
                         ),
@@ -842,7 +890,7 @@ class _LiveCamPageState extends State<LiveCamPage>
             const SizedBox(height: 20),
             const Text('ตั้งค่ากล้อง',
                 style: TextStyle(
-                    fontSize: 16,
+                    fontSize: 18,
                     fontWeight: FontWeight.w700,
                     color: _darkBrown)),
             const SizedBox(height: 16),
@@ -864,19 +912,19 @@ class _LiveCamPageState extends State<LiveCamPage>
           Container(
             width: 38, height: 38,
             decoration: BoxDecoration(
-                color: _border.withOpacity(0.5),
+                color: _border.withValues(alpha:0.5),
                 borderRadius: BorderRadius.circular(10)),
             child: Icon(icon, color: _brown, size: 18),
           ),
           const SizedBox(width: 12),
           Text(title,
               style: const TextStyle(
-                  fontSize: 14,
+                  fontSize: 16,
                   color: _darkBrown,
                   fontWeight: FontWeight.w500)),
           const Spacer(),
           Text(value,
-              style: const TextStyle(fontSize: 13, color: _mutedBrown)),
+              style: const TextStyle(fontSize: 15, color: _mutedBrown)),
           const SizedBox(width: 4),
           const Icon(Icons.chevron_right_rounded,
               color: _mutedBrown, size: 18),
@@ -906,20 +954,20 @@ class _LiveCamPageState extends State<LiveCamPage>
             Container(
               width: 76, height: 76,
               decoration: BoxDecoration(
-                  color: _border.withOpacity(0.4),
+                  color: _border.withValues(alpha:0.4),
                   shape: BoxShape.circle),
               child: const Center(
-                  child: Text('🐶', style: TextStyle(fontSize: 40))),
+                  child: Text('🐶', style: TextStyle(fontSize: 48))),
             ),
             const SizedBox(height: 12),
             const Text('มะม่วง',
                 style: TextStyle(
-                    fontSize: 20,
+                    fontSize: 24,
                     fontWeight: FontWeight.w800,
                     color: _darkBrown)),
             const SizedBox(height: 3),
             const Text('โกลเด้นรีทรีฟเวอร์ · 3 ปี',
-                style: TextStyle(fontSize: 13, color: _mutedBrown)),
+                style: TextStyle(fontSize: 15, color: _mutedBrown)),
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.symmetric(vertical: 16),
@@ -934,7 +982,7 @@ class _LiveCamPageState extends State<LiveCamPage>
                   Container(width: 1, height: 32, color: _border),
                   _petStat('วัคซีน', 'ครบแล้ว ✓'),
                   Container(width: 1, height: 32, color: _border),
-                  _petStat('นัดหมอ', '15 เม.ย.'),
+                  _petStat('รับกลับ', '15 เม.ย.'),
                 ],
               ),
             ),
@@ -949,12 +997,12 @@ class _LiveCamPageState extends State<LiveCamPage>
       children: [
         Text(value,
             style: const TextStyle(
-                fontSize: 15,
+                fontSize: 18,
                 fontWeight: FontWeight.w700,
                 color: _darkBrown)),
         const SizedBox(height: 2),
         Text(label,
-            style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+            style: const TextStyle(fontSize: 13, color: _mutedBrown)),
       ],
     );
   }

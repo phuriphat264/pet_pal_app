@@ -16,16 +16,16 @@ class _MatchingPageState extends State<MatchingPage> {
 
   // ── นิสัยทั้งหมด ────────────────────────────────────────────────────────
   final List<Map<String, dynamic>> _traits = [
-    {'label': 'ขี้เล่น',        'emoji': '🎾', 'key': 'playful'},
-    {'label': 'ชอบน้ำ',         'emoji': '🏊', 'key': 'water'},
-    {'label': 'เงียบๆ',         'emoji': '😴', 'key': 'calm'},
-    {'label': 'ชอบนอน',         'emoji': '🛋️', 'key': 'lazy'},
-    {'label': 'กระฉับกระเฉง',   'emoji': '⚡', 'key': 'active'},
-    {'label': 'เป็นมิตร',       'emoji': '🤝', 'key': 'social'},
-    {'label': 'ชอบธรรมชาติ',    'emoji': '🌿', 'key': 'nature'},
-    {'label': 'ต้องการดูแลพิเศษ','emoji': '💆', 'key': 'care'},
-    {'label': 'ชอบเพื่อนใหม่',  'emoji': '🐾', 'key': 'friendly'},
-    {'label': 'ขี้อาย',         'emoji': '🙈', 'key': 'shy'},
+    {'label': 'ขี้เล่น',        'icon': Icons.sports_tennis_rounded, 'key': 'playful'},
+    {'label': 'ชอบน้ำ',         'icon': Icons.pool_rounded, 'key': 'water'},
+    {'label': 'เงียบๆ',         'icon': Icons.bedtime_rounded, 'key': 'calm'},
+    {'label': 'ชอบนอน',         'icon': Icons.weekend_rounded, 'key': 'lazy'},
+    {'label': 'กระฉับกระเฉง',   'icon': Icons.bolt_rounded, 'key': 'active'},
+    {'label': 'เป็นมิตร',       'icon': Icons.handshake_rounded, 'key': 'social'},
+    {'label': 'ชอบธรรมชาติ',    'icon': Icons.forest_rounded, 'key': 'nature'},
+    {'label': 'ต้องการดูแลพิเศษ','icon': Icons.medical_services_rounded, 'key': 'care'},
+    {'label': 'ชอบเพื่อนใหม่',  'icon': Icons.pets_rounded, 'key': 'friendly'},
+    {'label': 'ขี้อาย',         'icon': Icons.visibility_off_rounded, 'key': 'shy'},
   ];
 
   final Set<String> _selected = {};
@@ -38,7 +38,7 @@ class _MatchingPageState extends State<MatchingPage> {
       'type': 'โรงแรมสุนัข & แมว',
       'rating': '4.9',
       'price': '650 ฿/คืน',
-      'emoji': '🏨',
+      'icon': Icons.domain_rounded,
       'color': const Color(0xFFD4956A),
       'distance': '1.2 กม.',
       'highlight': 'สระว่ายน้ำสัตว์เลี้ยง + สนามวิ่ง',
@@ -50,7 +50,7 @@ class _MatchingPageState extends State<MatchingPage> {
       'type': 'โรงแรมแมวโดยเฉพาะ',
       'rating': '4.8',
       'price': '450 ฿/คืน',
-      'emoji': '🏩',
+      'icon': Icons.apartment_rounded,
       'color': const Color(0xFF9B7EC8),
       'distance': '0.8 กม.',
       'highlight': 'ห้องส่วนตัว Cat Tree + หน้าต่างดูนก',
@@ -62,7 +62,7 @@ class _MatchingPageState extends State<MatchingPage> {
       'type': 'รีสอร์ทสัตว์เลี้ยง',
       'rating': '4.7',
       'price': '800 ฿/คืน',
-      'emoji': '🏖️',
+      'icon': Icons.beach_access_rounded,
       'color': const Color(0xFFE8936A),
       'distance': '2.0 กม.',
       'highlight': 'Dog Park + กิจกรรมกลุ่มรายวัน',
@@ -74,7 +74,7 @@ class _MatchingPageState extends State<MatchingPage> {
       'type': 'โรงแรมสัตว์เลี้ยงพรีเมียม',
       'rating': '5.0',
       'price': '1,200 ฿/คืน',
-      'emoji': '🌟',
+      'icon': Icons.stars_rounded,
       'color': const Color(0xFF6A9EB5),
       'distance': '3.1 กม.',
       'highlight': 'Grooming ครบครัน + ดูแลพิเศษ',
@@ -86,7 +86,7 @@ class _MatchingPageState extends State<MatchingPage> {
       'type': 'ที่พักสัตว์เลี้ยงกลางธรรมชาติ',
       'rating': '4.6',
       'price': '550 ฿/คืน',
-      'emoji': '🌲',
+      'icon': Icons.park_rounded,
       'color': const Color(0xFF7DB87D),
       'distance': '4.5 กม.',
       'highlight': 'สวนหย่อม + ทางเดินธรรมชาติ',
@@ -98,7 +98,7 @@ class _MatchingPageState extends State<MatchingPage> {
       'type': 'โฮสเทลสัตว์เลี้ยงราคาดี',
       'rating': '4.5',
       'price': '350 ฿/คืน',
-      'emoji': '🏠',
+      'icon': Icons.cottage_rounded,
       'color': const Color(0xFFB8956A),
       'distance': '0.5 กม.',
       'highlight': 'บรรยากาศบ้านๆ อบอุ่น',
@@ -160,12 +160,12 @@ class _MatchingPageState extends State<MatchingPage> {
         children: const [
           Text('หาที่พักให้น้อง',
               style: TextStyle(
-                  fontSize: 24,
+                  fontSize: 26,
                   fontWeight: FontWeight.w700,
                   color: _darkBrown)),
           SizedBox(height: 4),
           Text('เลือกนิสัยของน้อง แล้วเราจะหาโรงแรมที่ใช่ใกล้คุณ',
-              style: TextStyle(fontSize: 13, color: _mutedBrown)),
+              style: TextStyle(fontSize: 15, color: _mutedBrown)),
         ],
       ),
     );
@@ -178,12 +178,72 @@ class _MatchingPageState extends State<MatchingPage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('นิสัยของน้อง',
-              style: TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: _darkBrown)),
-          const SizedBox(height: 12),
+          // ── AI Smart Match Section ──
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(color: _brown.withValues(alpha:0.3), width: 1.5),
+              boxShadow: [BoxShadow(color: _brown.withValues(alpha:0.1), blurRadius: 10, offset: const Offset(0, 4))],
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                const Row(
+                  children: [
+                    Icon(Icons.auto_awesome_rounded, color: _brown, size: 22),
+                    SizedBox(width: 8),
+                    Text('AI Smart Match', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+                  ],
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  maxLines: 2,
+                  style: const TextStyle(fontSize: 15, color: _darkBrown),
+                  decoration: InputDecoration(
+                    hintText: 'เช่น "น้องแก่แล้วชอบนอนเงียบๆ แต่อยากให้มีสนามฝนเล็บและพี่เลี้ยงดูแลใกล้ชิด..."',
+                    hintStyle: const TextStyle(color: _mutedBrown, fontSize: 14),
+                    filled: true,
+                    fillColor: _bgCream,
+                    border: OutlineInputBorder(borderRadius: BorderRadius.circular(14), borderSide: BorderSide.none),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: () {
+                      FocusScope.of(context).unfocus();
+                      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(
+                        content: Text('✨ AI กำลังวิเคราะห์หาโรงแรมที่ใช่ที่สุด... (โหมดทดสอบ)'),
+                        backgroundColor: _brown,
+                      ));
+                    },
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _darkBrown,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: const Text('✨ ปล่อยให้ AI จัดการให้', style: TextStyle(color: Colors.white, fontWeight: FontWeight.w600, fontSize: 16)),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          
+          const SizedBox(height: 32),
+          const Row(
+            children: [
+              Expanded(child: Divider(color: Color(0xFFD9C9BC))),
+              Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: Text('หรือ ค้นหาด่วนด้วยแท็ก', style: TextStyle(color: _brown, fontSize: 14, fontWeight: FontWeight.w700)),
+              ),
+              Expanded(child: Divider(color: Color(0xFFD9C9BC))),
+            ],
+          ),
+          const SizedBox(height: 24),
           Wrap(
             spacing: 8,
             runSpacing: 8,
@@ -198,7 +258,7 @@ class _MatchingPageState extends State<MatchingPage> {
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 180),
                   padding: const EdgeInsets.symmetric(
-                      horizontal: 14, vertical: 8),
+                      horizontal: 16, vertical: 10),
                   decoration: BoxDecoration(
                     color: selected ? _brown : Colors.white,
                     borderRadius: BorderRadius.circular(30),
@@ -208,7 +268,7 @@ class _MatchingPageState extends State<MatchingPage> {
                     boxShadow: selected
                         ? [
                             BoxShadow(
-                                color: _brown.withOpacity(0.25),
+                                color: _brown.withValues(alpha:0.25),
                                 blurRadius: 8,
                                 offset: const Offset(0, 3))
                           ]
@@ -217,12 +277,11 @@ class _MatchingPageState extends State<MatchingPage> {
                   child: Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(t['emoji'],
-                          style: const TextStyle(fontSize: 15)),
-                      const SizedBox(width: 6),
+                      Icon(t['icon'] as IconData, size: 20, color: selected ? Colors.white : _mutedBrown),
+                      const SizedBox(width: 8),
                       Text(t['label'],
                           style: TextStyle(
-                              fontSize: 13,
+                              fontSize: 15,
                               fontWeight: FontWeight.w500,
                               color: selected
                                   ? Colors.white
@@ -241,7 +300,7 @@ class _MatchingPageState extends State<MatchingPage> {
               onPressed: _selected.isEmpty
                   ? null
                   : () => setState(() => _searched = true),
-              icon: const Icon(Icons.search, size: 18),
+              icon: const Icon(Icons.search, size: 22),
               label: Text(
                 _selected.isEmpty
                     ? 'เลือกนิสัยก่อนนะ'
@@ -256,7 +315,7 @@ class _MatchingPageState extends State<MatchingPage> {
                 shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(14)),
                 textStyle: const TextStyle(
-                    fontSize: 14, fontWeight: FontWeight.w600),
+                    fontSize: 16, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -275,14 +334,14 @@ class _MatchingPageState extends State<MatchingPage> {
         children: [
           Text('พบ $count โรงแรมที่เหมาะกับน้อง',
               style: const TextStyle(
-                  fontSize: 15,
+                  fontSize: 18,
                   fontWeight: FontWeight.w700,
                   color: _darkBrown)),
           const Spacer(),
-          const Icon(Icons.location_on, size: 14, color: _mutedBrown),
-          const SizedBox(width: 2),
+          const Icon(Icons.location_on, size: 16, color: _mutedBrown),
+          const SizedBox(width: 4),
           const Text('ใกล้คุณ',
-              style: TextStyle(fontSize: 12, color: _mutedBrown)),
+              style: TextStyle(fontSize: 14, color: _mutedBrown)),
         ],
       ),
     );
@@ -303,7 +362,7 @@ class _MatchingPageState extends State<MatchingPage> {
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
-              color: Colors.black.withOpacity(0.06),
+              color: Colors.black.withValues(alpha:0.06),
               blurRadius: 16,
               offset: const Offset(0, 6)),
         ],
@@ -315,15 +374,14 @@ class _MatchingPageState extends State<MatchingPage> {
           Stack(
             children: [
               Container(
-                height: 140,
+                height: 160,
                 decoration: BoxDecoration(
-                  color: (h['color'] as Color).withOpacity(0.18),
+                  color: (h['color'] as Color).withValues(alpha:0.18),
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(20)),
                 ),
                 child: Center(
-                  child: Text(h['emoji'],
-                      style: const TextStyle(fontSize: 72)),
+                  child: Icon(h['icon'] as IconData, size: 80, color: _brown),
                 ),
               ),
               // badge Top Match
@@ -333,7 +391,7 @@ class _MatchingPageState extends State<MatchingPage> {
                   left: 12,
                   child: Container(
                     padding: const EdgeInsets.symmetric(
-                        horizontal: 10, vertical: 4),
+                        horizontal: 12, vertical: 6),
                     decoration: BoxDecoration(
                       color: _brown,
                       borderRadius: BorderRadius.circular(20),
@@ -341,12 +399,12 @@ class _MatchingPageState extends State<MatchingPage> {
                     child: const Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        Icon(Icons.star, size: 11, color: Colors.white),
-                        SizedBox(width: 3),
+                        Icon(Icons.star, size: 14, color: Colors.white),
+                        SizedBox(width: 4),
                         Text('ตรงที่สุด',
                             style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 11,
+                                fontSize: 13,
                                 fontWeight: FontWeight.w600)),
                       ],
                     ),
@@ -360,7 +418,7 @@ class _MatchingPageState extends State<MatchingPage> {
                   padding: const EdgeInsets.symmetric(
                       horizontal: 10, vertical: 4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withOpacity(0.92),
+                    color: Colors.white.withValues(alpha:0.92),
                     borderRadius: BorderRadius.circular(20),
                   ),
                   child: Row(
@@ -387,7 +445,7 @@ class _MatchingPageState extends State<MatchingPage> {
                   child: LinearProgressIndicator(
                     value: matchRatio.clamp(0.0, 1.0),
                     minHeight: 4,
-                    backgroundColor: Colors.white.withOpacity(0.4),
+                    backgroundColor: Colors.white.withValues(alpha:0.4),
                     valueColor:
                         const AlwaysStoppedAnimation<Color>(_brown),
                   ),
@@ -406,39 +464,39 @@ class _MatchingPageState extends State<MatchingPage> {
                     Expanded(
                       child: Text(h['name'],
                           style: const TextStyle(
-                              fontSize: 16,
+                              fontSize: 18,
                               fontWeight: FontWeight.w700,
                               color: _darkBrown)),
                     ),
                     Row(
                       children: [
                         const Icon(Icons.star,
-                            size: 13, color: Color(0xFFFFB300)),
-                        const SizedBox(width: 2),
+                            size: 15, color: Color(0xFFFFB300)),
+                        const SizedBox(width: 4),
                         Text(h['rating'],
                             style: const TextStyle(
-                                fontSize: 12,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600,
                                 color: _darkBrown)),
                       ],
                     ),
                   ],
                 ),
-                const SizedBox(height: 2),
+                const SizedBox(height: 4),
                 Text(h['type'],
                     style: const TextStyle(
-                        fontSize: 12, color: _mutedBrown)),
+                        fontSize: 14, color: _mutedBrown)),
                 const SizedBox(height: 6),
                 // match traits
                 Row(
                   children: [
                     const Icon(Icons.check_circle_outline,
-                        size: 13, color: Color(0xFF4CAF50)),
-                    const SizedBox(width: 4),
+                        size: 15, color: Color(0xFF4CAF50)),
+                    const SizedBox(width: 6),
                     Expanded(
                       child: Text(h['highlight'],
                           style: const TextStyle(
-                              fontSize: 12,
+                              fontSize: 14,
                               color: Color(0xFF4CAF50),
                               fontWeight: FontWeight.w500)),
                     ),
@@ -450,23 +508,23 @@ class _MatchingPageState extends State<MatchingPage> {
                   children: [
                     ...(h['petTypes'] as List<String>).map(
                         (e) => Text(e,
-                            style: const TextStyle(fontSize: 16))),
-                    const SizedBox(width: 6),
+                            style: const TextStyle(fontSize: 20))),
+                    const SizedBox(width: 8),
                     Text('รับได้',
                         style: const TextStyle(
-                            fontSize: 11, color: _mutedBrown)),
+                            fontSize: 13, color: _mutedBrown)),
                     const Spacer(),
                     Text(h['price'],
                         style: const TextStyle(
-                            fontSize: 13,
+                            fontSize: 15,
                             fontWeight: FontWeight.w700,
                             color: _brown)),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     GestureDetector(
                       onTap: () {},
                       child: Container(
                         padding: const EdgeInsets.symmetric(
-                            horizontal: 16, vertical: 7),
+                            horizontal: 20, vertical: 10),
                         decoration: BoxDecoration(
                           color: _brown,
                           borderRadius: BorderRadius.circular(20),
@@ -474,7 +532,7 @@ class _MatchingPageState extends State<MatchingPage> {
                         child: const Text('จอง',
                             style: TextStyle(
                                 color: Colors.white,
-                                fontSize: 12,
+                                fontSize: 14,
                                 fontWeight: FontWeight.w600)),
                       ),
                     ),

@@ -62,13 +62,13 @@ class _NotificationPageState extends State<NotificationPage> {
       'type': 'reminder',
     },
     {
-      'title': 'นัดหมอเตือนความจำ',
-      'body': 'มะม่วงมีนัดตรวจสุขภาพ 15 เม.ย. 68 เวลา 10:00 น.',
+      'title': 'เตือนความจำฝากเลี้ยง',
+      'body': 'คุณมีคิวพามะม่วงไปฝากเลี้ยง พรุ่งนี้เวลา 10:00 น.',
       'time': 'เมื่อวาน',
-      'icon': '🏥',
+      'icon': '🏨',
       'color': const Color(0xFFFFD54F),
       'read': true,
-      'type': 'vet',
+      'type': 'hotel',
     },
     {
       'title': 'วัคซีนครบแล้ว',
@@ -118,10 +118,10 @@ class _NotificationPageState extends State<NotificationPage> {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               const Text('การแจ้งเตือน',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _darkBrown)),
+                  style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
               if (_unread > 0)
                 Text('ยังไม่อ่าน $_unread รายการ',
-                    style: const TextStyle(fontSize: 12, color: _mutedBrown)),
+                    style: const TextStyle(fontSize: 14, color: _mutedBrown)),
             ],
           ),
           const Spacer(),
@@ -131,7 +131,7 @@ class _NotificationPageState extends State<NotificationPage> {
                 for (var n in _notifications) { n['read'] = true; }
               }),
               child: const Text('อ่านทั้งหมด',
-                  style: TextStyle(fontSize: 12, color: _brown, fontWeight: FontWeight.w600)),
+                  style: TextStyle(fontSize: 14, color: _brown, fontWeight: FontWeight.w600)),
             ),
         ],
       ),
@@ -140,7 +140,7 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Widget _buildFilters() {
     return SizedBox(
-      height: 36,
+      height: 40,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
         padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -160,7 +160,7 @@ class _NotificationPageState extends State<NotificationPage> {
               ),
               child: Text(_filters[i],
                   style: TextStyle(
-                    fontSize: 12, fontWeight: FontWeight.w600,
+                    fontSize: 14, fontWeight: FontWeight.w600,
                     color: selected ? Colors.white : _mutedBrown,
                   )),
             ),
@@ -177,9 +177,9 @@ class _NotificationPageState extends State<NotificationPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: const [
-            Text('🔔', style: TextStyle(fontSize: 48)),
+            Text('🔔', style: TextStyle(fontSize: 52)),
             SizedBox(height: 12),
-            Text('ไม่มีการแจ้งเตือน', style: TextStyle(fontSize: 16, color: _mutedBrown)),
+            Text('ไม่มีการแจ้งเตือน', style: TextStyle(fontSize: 18, color: _mutedBrown)),
           ],
         ),
       );
@@ -200,10 +200,10 @@ class _NotificationPageState extends State<NotificationPage> {
         margin: const EdgeInsets.only(bottom: 10),
         padding: const EdgeInsets.all(14),
         decoration: BoxDecoration(
-          color: unread ? Colors.white : _bgCard.withOpacity(0.5),
+          color: unread ? Colors.white : _bgCard.withValues(alpha:0.5),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: unread ? (n['color'] as Color).withOpacity(0.4) : const Color(0xFFD9C5B2),
+            color: unread ? (n['color'] as Color).withValues(alpha:0.4) : const Color(0xFFD9C5B2),
             width: unread ? 1 : 0.5,
           ),
         ),
@@ -211,14 +211,14 @@ class _NotificationPageState extends State<NotificationPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Container(
-              width: 44, height: 44,
+              width: 52, height: 52,
               decoration: BoxDecoration(
-                color: (n['color'] as Color).withOpacity(0.15),
-                borderRadius: BorderRadius.circular(12),
+                color: (n['color'] as Color).withValues(alpha:0.15),
+                borderRadius: BorderRadius.circular(14),
               ),
-              child: Center(child: Text(n['icon'] as String, style: const TextStyle(fontSize: 22))),
+              child: Center(child: Text(n['icon'] as String, style: const TextStyle(fontSize: 26))),
             ),
-            const SizedBox(width: 12),
+            const SizedBox(width: 14),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,23 +228,23 @@ class _NotificationPageState extends State<NotificationPage> {
                       Expanded(
                         child: Text(n['title'] as String,
                             style: TextStyle(
-                              fontSize: 13, fontWeight: unread ? FontWeight.w700 : FontWeight.w500,
+                              fontSize: 15, fontWeight: unread ? FontWeight.w700 : FontWeight.w500,
                               color: _darkBrown,
                             )),
                       ),
                       if (unread)
                         Container(
-                          width: 8, height: 8,
+                          width: 10, height: 10,
                           decoration: BoxDecoration(color: n['color'] as Color, shape: BoxShape.circle),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 3),
-                  Text(n['body'] as String,
-                      style: const TextStyle(fontSize: 12, color: _mutedBrown, height: 1.4)),
                   const SizedBox(height: 4),
+                  Text(n['body'] as String,
+                      style: const TextStyle(fontSize: 14, color: _mutedBrown, height: 1.4)),
+                  const SizedBox(height: 6),
                   Text(n['time'] as String,
-                      style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+                      style: const TextStyle(fontSize: 13, color: _mutedBrown)),
                 ],
               ),
             ),

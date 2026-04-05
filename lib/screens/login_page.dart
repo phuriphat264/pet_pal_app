@@ -125,11 +125,11 @@ class _LoginPageState extends State<LoginPage>
           // Decorative blobs
           Positioned(
             top: -60, right: -60,
-            child: _blob(200, _accent.withOpacity(0.12)),
+            child: _blob(200, _accent.withValues(alpha:0.12)),
           ),
           Positioned(
             bottom: 120, left: -80,
-            child: _blob(240, _brown.withOpacity(0.08)),
+            child: _blob(240, _brown.withValues(alpha:0.08)),
           ),
           // Main content
           FadeTransition(
@@ -188,14 +188,14 @@ class _LoginPageState extends State<LoginPage>
                 width: 96, height: 96,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _brown.withOpacity(0.08),
+                  color: _brown.withValues(alpha:0.08),
                 ),
               ),
               Container(
                 width: 76, height: 76,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: _brown.withOpacity(0.12),
+                  color: _brown.withValues(alpha:0.12),
                 ),
               ),
               Container(
@@ -209,7 +209,7 @@ class _LoginPageState extends State<LoginPage>
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: _brown.withOpacity(0.35),
+                      color: _brown.withValues(alpha:0.35),
                       blurRadius: 18,
                       offset: const Offset(0, 6),
                     ),
@@ -226,7 +226,7 @@ class _LoginPageState extends State<LoginPage>
         const Text(
           'PetPal',
           style: TextStyle(
-            fontSize: 30,
+            fontSize: 32,
             fontWeight: FontWeight.w800,
             color: _darkBrown,
             letterSpacing: -0.5,
@@ -236,7 +236,7 @@ class _LoginPageState extends State<LoginPage>
         const Text(
           'ดูแลลูกรักด้วยใจ',
           style: TextStyle(
-            fontSize: 14,
+            fontSize: 16,
             color: _mutedBrown,
             letterSpacing: 0.2,
           ),
@@ -250,7 +250,7 @@ class _LoginPageState extends State<LoginPage>
     return Container(
       height: 48,
       decoration: BoxDecoration(
-        color: _border.withOpacity(0.4),
+        color: _border.withValues(alpha:0.4),
         borderRadius: BorderRadius.circular(16),
       ),
       padding: const EdgeInsets.all(4),
@@ -265,7 +265,7 @@ class _LoginPageState extends State<LoginPage>
           borderRadius: BorderRadius.circular(12),
           boxShadow: [
             BoxShadow(
-              color: _brown.withOpacity(0.3),
+              color: _brown.withValues(alpha:0.3),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -275,9 +275,9 @@ class _LoginPageState extends State<LoginPage>
         labelColor: Colors.white,
         unselectedLabelColor: _mutedBrown,
         labelStyle: const TextStyle(
-            fontWeight: FontWeight.w700, fontSize: 14, letterSpacing: 0.1),
+            fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 0.1),
         unselectedLabelStyle:
-            const TextStyle(fontWeight: FontWeight.w500, fontSize: 14),
+            const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         dividerColor: Colors.transparent,
         splashFactory: NoSplash.splashFactory,
         overlayColor: WidgetStateProperty.all(Colors.transparent),
@@ -324,24 +324,23 @@ class _LoginPageState extends State<LoginPage>
               ),
             ),
           ),
-          const SizedBox(height: 10),
-          Align(
-            alignment: Alignment.centerRight,
+          const SizedBox(height: 24),
+          _primaryButton(
+            label: 'เข้าสู่ระบบ',
+            onTap: _loading ? null : _onLogin,
+          ),
+          const SizedBox(height: 18),
+          Center(
             child: GestureDetector(
               onTap: () {},
               child: const Text(
                 'ลืมรหัสผ่าน?',
                 style: TextStyle(
-                    fontSize: 12,
+                    fontSize: 14,
                     color: _accent,
                     fontWeight: FontWeight.w600),
               ),
             ),
-          ),
-          const SizedBox(height: 24),
-          _primaryButton(
-            label: 'เข้าสู่ระบบ',
-            onTap: _loading ? null : _onLogin,
           ),
         ],
       ),
@@ -402,8 +401,8 @@ class _LoginPageState extends State<LoginPage>
               Text(
                 'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
                 style: TextStyle(
-                    fontSize: 11,
-                    color: _mutedBrown.withOpacity(0.9)),
+                    fontSize: 13,
+                    color: _mutedBrown.withValues(alpha:0.9)),
               ),
             ],
           ),
@@ -436,7 +435,7 @@ class _LoginPageState extends State<LoginPage>
         border: Border.all(color: _border, width: 1),
         boxShadow: [
           BoxShadow(
-            color: _brown.withOpacity(0.07),
+            color: _brown.withValues(alpha:0.07),
             blurRadius: 24,
             offset: const Offset(0, 8),
           ),
@@ -450,7 +449,7 @@ class _LoginPageState extends State<LoginPage>
     return Text(
       text,
       style: const TextStyle(
-          fontSize: 13,
+          fontSize: 15,
           fontWeight: FontWeight.w600,
           color: _darkBrown,
           letterSpacing: 0.1),
@@ -486,13 +485,13 @@ class _LoginPageState extends State<LoginPage>
           }
         },
         style: const TextStyle(
-            fontSize: 14,
+            fontSize: 16,
             color: _darkBrown,
             fontWeight: FontWeight.w500),
         decoration: InputDecoration(
           prefixIcon: Padding(
             padding: const EdgeInsets.only(left: 4),
-            child: Icon(icon, color: _mutedBrown, size: 18),
+            child: Icon(icon, color: _mutedBrown, size: 20),
           ),
           suffixIcon: trailing != null
               ? Padding(
@@ -503,8 +502,8 @@ class _LoginPageState extends State<LoginPage>
           border: InputBorder.none,
           hintText: hint,
           hintStyle: TextStyle(
-              color: _mutedBrown.withOpacity(0.6),
-              fontSize: 14,
+              color: _mutedBrown.withValues(alpha:0.6),
+              fontSize: 16,
               fontWeight: FontWeight.w400),
           contentPadding:
               const EdgeInsets.symmetric(vertical: 15, horizontal: 4),
@@ -532,7 +531,7 @@ class _LoginPageState extends State<LoginPage>
           decoration: BoxDecoration(
             gradient: onTap == null
                 ? LinearGradient(
-                    colors: [_mutedBrown, _mutedBrown.withOpacity(0.8)])
+                    colors: [_mutedBrown, _mutedBrown.withValues(alpha:0.8)])
                 : const LinearGradient(
                     colors: [Color(0xFF8B5E3C), Color(0xFF5C3218)],
                     begin: Alignment.centerLeft,
@@ -542,7 +541,7 @@ class _LoginPageState extends State<LoginPage>
             boxShadow: onTap != null
                 ? [
                     BoxShadow(
-                      color: _brown.withOpacity(0.35),
+                      color: _brown.withValues(alpha:0.35),
                       blurRadius: 14,
                       offset: const Offset(0, 5),
                     )
@@ -580,8 +579,8 @@ class _LoginPageState extends State<LoginPage>
           child: Text(
             'หรือเข้าสู่ระบบด้วย',
             style: TextStyle(
-                fontSize: 12,
-                color: _mutedBrown.withOpacity(0.8),
+                fontSize: 14,
+                color: _mutedBrown.withValues(alpha:0.8),
                 fontWeight: FontWeight.w500),
           ),
         ),
@@ -623,7 +622,7 @@ class _LoginPageState extends State<LoginPage>
           border: Border.all(color: _border, width: 1),
           boxShadow: [
             BoxShadow(
-              color: _brown.withOpacity(0.05),
+              color: _brown.withValues(alpha:0.05),
               blurRadius: 8,
               offset: const Offset(0, 3),
             ),
@@ -637,7 +636,7 @@ class _LoginPageState extends State<LoginPage>
             Text(
               label,
               style: const TextStyle(
-                  fontSize: 13,
+                  fontSize: 15,
                   fontWeight: FontWeight.w600,
                   color: _darkBrown),
             ),
@@ -654,67 +653,48 @@ class _GoogleLogo extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return CustomPaint(painter: _GooglePainter());
+    return CustomPaint(
+      size: const Size(22, 22),
+      painter: _GoogleGPainter(),
+    );
   }
 }
 
-class _GooglePainter extends CustomPainter {
+class _GoogleGPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
-    final cx = size.width / 2;
-    final cy = size.height / 2;
-    final r  = size.width / 2;
+    final w = size.width;
+    final h = size.height;
+    final rect = Rect.fromLTWH(0, 0, w, h);
+    final paint = Paint()..style = PaintingStyle.fill;
 
-    // Clip to circle
-    canvas.clipPath(Path()..addOval(Rect.fromCircle(center: Offset(cx, cy), radius: r)));
+    // Green Part
+    paint.color = const Color(0xFF34A853);
+    canvas.drawArc(rect, 0.75, 1.25, true, paint);
 
-    // White background
-    canvas.drawCircle(Offset(cx, cy), r,
-        Paint()..color = Colors.white);
+    // Yellow Part
+    paint.color = const Color(0xFFFBBC05);
+    canvas.drawArc(rect, 2.0, 1.15, true, paint);
 
-    // ── Draw G arcs ──────────────────────────────────────────
-    final rect = Rect.fromCircle(center: Offset(cx, cy), radius: r * 0.72);
+    // Red Part
+    paint.color = const Color(0xFFEA4335);
+    canvas.drawArc(rect, 3.15, 1.25, true, paint);
 
-    void arc(double startDeg, double sweepDeg, Color color) {
-      final p = Paint()
-        ..color = color
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = size.width * 0.26
-        ..strokeCap = StrokeCap.butt;
-      final start = startDeg * 3.14159265 / 180;
-      final sweep = sweepDeg * 3.14159265 / 180;
-      canvas.drawArc(rect, start, sweep, false, p);
-    }
+    // Blue Part
+    paint.color = const Color(0xFF4285F4);
+    canvas.drawArc(rect, 4.4, 3, true, paint);
 
-    arc(-12,  102, const Color(0xFF34A853)); // green
-    arc(90,   90,  const Color(0xFFFBBC05)); // yellow
-    arc(180,  90,  const Color(0xFFEA4335)); // red
-    arc(270,  90,  const Color(0xFF4285F4)); // blue
+    // White Center to make it "G"
+    paint.color = Colors.white;
+    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.35, paint);
 
-    // White bar (horizontal arm of G)
-    final barPaint = Paint()..color = Colors.white;
-    canvas.drawRect(
-      Rect.fromLTWH(cx * 0.92, cy - size.height * 0.13,
-          cx * 1.08, size.height * 0.26),
-      barPaint,
-    );
-
-    // Blue filled arc for right side
-    final blueRect = Rect.fromLTRB(
-      cx * 0.92, cy - size.height * 0.13,
-      cx * 2.0,  cy + size.height * 0.13,
-    );
-    canvas.drawArc(
-      blueRect, -0.5, 1.0, false,
-      Paint()
-        ..color = const Color(0xFF4285F4)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = size.height * 0.26,
-    );
+    // Horizontal bar of G
+    paint.color = const Color(0xFF4285F4);
+    canvas.drawRect(Rect.fromLTWH(w / 2, h * 0.42, w / 2, h * 0.16), paint);
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(CustomPainter oldDelegate) => false;
 }
 
 // ─── Facebook Logo ────────────────────────────────────────────
@@ -729,16 +709,7 @@ class _FacebookLogo extends StatelessWidget {
         shape: BoxShape.circle,
       ),
       child: const Center(
-        child: Text(
-          'f',
-          style: TextStyle(
-            color: Colors.white,
-            fontSize: 15,
-            fontWeight: FontWeight.w900,
-            height: 1.15,
-            fontFamily: 'Georgia',
-          ),
-        ),
+        child: Icon(Icons.facebook, color: Colors.white, size: 22),
       ),
     );
   }

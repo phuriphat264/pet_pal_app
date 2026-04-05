@@ -1,5 +1,7 @@
 // lib/screens/hotel_detail_page.dart
+import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'booking_page.dart';
 
 class HotelDetailPage extends StatefulWidget {
   final Map<String, dynamic> hotel;
@@ -18,13 +20,27 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
 
   DateTime? _checkIn;
   DateTime? _checkOut;
-  String _selectedRoom = 'Standard';
+  String? _selectedRoom;
 
-  final _rooms = [
-    {'type': 'Standard', 'price': 0, 'desc': 'ห้องมาตรฐาน AC พร้อมที่นอนนุ่ม'},
-    {'type': 'Deluxe', 'price': 150, 'desc': 'ห้องกว้างพร้อม play area ส่วนตัว'},
-    {'type': 'Suite', 'price': 350, 'desc': 'ห้อง Suite พร้อม Live Cam 24 ชม.'},
-  ];
+  final PageController _pageController = PageController();
+  int _currentImageIndex = 0;
+
+  List<Map<String, dynamic>> get _rooms => 
+      (widget.hotel['rooms'] as List?)?.cast<Map<String, dynamic>>() ?? [];
+
+  @override
+  void initState() {
+    super.initState();
+    if (_rooms.isNotEmpty) {
+      _selectedRoom = _rooms.first['type'] as String;
+    }
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
+  }
 
   int get _nights {
     if (_checkIn == null || _checkOut == null) return 1;
@@ -32,7 +48,11 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   }
 
   int get _basePrice => widget.hotel['price'] as int;
-  int get _roomExtra => (_rooms.firstWhere((r) => r['type'] == _selectedRoom)['price'] as int);
+  int get _roomExtra {
+    if (_selectedRoom == null) return 0;
+    final r = _rooms.firstWhere((r) => r['type'] == _selectedRoom, orElse: () => {'price': 0});
+    return (r['price'] as int?) ?? 0;
+  }
   int get _total => (_basePrice + _roomExtra) * _nights;
 
   @override
@@ -64,35 +84,141 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   }
 
   Widget _buildHero(Map<String, dynamic> hotel, BuildContext context) {
+    final List<String> images = (hotel['images'] as List?)?.cast<String>() ?? 
+        (hotel['image'] != null ? [hotel['image'] as String] : []);
+
     return Stack(
       children: [
-        Container(
+        SizedBox(
           height: 260,
-          color: (hotel['color'] as Color).withOpacity(0.25),
-          child: Center(child: Text(hotel['emoji'], style: const TextStyle(fontSize: 120))),
+          child: images.isEmpty
+              ? Container(
+                  color: (hotel['color'] as Color).withValues(alpha: 0.25),
+                  child: Center(child: Icon(hotel['icon'] as IconData, size: 140, color: _brown)),
+                )
+              : PageView.builder(
+                  controller: _pageController,
+                  onPageChanged: (index) {
+                    setState(() {
+                      _currentImageIndex = index;
+                    });
+                  },
+                  itemCount: images.length,
+                  itemBuilder: (context, index) {
+                    return GestureDetector(
+                      onTap: () => _showFullScreenImage(context, images[index], hotel),
+                      child: Stack(
+                        fit: StackFit.expand,
+                        children: [
+                          Image.asset(
+                            images[index],
+                            fit: BoxFit.cover,
+                            errorBuilder: (context, error, stackTrace) => Container(),
+                          ),
+                          BackdropFilter(
+                            filter: ImageFilter.blur(sigmaX: 10, sigmaY: 10),
+                            child: Container(color: Colors.black.withValues(alpha: 0.2)),
+                          ),
+                          Image.asset(
+                            images[index],
+                            fit: BoxFit.contain,
+                            errorBuilder: (context, error, stackTrace) => Container(
+                              color: (hotel['color'] as Color).withValues(alpha: 0.25),
+                              child: Center(child: Icon(hotel['icon'] as IconData, size: 140, color: _brown)),
+                            ),
+                          ),
+                        ],
+                      ),
+                    );
+                  },
+                ),
         ),
+        if (images.length > 1)
+          Positioned(
+            bottom: 16,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(images.length, (index) {
+                final bool isSelected = _currentImageIndex == index;
+                if (isSelected) {
+                   return const Padding(
+                     padding: EdgeInsets.symmetric(horizontal: 4),
+                     child: Icon(Icons.pets, color: _brown, size: 14),
+                   );
+                }
+                return Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  width: 8, height: 8,
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    shape: BoxShape.circle,
+                  ),
+                );
+              }),
+            ),
+          ),
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
-          left: 12,
+          left: 16,
           child: GestureDetector(
             onTap: () => Navigator.maybePop(context),
             child: Container(
-              width: 36, height: 36,
-              decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), shape: BoxShape.circle),
-              child: const Icon(Icons.chevron_left, color: _brown, size: 20),
+              width: 38, height: 38,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.9), shape: BoxShape.circle),
+              child: const Icon(Icons.chevron_left, color: _brown, size: 22),
             ),
           ),
         ),
         Positioned(
           top: MediaQuery.of(context).padding.top + 8,
-          right: 12,
+          right: 16,
           child: Container(
-            width: 36, height: 36,
-            decoration: BoxDecoration(color: Colors.white.withOpacity(0.9), shape: BoxShape.circle),
-            child: const Icon(Icons.favorite_border, color: _brown, size: 18),
+            width: 38, height: 38,
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha:0.9), shape: BoxShape.circle),
+            child: const Icon(Icons.favorite_border, color: _brown, size: 20),
           ),
         ),
       ],
+    );
+  }
+
+  void _showFullScreenImage(BuildContext context, String imageUrl, Map<String, dynamic> hotel) {
+    showDialog(
+      context: context,
+      builder: (ctx) => Dialog(
+        backgroundColor: Colors.transparent,
+        insetPadding: EdgeInsets.zero,
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
+            GestureDetector(
+              onTap: () => Navigator.pop(ctx),
+              child: Container(color: Colors.black87),
+            ),
+            InteractiveViewer(
+              panEnabled: true,
+              minScale: 0.5,
+              maxScale: 4,
+              child: Image.asset(
+                imageUrl,
+                fit: BoxFit.contain,
+                errorBuilder: (context, error, stackTrace) => Center(
+                  child: Icon(hotel['icon'] as IconData, size: 140, color: Colors.white54),
+                ),
+              ),
+            ),
+            Positioned(
+              top: 40, right: 20,
+              child: IconButton(
+                icon: const Icon(Icons.close, color: Colors.white, size: 30),
+                onPressed: () => Navigator.pop(ctx),
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -110,18 +236,23 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(hotel['name'],
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-                    const SizedBox(height: 4),
+                        style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
+                    const SizedBox(height: 6),
                     Row(
                       children: [
-                        const Icon(Icons.location_on, size: 13, color: _mutedBrown),
-                        const SizedBox(width: 2),
+                        const Icon(Icons.location_on, size: 16, color: _mutedBrown),
+                        const SizedBox(width: 4),
                         Text(hotel['location'],
-                            style: const TextStyle(fontSize: 13, color: _mutedBrown)),
+                            style: const TextStyle(fontSize: 15, color: _mutedBrown)),
                         Text(' · ${hotel['distance']}',
-                            style: const TextStyle(fontSize: 13, color: _mutedBrown)),
+                            style: const TextStyle(fontSize: 15, color: _mutedBrown)),
                       ],
                     ),
+                    const SizedBox(height: 12),
+                    if (hotel['available'] as bool)
+                      _tag('ว่างอยู่', green: true, icon: Icons.circle)
+                    else
+                      _tag('เต็มแล้ว', red: true, icon: Icons.remove_circle),
                   ],
                 ),
               ),
@@ -130,14 +261,14 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                 children: [
                   Row(
                     children: [
-                      const Icon(Icons.star, size: 14, color: Color(0xFFFFC107)),
-                      const SizedBox(width: 2),
+                      const Icon(Icons.star, size: 16, color: Color(0xFFFFC107)),
+                      const SizedBox(width: 4),
                       Text('${hotel['rating']}',
-                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _darkBrown)),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
                     ],
                   ),
                   Text('${hotel['reviews']} รีวิว',
-                      style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+                      style: const TextStyle(fontSize: 13, color: _mutedBrown)),
                 ],
               ),
             ],
@@ -147,36 +278,39 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
             spacing: 8, runSpacing: 6,
             children: [
               ...(hotel['tags'] as List<String>).map((t) => _tag(t)),
-              if (hotel['available'] as bool)
-                _tag('✅ ว่างอยู่', green: true)
-              else
-                _tag('❌ เต็มแล้ว', red: true),
             ],
           ),
           const SizedBox(height: 16),
           const Text('เกี่ยวกับสถานที่',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _darkBrown)),
-          const SizedBox(height: 8),
-          const Text(
-            'เราดูแลน้องของคุณเหมือนลูกตัวเอง มีทีมผู้เชี่ยวชาญดูแลตลอด 24 ชั่วโมง '
-            'พร้อมระบบกล้องวงจรปิดให้คุณติดตามน้องได้ตลอดเวลา สิ่งอำนวยความสะดวกครบครัน '
-            'อาหารสด น้ำสะอาด และพื้นที่พักผ่อนที่สะอาดสบาย',
-            style: TextStyle(fontSize: 13, color: _mutedBrown, height: 1.6),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _darkBrown)),
+          const SizedBox(height: 10),
+          Text(
+            (hotel['description'] as String?) ?? 'ไม่มีรายละเอียดเพิ่มเติม',
+            style: const TextStyle(fontSize: 15, color: _mutedBrown, height: 1.6),
           ),
         ],
       ),
     );
   }
 
-  Widget _tag(String text, {bool green = false, bool red = false}) {
+  Widget _tag(String text, {bool green = false, bool red = false, IconData? icon}) {
     Color bg = _bgCard;
     Color fg = _brown;
     if (green) { bg = const Color(0xFFE8F5E9); fg = const Color(0xFF2E7D32); }
     if (red) { bg = const Color(0xFFFFEBEE); fg = const Color(0xFFC62828); }
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
       decoration: BoxDecoration(color: bg, borderRadius: BorderRadius.circular(10)),
-      child: Text(text, style: TextStyle(fontSize: 11, color: fg, fontWeight: FontWeight.w600)),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          if (icon != null) ...[
+            Icon(icon, size: 12, color: fg),
+            const SizedBox(width: 4),
+          ],
+          Text(text, style: TextStyle(fontSize: 13, color: fg, fontWeight: FontWeight.w600)),
+        ],
+      ),
     );
   }
 
@@ -187,8 +321,8 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('เลือกประเภทห้อง',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _darkBrown)),
-          const SizedBox(height: 10),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _darkBrown)),
+          const SizedBox(height: 14),
           ..._rooms.map((r) {
             final selected = r['type'] == _selectedRoom;
             return GestureDetector(
@@ -198,7 +332,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                 margin: const EdgeInsets.only(bottom: 8),
                 padding: const EdgeInsets.all(14),
                 decoration: BoxDecoration(
-                  color: selected ? _brown.withOpacity(0.08) : Colors.white,
+                  color: selected ? _brown.withValues(alpha:0.08) : Colors.white,
                   borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: selected ? _brown : const Color(0xFFD9C5B2),
@@ -224,16 +358,16 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(r['type'] as String,
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _darkBrown)),
+                              style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: _darkBrown)),
                           Text(r['desc'] as String,
-                              style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+                              style: const TextStyle(fontSize: 13, color: _mutedBrown)),
                         ],
                       ),
                     ),
                     Text(
                       (r['price'] as int) == 0 ? 'รวมอยู่แล้ว' : '+฿${r['price']}/คืน',
                       style: TextStyle(
-                        fontSize: 12, fontWeight: FontWeight.w600,
+                        fontSize: 14, fontWeight: FontWeight.w600,
                         color: (r['price'] as int) == 0 ? _mutedBrown : _brown,
                       ),
                     ),
@@ -254,8 +388,8 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('เลือกวันที่',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _darkBrown)),
-          const SizedBox(height: 10),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _darkBrown)),
+          const SizedBox(height: 14),
           Row(
             children: [
               Expanded(child: _dateBox('เช็คอิน', _checkIn, () => _pickDate(true))),
@@ -266,7 +400,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
           if (_checkIn != null && _checkOut != null) ...[
             const SizedBox(height: 8),
             Text('รวม $_nights คืน',
-                style: const TextStyle(fontSize: 12, color: _mutedBrown)),
+                style: const TextStyle(fontSize: 14, color: _mutedBrown)),
           ],
         ],
       ),
@@ -286,12 +420,12 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(label, style: const TextStyle(fontSize: 11, color: _mutedBrown)),
-            const SizedBox(height: 4),
+            Text(label, style: const TextStyle(fontSize: 13, color: _mutedBrown)),
+            const SizedBox(height: 6),
             Text(
               date == null ? 'เลือกวัน' : '${date.day}/${date.month}/${date.year}',
               style: TextStyle(
-                fontSize: 14, fontWeight: FontWeight.w600,
+                fontSize: 16, fontWeight: FontWeight.w600,
                 color: date == null ? _mutedBrown : _darkBrown,
               ),
             ),
@@ -340,8 +474,8 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('รีวิวจากผู้ใช้',
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: _darkBrown)),
-          const SizedBox(height: 10),
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600, color: _darkBrown)),
+          const SizedBox(height: 14),
           ...reviews.map((r) => Container(
             margin: const EdgeInsets.only(bottom: 10),
             padding: const EdgeInsets.all(14),
@@ -355,28 +489,28 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
               children: [
                 Row(
                   children: [
-                    CircleAvatar(
-                      radius: 14,
-                      backgroundColor: const Color(0xFFEDE2D5),
-                      child: Text(
-                        (r['name'] as String).characters.last,
-                        style: const TextStyle(fontSize: 12, color: _brown, fontWeight: FontWeight.w600),
+                      CircleAvatar(
+                        radius: 16,
+                        backgroundColor: const Color(0xFFEDE2D5),
+                        child: Text(
+                          (r['name'] as String).characters.last,
+                          style: const TextStyle(fontSize: 14, color: _brown, fontWeight: FontWeight.w600),
+                        ),
                       ),
-                    ),
-                    const SizedBox(width: 8),
-                    Text(r['name'] as String,
-                        style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _darkBrown)),
-                    const Spacer(),
-                    Row(
-                      children: List.generate(r['rating'] as int, (_) =>
-                          const Icon(Icons.star, size: 12, color: Color(0xFFFFC107))),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 6),
-                Text(r['comment'] as String,
-                    style: const TextStyle(fontSize: 12, color: _mutedBrown, height: 1.5)),
-              ],
+                      const SizedBox(width: 10),
+                      Text(r['name'] as String,
+                          style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _darkBrown)),
+                      const Spacer(),
+                      Row(
+                        children: List.generate(r['rating'] as int, (_) =>
+                            const Icon(Icons.star, size: 14, color: Color(0xFFFFC107))),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(r['comment'] as String,
+                      style: const TextStyle(fontSize: 14, color: _mutedBrown, height: 1.5)),
+                ],
             ),
           )),
         ],
@@ -390,7 +524,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
       padding: const EdgeInsets.fromLTRB(20, 12, 20, 28),
       decoration: BoxDecoration(
         color: Colors.white,
-        boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.08), blurRadius: 20, offset: const Offset(0, -4))],
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.08), blurRadius: 20, offset: const Offset(0, -4))],
       ),
       child: Row(
         children: [
@@ -399,23 +533,23 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Text('฿$_total',
-                  style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _darkBrown)),
-              Text('$_nights คืน · ${_selectedRoom}',
-                  style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+                  style: const TextStyle(fontSize: 26, fontWeight: FontWeight.w700, color: _darkBrown)),
+              Text('$_nights คืน${_selectedRoom != null ? ' · $_selectedRoom' : ''}',
+                  style: const TextStyle(fontSize: 14, color: _mutedBrown)),
             ],
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 20),
           Expanded(
             child: ElevatedButton(
               onPressed: available ? _onBook : null,
               style: ElevatedButton.styleFrom(
                 backgroundColor: available ? _brown : Colors.grey,
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 16),
               ),
               child: Text(
                 available ? 'จองเลย' : 'เต็มแล้ว',
-                style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w600),
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w600),
               ),
             ),
           ),
@@ -425,50 +559,15 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   }
 
   void _onBook() {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: const Color(0xFFF5EFE8),
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: const Text('ยืนยันการจอง', style: TextStyle(color: _darkBrown, fontWeight: FontWeight.w700)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(widget.hotel['name'] as String,
-                style: const TextStyle(fontWeight: FontWeight.w600, color: _darkBrown)),
-            const SizedBox(height: 4),
-            Text('ห้อง $_selectedRoom · $_nights คืน',
-                style: const TextStyle(color: _mutedBrown, fontSize: 13)),
-            const SizedBox(height: 4),
-            Text('ยอดรวม ฿$_total',
-                style: const TextStyle(color: _brown, fontWeight: FontWeight.w700, fontSize: 16)),
-          ],
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (_) => BookingPage(
+          hotel: widget.hotel,
+          roomType: _selectedRoom ?? 'Standard',
+          nights: _nights,
+          total: _total,
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('ยกเลิก', style: TextStyle(color: _mutedBrown)),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: _brown,
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-            ),
-            onPressed: () {
-              Navigator.pop(ctx);
-              Navigator.pop(context);
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('🎉 จองสำเร็จ! น้องจะถูกดูแลอย่างดี'),
-                  backgroundColor: _brown,
-                  duration: Duration(seconds: 3),
-                ),
-              );
-            },
-            child: const Text('ยืนยัน', style: TextStyle(color: Colors.white)),
-          ),
-        ],
       ),
     );
   }

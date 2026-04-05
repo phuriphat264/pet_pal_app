@@ -27,7 +27,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
       'age': '3 ปี',
       'weight': '28 กก.',
       'height': '60 ซม.',
-      'emoji': '🐶',
+      'icon': Icons.pets_rounded,
       'color': const Color(0xFFD4956A),
       'gender': 'ชาย',
       'dob': '12 มี.ค. 65',
@@ -66,7 +66,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
       'age': '5 ปี',
       'weight': '8 กก.',
       'height': '35 ซม.',
-      'emoji': '🐩',
+      'icon': Icons.pets_rounded,
       'color': const Color(0xFF6B4F3A),
       'gender': 'หญิง',
       'dob': '3 พ.ค. 63',
@@ -107,6 +107,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
         child: SingleChildScrollView(
           child: Column(
             children: [
+              _buildOwnerSection(),
               _buildHeader(pet),
               _buildPetSelector(),
               _buildHealthCards(pet),
@@ -115,7 +116,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
               _buildInfoSection(pet),
               _buildMedHistorySection(pet),
               _buildVetSection(pet),
-              const SizedBox(height: 24),
+              const SizedBox(height: 32),
             ],
           ),
         ),
@@ -133,7 +134,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('โปรไฟล์น้อง',
-                  style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _darkBrown)),
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
               GestureDetector(
                 onTap: _showAddPetSheet,
                 child: Container(
@@ -141,13 +142,13 @@ class _PetProfilePageState extends State<PetProfilePage> {
                   decoration: BoxDecoration(
                     color: _brown,
                     borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: _brown.withOpacity(0.3), blurRadius: 8, offset: const Offset(0, 3))],
+                    boxShadow: [BoxShadow(color: _brown.withValues(alpha:0.3), blurRadius: 8, offset: const Offset(0, 3))],
                   ),
                   child: const Row(
                     children: [
-                      Icon(Icons.add, color: Colors.white, size: 14),
+                      Icon(Icons.add, color: Colors.white, size: 16),
                       SizedBox(width: 4),
-                      Text('+ เพิ่มน้อง', style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                      Text('เพิ่มน้อง', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
                     ],
                   ),
                 ),
@@ -162,23 +163,23 @@ class _PetProfilePageState extends State<PetProfilePage> {
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [
-                  (pet['color'] as Color).withOpacity(0.2),
-                  (pet['color'] as Color).withOpacity(0.08),
+                  (pet['color'] as Color).withValues(alpha:0.2),
+                  (pet['color'] as Color).withValues(alpha:0.08),
                 ],
               ),
               borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: (pet['color'] as Color).withOpacity(0.2)),
+              border: Border.all(color: (pet['color'] as Color).withValues(alpha:0.2)),
             ),
             child: Row(
               children: [
                 Container(
                   width: 84, height: 84,
                   decoration: BoxDecoration(
-                    color: (pet['color'] as Color).withOpacity(0.25),
+                    color: (pet['color'] as Color).withValues(alpha:0.25),
                     shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: (pet['color'] as Color).withOpacity(0.3), blurRadius: 12, offset: const Offset(0, 4))],
+                    boxShadow: [BoxShadow(color: (pet['color'] as Color).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 4))],
                   ),
-                  child: Center(child: Text(pet['emoji'], style: const TextStyle(fontSize: 46))),
+                  child: Center(child: Icon(pet['icon'] as IconData, size: 46, color: _brown)),
                 ),
                 const SizedBox(width: 16),
                 Expanded(
@@ -186,13 +187,13 @@ class _PetProfilePageState extends State<PetProfilePage> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(pet['name'],
-                          style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _darkBrown)),
+                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
                       const SizedBox(height: 2),
                       Text(pet['breed'],
-                          style: const TextStyle(fontSize: 13, color: _mutedBrown)),
+                          style: const TextStyle(fontSize: 15, color: _mutedBrown)),
                       const SizedBox(height: 4),
                       Text('เกิด ${pet['dob']}',
-                          style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+                          style: const TextStyle(fontSize: 13, color: _mutedBrown)),
                       const SizedBox(height: 8),
                       Wrap(
                         spacing: 5, runSpacing: 4,
@@ -227,10 +228,10 @@ class _PetProfilePageState extends State<PetProfilePage> {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.12),
+        color: color.withValues(alpha:0.12),
         borderRadius: BorderRadius.circular(10),
       ),
-      child: Text(text, style: TextStyle(fontSize: 10, color: color, fontWeight: FontWeight.w600)),
+      child: Text(text, style: TextStyle(fontSize: 12, color: color, fontWeight: FontWeight.w600)),
     );
   }
 
@@ -254,10 +255,10 @@ class _PetProfilePageState extends State<PetProfilePage> {
               ),
               child: Row(
                 children: [
-                  Text(_pets[i]['emoji'], style: const TextStyle(fontSize: 14)),
+                  Icon(_pets[i]['icon'] as IconData, size: 18, color: selected ? Colors.white : _mutedBrown),
                   const SizedBox(width: 6),
                   Text(_pets[i]['name'],
-                      style: TextStyle(fontSize: 12, fontWeight: FontWeight.w600,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
                           color: selected ? Colors.white : _mutedBrown)),
                 ],
               ),
@@ -276,32 +277,32 @@ class _PetProfilePageState extends State<PetProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('สุขภาพ',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _darkBrown)),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
           const SizedBox(height: 10),
           GridView.count(
             crossAxisCount: 2, shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
             crossAxisSpacing: 10, mainAxisSpacing: 10,
-            childAspectRatio: 2.3,
+            childAspectRatio: 1.8,
             children: (pet['health'] as List).map((h) => Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(14),
-                boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
               ),
               child: Row(
                 children: [
-                  Text(h['icon'], style: const TextStyle(fontSize: 20)),
+                  Text(h['icon'], style: const TextStyle(fontSize: 24)),
                   const SizedBox(width: 8),
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Text(h['value'],
-                          style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _darkBrown)),
+                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
                       Text(h['label'],
-                          style: const TextStyle(fontSize: 10, color: _mutedBrown)),
+                          style: const TextStyle(fontSize: 13, color: _mutedBrown)),
                     ],
                   ),
                 ],
@@ -328,17 +329,17 @@ class _PetProfilePageState extends State<PetProfilePage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Row(
               children: [
-                Text('🐾', style: TextStyle(fontSize: 16)),
+                Text('🐾', style: TextStyle(fontSize: 20)),
                 SizedBox(width: 6),
                 Text('นิสัยน้อง',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _darkBrown)),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
               ],
             ),
             const SizedBox(height: 12),
@@ -354,9 +355,9 @@ class _PetProfilePageState extends State<PetProfilePage> {
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    Text(traitEmojis[t] ?? '✨', style: const TextStyle(fontSize: 13)),
+                    Text(traitEmojis[t] ?? '✨', style: const TextStyle(fontSize: 16)),
                     const SizedBox(width: 5),
-                    Text(t, style: const TextStyle(fontSize: 12, color: _brown, fontWeight: FontWeight.w600)),
+                    Text(t, style: const TextStyle(fontSize: 14, color: _brown, fontWeight: FontWeight.w600)),
                   ],
                 ),
               )).toList(),
@@ -375,23 +376,23 @@ class _PetProfilePageState extends State<PetProfilePage> {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           const Text('กิจกรรมวันนี้',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _darkBrown)),
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
           const SizedBox(height: 10),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
               borderRadius: BorderRadius.circular(16),
-              boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceAround,
               children: (pet['activities'] as List).map((a) => Column(
                 children: [
                   Text(a['value'],
-                      style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
+                      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
                   const SizedBox(height: 2),
-                  Text(a['label'], style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+                  Text(a['label'], style: const TextStyle(fontSize: 14, color: _mutedBrown)),
                 ],
               )).toList(),
             ),
@@ -410,17 +411,17 @@ class _PetProfilePageState extends State<PetProfilePage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Row(
               children: [
-                Text('📋', style: TextStyle(fontSize: 16)),
+                Text('📋', style: TextStyle(fontSize: 20)),
                 SizedBox(width: 6),
                 Text('ข้อมูลทั่วไป',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _darkBrown)),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
               ],
             ),
             const SizedBox(height: 12),
@@ -442,9 +443,9 @@ class _PetProfilePageState extends State<PetProfilePage> {
       padding: const EdgeInsets.symmetric(vertical: 7),
       child: Row(
         children: [
-          Text(label, style: const TextStyle(fontSize: 13, color: _mutedBrown)),
+          Text(label, style: const TextStyle(fontSize: 15, color: _mutedBrown)),
           const Spacer(),
-          Text(value, style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _darkBrown)),
+          Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _darkBrown)),
         ],
       ),
     );
@@ -460,17 +461,17 @@ class _PetProfilePageState extends State<PetProfilePage> {
         decoration: BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.circular(16),
-          boxShadow: [BoxShadow(color: Colors.black.withOpacity(0.05), blurRadius: 8, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Row(
               children: [
-                Text('🏥', style: TextStyle(fontSize: 16)),
+                Text('🏥', style: TextStyle(fontSize: 20)),
                 SizedBox(width: 6),
                 Text('ประวัติการรักษา',
-                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _darkBrown)),
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
               ],
             ),
             const SizedBox(height: 12),
@@ -507,19 +508,19 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(h['event'],
-                              style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w600, color: _darkBrown)),
-                          const SizedBox(height: 3),
+                              style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _darkBrown)),
+                          const SizedBox(height: 5),
                           Row(
                             children: [
-                              const Icon(Icons.calendar_today_outlined, size: 11, color: _mutedBrown),
+                              const Icon(Icons.calendar_today_outlined, size: 14, color: _mutedBrown),
                               const SizedBox(width: 4),
-                              Text(h['date'], style: const TextStyle(fontSize: 11, color: _mutedBrown)),
+                              Text(h['date'], style: const TextStyle(fontSize: 13, color: _mutedBrown)),
                               const SizedBox(width: 8),
-                              const Icon(Icons.local_hospital_outlined, size: 11, color: _mutedBrown),
+                              const Icon(Icons.local_hospital_outlined, size: 14, color: _mutedBrown),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(h['vet'],
-                                    style: const TextStyle(fontSize: 11, color: _mutedBrown),
+                                    style: const TextStyle(fontSize: 13, color: _mutedBrown),
                                     overflow: TextOverflow.ellipsis),
                               ),
                             ],
@@ -546,29 +547,29 @@ class _PetProfilePageState extends State<PetProfilePage> {
         decoration: BoxDecoration(
           color: const Color(0xFFFFF8E1),
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFFFD700).withOpacity(0.4), width: 0.5),
-          boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withOpacity(0.15), blurRadius: 8, offset: const Offset(0, 3))],
+          border: Border.all(color: const Color(0xFFFFD700).withValues(alpha:0.4), width: 0.5),
+          boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withValues(alpha:0.15), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         child: Row(
           children: [
             Container(
-              width: 48, height: 48,
+              width: 56, height: 56,
               decoration: BoxDecoration(
                 color: const Color(0xFFFFE082),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.medical_services_outlined, color: Color(0xFF8B6914), size: 24),
+              child: const Icon(Icons.hotel_rounded, color: Color(0xFF8B6914), size: 28),
             ),
             const SizedBox(width: 12),
             Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const Text('นัดหมอครั้งต่อไป',
-                    style: TextStyle(fontSize: 12, color: Color(0xFF8B6914))),
-                Text(pet['nextVet'],
-                    style: const TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: Color(0xFF5A3E0A))),
-                Text('ครั้งล่าสุด: ${pet['lastVet']}',
-                    style: const TextStyle(fontSize: 11, color: Color(0xFF9B7A2A))),
+                const Text('รอบฝากเลี้ยงถัดไป',
+                    style: TextStyle(fontSize: 14, color: Color(0xFF8B6914))),
+                const Text('15 เม.ย. นี้',
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF5A3E0A))),
+                const Text('ที่ Paw Paradise Resort',
+                    style: TextStyle(fontSize: 13, color: Color(0xFF9B7A2A))),
               ],
             ),
             const Spacer(),
@@ -578,13 +579,13 @@ class _PetProfilePageState extends State<PetProfilePage> {
                     backgroundColor: Color(0xFF5C3D2E), duration: Duration(seconds: 1)),
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
                 decoration: BoxDecoration(
                   color: const Color(0xFF8B6914),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text('ตั้งเตือน',
-                    style: TextStyle(color: Colors.white, fontSize: 12, fontWeight: FontWeight.w600)),
+                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -778,6 +779,95 @@ class _PetProfilePageState extends State<PetProfilePage> {
             ),
           ),
         ),
+      ),
+    );
+  }
+
+  // ── Owner Section ─────────────────────────────────────────────
+  Widget _buildOwnerSection() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('โปรไฟล์เจ้าของ',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(20),
+              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 10, offset: const Offset(0, 4))],
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Container(
+                      width: 60, height: 60,
+                      decoration: const BoxDecoration(
+                        color: _brown,
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Center(child: Icon(Icons.pets_rounded, color: Colors.white, size: 32)),
+                    ),
+                    const SizedBox(width: 16),
+                    const Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text('คุณภูริภัทร',
+                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+                          Text('Pet Owner (Premium Member)',
+                              style: TextStyle(fontSize: 13, color: _mutedBrown)),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      onPressed: () {},
+                      icon: const Icon(Icons.edit_outlined, color: _brown, size: 20),
+                    ),
+                  ],
+                ),
+                const Divider(height: 24, color: _bgCream),
+                _ownerActionTile(Icons.assignment_ind_outlined, 'ข้อมูลบัญชี'),
+                _ownerActionTile(Icons.payment_rounded, 'วิธีการชำระเงิน'),
+                _ownerActionTile(Icons.settings_outlined, 'การตั้งค่าระบบ'),
+                const SizedBox(height: 12),
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                    icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
+                    label: const Text('ออกจากระบบ',
+                        style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
+                    style: OutlinedButton.styleFrom(
+                      side: const BorderSide(color: Colors.redAccent, width: 1.2),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _ownerActionTile(IconData icon, String title) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        children: [
+          Icon(icon, size: 20, color: _brown),
+          const SizedBox(width: 12),
+          Text(title, style: const TextStyle(fontSize: 15, color: _darkBrown, fontWeight: FontWeight.w500)),
+          const Spacer(),
+          const Icon(Icons.chevron_right_rounded, size: 20, color: _mutedBrown),
+        ],
       ),
     );
   }
