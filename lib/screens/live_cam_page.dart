@@ -36,7 +36,7 @@ class _LiveCamPageState extends State<LiveCamPage>
 
   // กล้องเดียว — ห้องที่น้องอยู่
   static const String _camImageUrl =
-      'https://images.unsplash.com/photo-1587300003388-59208cc962cb?w=800&q=80';
+      'https://kokonineko.com/wp-content/uploads/2024/03/434235698_122132470202162758_5344790025885926614_n.jpg';
   static const String _roomLabel = 'ห้องนอน';
   static const String _petStatus = 'กำลังนอนพักผ่อน';
   static const bool   _isSafe    = true;

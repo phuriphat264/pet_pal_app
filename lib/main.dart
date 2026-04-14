@@ -148,7 +148,7 @@ class HomePage extends StatelessWidget {
               const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('สวัสดี, คุณภูริภัทร 👋',
+                  Text('สวัสดี, คุณภูริพัตร 👋',
                       style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
                   Text('วันนี้น้องของคุณเป็นอย่างไรบ้าง?',
                       style: TextStyle(fontSize: 14, color: _mutedBrown)),
