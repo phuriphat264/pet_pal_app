@@ -1,11 +1,12 @@
-// lib/screens/booking_page.dart
 import 'package:flutter/material.dart';
+import '../data/hotel_data.dart';
 
 class BookingPage extends StatefulWidget {
   final Map<String, dynamic>? hotel;
   final String roomType;
   final int nights;
   final int total;
+  final String? matchingPrompt;
 
   const BookingPage({
     super.key,
@@ -13,6 +14,7 @@ class BookingPage extends StatefulWidget {
     this.roomType = 'Standard',
     this.nights = 3,
     this.total = 1350,
+    this.matchingPrompt,
   });
 
   @override
@@ -32,12 +34,13 @@ class _BookingPageState extends State<BookingPage> {
   Widget build(BuildContext context) {
     // กำหนดข้อมูล Hotel Mockup สำหรับกรณีไม่ได้ส่งมา
     final hotel = widget.hotel ?? {
-      'name': 'Paw Paradise Resort',
-      'location': 'สุขุมวิท, กรุงเทพ',
-      'icon': Icons.holiday_village_rounded,
+      'name': 'โรงพยาบาลสัตว์แผ่นดินทอง',
+      'location': 'จันทบุรี',
+      'icon': Icons.local_hospital_rounded,
       'color': const Color(0xFF7CB9A8),
-      'rating': 4.9,
-      'reviews': 128,
+      'rating': 4.8,
+      'reviews': 120,
+      'images': ['assets/images/hotel1_1.jpg'],
     };
 
     return Scaffold(
@@ -121,7 +124,29 @@ class _BookingPageState extends State<BookingPage> {
               color: (hotel['color'] as Color).withValues(alpha:0.2),
               borderRadius: BorderRadius.circular(16),
             ),
-            child: Center(child: Icon(hotel['icon'] as IconData, size: 40, color: _brown)),
+            child: Builder(
+              builder: (context) {
+                final List<String> images = (hotel['images'] as List?)?.cast<String>() ?? 
+                    (hotel['image'] != null ? [hotel['image'] as String] : []);
+                final String? coverImage = images.isNotEmpty ? images.first : null;
+                
+                if (coverImage != null) {
+                  return ClipRRect(
+                    borderRadius: BorderRadius.circular(16),
+                    child: Image.asset(
+                      coverImage,
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                      errorBuilder: (context, error, stackTrace) => Center(
+                        child: Icon(hotel['icon'] as IconData, size: 40, color: _brown),
+                      ),
+                    ),
+                  );
+                }
+                return Center(child: Icon(hotel['icon'] as IconData?, size: 40, color: _brown));
+              }
+            ),
           ),
           const SizedBox(width: 16),
           Expanded(
@@ -294,13 +319,17 @@ class _BookingPageState extends State<BookingPage> {
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
-        child: const Text('ชำระเงิน ฿1,350',
-            style: TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+        child: Text('ชำระเงิน ฿${widget.total}',
+            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
       ),
     );
   }
 
   void _onPay() {
+    // Add to global active bookings
+    if (widget.hotel != null) {
+      addBooking(widget.hotel!, matchingPrompt: widget.matchingPrompt);
+    }
     showDialog(
       context: context,
       barrierDismissible: false,

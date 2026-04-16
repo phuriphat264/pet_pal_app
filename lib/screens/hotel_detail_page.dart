@@ -5,7 +5,8 @@ import 'booking_page.dart';
 
 class HotelDetailPage extends StatefulWidget {
   final Map<String, dynamic> hotel;
-  const HotelDetailPage({super.key, required this.hotel});
+  final String? matchingPrompt;
+  const HotelDetailPage({super.key, required this.hotel, this.matchingPrompt});
 
   @override
   State<HotelDetailPage> createState() => _HotelDetailPageState();
@@ -567,6 +568,7 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
           roomType: _selectedRoom ?? 'Standard',
           nights: _nights,
           total: _total,
+          matchingPrompt: widget.matchingPrompt,
         ),
       ),
     );

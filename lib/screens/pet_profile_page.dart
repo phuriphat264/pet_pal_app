@@ -27,6 +27,8 @@ class _PetProfilePageState extends State<PetProfilePage> {
       'age': '3 ปี',
       'weight': '28 กก.',
       'height': '60 ซม.',
+      'temp': '38.5°C',
+      'heartRate': '80 bpm',
       'icon': Icons.pets_rounded,
       'color': const Color(0xFFD4956A),
       'gender': 'ชาย',
@@ -66,6 +68,8 @@ class _PetProfilePageState extends State<PetProfilePage> {
       'age': '5 ปี',
       'weight': '8 กก.',
       'height': '35 ซม.',
+      'temp': '38.2°C',
+      'heartRate': '90 bpm',
       'icon': Icons.pets_rounded,
       'color': const Color(0xFF6B4F3A),
       'gender': 'หญิง',
@@ -103,22 +107,33 @@ class _PetProfilePageState extends State<PetProfilePage> {
     final pet = _pets[_selectedPet];
     return Scaffold(
       backgroundColor: _bgCream,
-      body: SafeArea(
-        child: SingleChildScrollView(
-          child: Column(
-            children: [
-              _buildOwnerSection(),
-              _buildHeader(pet),
-              _buildPetSelector(),
-              _buildHealthCards(pet),
-              _buildTraitsSection(pet),
-              _buildActivitySection(pet),
-              _buildInfoSection(pet),
-              _buildMedHistorySection(pet),
-              _buildVetSection(pet),
-              const SizedBox(height: 32),
-            ],
-          ),
+      body: SingleChildScrollView(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildTopBanner(),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  _buildHeader(pet),
+                  _buildSectionHeader('🏥 สุขภาพและร่างกาย'),
+                  _buildHealthCards(pet),
+                  _buildTraitsSection(pet),
+                  _buildSectionHeader('⚡ กิจกรรมและการนอน'),
+                  _buildActivitySection(pet),
+                  _buildSectionHeader('📋 ข้อมูลทั่วไป'),
+                  _buildInfoSection(pet),
+                  _buildSectionHeader('🏥 ประวัติการรักษา'),
+                  _buildMedHistorySection(pet),
+                  _buildVetSection(pet),
+                ],
+              ),
+            ),
+            const SizedBox(height: 32),
+          ],
         ),
       ),
     );
@@ -126,101 +141,93 @@ class _PetProfilePageState extends State<PetProfilePage> {
 
   // ── Header ────────────────────────────────────────────────────
   Widget _buildHeader(Map<String, dynamic> pet) {
-    return Container(
-      padding: const EdgeInsets.fromLTRB(20, 16, 20, 20),
-      child: Column(
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              const Text('โปรไฟล์น้อง',
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-              GestureDetector(
-                onTap: _showAddPetSheet,
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                  decoration: BoxDecoration(
-                    color: _brown,
-                    borderRadius: BorderRadius.circular(20),
-                    boxShadow: [BoxShadow(color: _brown.withValues(alpha:0.3), blurRadius: 8, offset: const Offset(0, 3))],
-                  ),
-                  child: const Row(
-                    children: [
-                      Icon(Icons.add, color: Colors.white, size: 16),
-                      SizedBox(width: 4),
-                      Text('เพิ่มน้อง', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
-                    ],
-                  ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
+          children: [
+            _buildSectionHeader('🐾 โปรไฟล์น้อง'),
+            GestureDetector(
+              onTap: _showAddPetSheet,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: _brown,
+                  borderRadius: BorderRadius.circular(20),
+                  boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))],
+                ),
+                child: const Row(
+                  children: [
+                    Icon(Icons.add, color: Colors.white, size: 16),
+                    SizedBox(width: 4),
+                    Text('เพิ่มน้อง', style: TextStyle(color: Colors.white, fontSize: 14, fontWeight: FontWeight.w600)),
+                  ],
                 ),
               ),
-            ],
+            ),
+          ],
+        ),
+        Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.circular(24),
+            boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, 4))],
           ),
-          const SizedBox(height: 16),
-          Container(
-            padding: const EdgeInsets.all(20),
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  (pet['color'] as Color).withValues(alpha:0.2),
-                  (pet['color'] as Color).withValues(alpha:0.08),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    width: 84, height: 84,
+                    decoration: BoxDecoration(
+                      color: (pet['color'] as Color).withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: Center(child: Icon(pet['icon'] as IconData, size: 42, color: _brown)),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(pet['name'], style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
+                        const SizedBox(height: 2),
+                        Text(pet['breed'], style: const TextStyle(fontSize: 15, color: _mutedBrown)),
+                        const SizedBox(height: 4),
+                        Text('เกิด ${pet['dob']}', style: const TextStyle(fontSize: 13, color: _mutedBrown)),
+                        const SizedBox(height: 8),
+                        Wrap(
+                          spacing: 5, runSpacing: 4,
+                          children: [
+                            _petTag(pet['gender'] == 'ชาย' ? '♂ ชาย' : '♀ หญิง', pet['gender'] == 'ชาย' ? const Color(0xFF1A6FA8) : const Color(0xFFA81A6F)),
+                            _petTag(pet['age'], _brown),
+                            _petTag(pet['weight'], _mutedBrown),
+                            _petTag(pet['neutered'], const Color(0xFF4CAF50)),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  GestureDetector(
+                    onTap: () => _showEditPetSheet(pet),
+                    child: Container(
+                      width: 36, height: 36,
+                      decoration: const BoxDecoration(color: _bgLight, shape: BoxShape.circle),
+                      child: const Icon(Icons.edit_outlined, color: _brown, size: 18),
+                    ),
+                  ),
                 ],
               ),
-              borderRadius: BorderRadius.circular(24),
-              border: Border.all(color: (pet['color'] as Color).withValues(alpha:0.2)),
-            ),
-            child: Row(
-              children: [
-                Container(
-                  width: 84, height: 84,
-                  decoration: BoxDecoration(
-                    color: (pet['color'] as Color).withValues(alpha:0.25),
-                    shape: BoxShape.circle,
-                    boxShadow: [BoxShadow(color: (pet['color'] as Color).withValues(alpha:0.3), blurRadius: 12, offset: const Offset(0, 4))],
-                  ),
-                  child: Center(child: Icon(pet['icon'] as IconData, size: 46, color: _brown)),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(pet['name'],
-                          style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
-                      const SizedBox(height: 2),
-                      Text(pet['breed'],
-                          style: const TextStyle(fontSize: 15, color: _mutedBrown)),
-                      const SizedBox(height: 4),
-                      Text('เกิด ${pet['dob']}',
-                          style: const TextStyle(fontSize: 13, color: _mutedBrown)),
-                      const SizedBox(height: 8),
-                      Wrap(
-                        spacing: 5, runSpacing: 4,
-                        children: [
-                          _petTag(pet['gender'] == 'ชาย' ? '♂ ชาย' : '♀ หญิง',
-                              pet['gender'] == 'ชาย' ? const Color(0xFF1A6FA8) : const Color(0xFFA81A6F)),
-                          _petTag(pet['age'], _brown),
-                          _petTag(pet['weight'], _mutedBrown),
-                          _petTag(pet['neutered'], const Color(0xFF4CAF50)),
-                        ],
-                      ),
-                    ],
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () => _showEditPetSheet(pet),
-                  child: Container(
-                    width: 36, height: 36,
-                    decoration: const BoxDecoration(color: _bgLight, shape: BoxShape.circle),
-                    child: const Icon(Icons.edit_outlined, color: _brown, size: 18),
-                  ),
-                ),
-              ],
-            ),
+              const SizedBox(height: 20),
+              _buildPetSelector(),
+            ],
           ),
-        ],
-      ),
+        ),
+      ],
     );
   }
 
@@ -239,28 +246,32 @@ class _PetProfilePageState extends State<PetProfilePage> {
   Widget _buildPetSelector() {
     if (_pets.length <= 1) return const SizedBox.shrink();
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.only(bottom: 0),
       child: Row(
         children: List.generate(_pets.length, (i) {
           final selected = i == _selectedPet;
-          return GestureDetector(
-            onTap: () => setState(() => _selectedPet = i),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              margin: const EdgeInsets.only(right: 8),
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-              decoration: BoxDecoration(
-                color: selected ? _brown : _bgCard,
-                borderRadius: BorderRadius.circular(20),
-              ),
-              child: Row(
-                children: [
-                  Icon(_pets[i]['icon'] as IconData, size: 18, color: selected ? Colors.white : _mutedBrown),
-                  const SizedBox(width: 6),
-                  Text(_pets[i]['name'],
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600,
-                          color: selected ? Colors.white : _mutedBrown)),
-                ],
+          final isLast = i == _pets.length - 1;
+          return Expanded(
+            child: GestureDetector(
+              onTap: () => setState(() => _selectedPet = i),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 200),
+                margin: EdgeInsets.only(right: isLast ? 0 : 8),
+                padding: const EdgeInsets.symmetric(vertical: 10),
+                decoration: BoxDecoration(
+                  color: selected ? _brown : _bgCard,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(_pets[i]['icon'] as IconData, size: 18, color: selected ? Colors.white : _mutedBrown),
+                    const SizedBox(width: 8),
+                    Text(_pets[i]['name'],
+                        style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold,
+                            color: selected ? Colors.white : _mutedBrown)),
+                  ],
+                ),
               ),
             ),
           );
@@ -272,42 +283,48 @@ class _PetProfilePageState extends State<PetProfilePage> {
   // ── Health Cards ──────────────────────────────────────────────
   Widget _buildHealthCards(Map<String, dynamic> pet) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+      padding: const EdgeInsets.only(bottom: 16),
+      child: GridView.count(
+        padding: EdgeInsets.zero,
+        crossAxisCount: 2, shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        crossAxisSpacing: 12, mainAxisSpacing: 12,
+        childAspectRatio: 1.6,
         children: [
-          const Text('สุขภาพ',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-          const SizedBox(height: 10),
-          GridView.count(
-            crossAxisCount: 2, shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            crossAxisSpacing: 10, mainAxisSpacing: 10,
-            childAspectRatio: 1.8,
-            children: (pet['health'] as List).map((h) => Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(14),
-                boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
-              ),
-              child: Row(
-                children: [
-                  Text(h['icon'], style: const TextStyle(fontSize: 24)),
-                  const SizedBox(width: 8),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(h['value'],
-                          style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
-                      Text(h['label'],
-                          style: const TextStyle(fontSize: 13, color: _mutedBrown)),
-                    ],
-                  ),
-                ],
-              ),
-            )).toList(),
+          _statCard('น้ำหนัก', pet['weight'], Icons.scale_rounded, const Color(0xFF1E88E5)),
+          _statCard('ส่วนสูง', pet['height'], Icons.straighten_rounded, const Color(0xFFFB8C00)),
+          _statCard('อุณหภูมิ', pet['temp'], Icons.thermostat_rounded, const Color(0xFFE53935)),
+          _statCard('ชีพจร', pet['heartRate'], Icons.favorite_rounded, const Color(0xFFD81B60)),
+        ],
+      ),
+    );
+  }
+
+  Widget _statCard(String label, String value, IconData icon, Color color) {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: [BoxShadow(color: color.withValues(alpha: 0.08), blurRadius: 12, offset: const Offset(0, 4))],
+      ),
+      child: Row(
+        children: [
+          Container(
+            padding: const EdgeInsets.all(8),
+            decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+            child: Icon(icon, color: color, size: 22),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(value, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+                Text(label, style: const TextStyle(fontSize: 12, color: _mutedBrown)),
+              ],
+            ),
           ),
         ],
       ),
@@ -323,7 +340,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
       'ชอบนอน': '🛋️', 'ฉลาด': '🧠', 'ชอบธรรมชาติ': '🌿',
     };
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -334,15 +351,6 @@ class _PetProfilePageState extends State<PetProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
-              children: [
-                Text('🐾', style: TextStyle(fontSize: 20)),
-                SizedBox(width: 6),
-                Text('นิสัยน้อง',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-              ],
-            ),
-            const SizedBox(height: 12),
             Wrap(
               spacing: 8, runSpacing: 8,
               children: traits.map((t) => Container(
@@ -371,18 +379,15 @@ class _PetProfilePageState extends State<PetProfilePage> {
   // ── Activity Section ──────────────────────────────────────────
   Widget _buildActivitySection(Map<String, dynamic> pet) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('กิจกรรมวันนี้',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-          const SizedBox(height: 10),
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: const EdgeInsets.all(20),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(20),
               boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
             ),
             child: Row(
@@ -405,26 +410,17 @@ class _PetProfilePageState extends State<PetProfilePage> {
   // ── Info Section ──────────────────────────────────────────────
   Widget _buildInfoSection(Map<String, dynamic> pet) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           color: Colors.white,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
-              children: [
-                Text('📋', style: TextStyle(fontSize: 20)),
-                SizedBox(width: 6),
-                Text('ข้อมูลทั่วไป',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-              ],
-            ),
-            const SizedBox(height: 12),
             _infoRow('🪪 ไมโครชิป', pet['chip']),
             _infoRow('🍽️ อาหาร', pet['food']),
             _infoRow('⏰ มื้ออาหาร', pet['feedingTimes']),
@@ -455,7 +451,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
   Widget _buildMedHistorySection(Map<String, dynamic> pet) {
     final history = pet['medHistory'] as List;
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -466,15 +462,6 @@ class _PetProfilePageState extends State<PetProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const Row(
-              children: [
-                Text('🏥', style: TextStyle(fontSize: 20)),
-                SizedBox(width: 6),
-                Text('ประวัติการรักษา',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-              ],
-            ),
-            const SizedBox(height: 12),
             ...List.generate(history.length, (i) {
               final h = history[i];
               final isLast = i == history.length - 1;
@@ -541,51 +528,51 @@ class _PetProfilePageState extends State<PetProfilePage> {
   // ── Vet Section ───────────────────────────────────────────────
   Widget _buildVetSection(Map<String, dynamic> pet) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
+      padding: const EdgeInsets.only(bottom: 16),
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: const Color(0xFFFFF8E1),
+          color: _brown,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: const Color(0xFFFFD700).withValues(alpha:0.4), width: 0.5),
-          boxShadow: [BoxShadow(color: const Color(0xFFFFD700).withValues(alpha:0.15), blurRadius: 8, offset: const Offset(0, 3))],
+          boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))],
         ),
         child: Row(
           children: [
             Container(
-              width: 56, height: 56,
+              width: 52, height: 52,
               decoration: BoxDecoration(
-                color: const Color(0xFFFFE082),
+                color: Colors.white.withValues(alpha: 0.2),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: const Icon(Icons.hotel_rounded, color: Color(0xFF8B6914), size: 28),
+              child: const Icon(Icons.hotel_rounded, color: Colors.white, size: 28),
             ),
             const SizedBox(width: 12),
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text('รอบฝากเลี้ยงถัดไป',
-                    style: TextStyle(fontSize: 14, color: Color(0xFF8B6914))),
-                const Text('15 เม.ย. นี้',
-                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Color(0xFF5A3E0A))),
-                const Text('ที่ Paw Paradise Resort',
-                    style: TextStyle(fontSize: 13, color: Color(0xFF9B7A2A))),
-              ],
+            const Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text('รอบฝากเลี้ยงถัดไป',
+                      style: TextStyle(fontSize: 13, color: Colors.white70)),
+                  Text('15 เม.ย. นี้',
+                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+                  Text('ที่ Paw Paradise Resort',
+                      style: TextStyle(fontSize: 12, color: Colors.white60)),
+                ],
+              ),
             ),
-            const Spacer(),
             GestureDetector(
               onTap: () => ScaffoldMessenger.of(context).showSnackBar(
                 const SnackBar(content: Text('📅 บันทึกในปฏิทินแล้ว'),
-                    backgroundColor: Color(0xFF5C3D2E), duration: Duration(seconds: 1)),
+                    backgroundColor: _brown, duration: Duration(seconds: 1)),
               ),
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                 decoration: BoxDecoration(
-                  color: const Color(0xFF8B6914),
+                  color: Colors.white,
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: const Text('ตั้งเตือน',
-                    style: TextStyle(color: Colors.white, fontSize: 13, fontWeight: FontWeight.w600)),
+                    style: TextStyle(color: _brown, fontSize: 13, fontWeight: FontWeight.w600)),
               ),
             ),
           ],
@@ -783,33 +770,48 @@ class _PetProfilePageState extends State<PetProfilePage> {
     );
   }
 
-  // ── Owner Section ─────────────────────────────────────────────
-  Widget _buildOwnerSection() {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(20, 24, 20, 0),
+  Widget _buildTopBanner() {
+    return Container(
+      width: double.infinity,
+      decoration: const BoxDecoration(
+        color: _brown,
+        borderRadius: BorderRadius.vertical(bottom: Radius.circular(40)),
+      ),
+      padding: const EdgeInsets.fromLTRB(24, 64, 24, 40),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text('โปรไฟล์เจ้าของ',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-          const SizedBox(height: 12),
+          const Row(
+            children: [
+              Icon(Icons.person_outline_rounded, color: Colors.white, size: 28),
+              SizedBox(width: 12),
+              Text(
+                'โปรไฟล์เจ้าของ',
+                style: TextStyle(fontSize: 24, fontWeight: FontWeight.w800, color: Colors.white),
+              ),
+            ],
+          ),
+          const SizedBox(height: 24),
           Container(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: Colors.white,
-              borderRadius: BorderRadius.circular(20),
-              boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.05), blurRadius: 10, offset: const Offset(0, 4))],
+              borderRadius: BorderRadius.circular(24),
+              boxShadow: [
+                BoxShadow(
+                  color: Colors.black.withValues(alpha: 0.1),
+                  blurRadius: 15,
+                  offset: const Offset(0, 8),
+                ),
+              ],
             ),
             child: Column(
               children: [
                 Row(
                   children: [
                     Container(
-                      width: 60, height: 60,
-                      decoration: const BoxDecoration(
-                        color: _brown,
-                        shape: BoxShape.circle,
-                      ),
+                      width: 64, height: 64,
+                      decoration: const BoxDecoration(color: _brown, shape: BoxShape.circle),
                       child: const Center(child: Icon(Icons.pets_rounded, color: Colors.white, size: 32)),
                     ),
                     const SizedBox(width: 16),
@@ -844,7 +846,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
                         style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
                     style: OutlinedButton.styleFrom(
                       side: const BorderSide(color: Colors.redAccent, width: 1.2),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       padding: const EdgeInsets.symmetric(vertical: 12),
                     ),
                   ),
@@ -856,6 +858,25 @@ class _PetProfilePageState extends State<PetProfilePage> {
       ),
     );
   }
+
+  Widget _buildSectionHeader(String title) {
+    return Padding(
+      padding: const EdgeInsets.only(top: 24, bottom: 12),
+      child: Row(
+        children: [
+          Container(
+            width: 4, height: 18,
+            decoration: BoxDecoration(color: _brown, borderRadius: BorderRadius.circular(2)),
+          ),
+          const SizedBox(width: 10),
+          Text(title,
+              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+        ],
+      ),
+    );
+  }
+
+  // ── Owner Section ─────────────────────────────────────────────
 
   Widget _ownerActionTile(IconData icon, String title) {
     return Padding(

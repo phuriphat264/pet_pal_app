@@ -9,8 +9,13 @@ import 'screens/hotel_list_page.dart';
 import 'screens/notification_page.dart';
 import 'screens/login_page.dart';
 import 'screens/chat_room_page.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'data/hotel_data.dart';
+import 'screens/hotel_detail_page.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await dotenv.load(fileName: ".env");
   runApp(const PetPalApp());
 }
 
@@ -63,7 +68,7 @@ class _MainNavigationState extends State<MainNavigation> {
     return Scaffold(
       body: IndexedStack(
         index: _selectedIndex,
-        children: const [
+        children: [
           HomePage(),
           LiveCamPage(),
           ChatRoomPage(),
@@ -324,7 +329,7 @@ class HomePage extends StatelessWidget {
       {'icon': Icons.hotel_rounded, 'label': 'จองที่พัก', 'color': _brown, 'bg': Colors.white},
       {'icon': Icons.auto_awesome_rounded, 'label': 'แมตช์นิสัย', 'color': _brown, 'bg': Colors.white},
       {'icon': Icons.bathtub_rounded, 'label': 'อาบน้ำสปา', 'color': _brown, 'bg': Colors.white},
-      {'icon': Icons.park_rounded, 'label': 'ฝากเลี้ยง', 'color': _brown, 'bg': Colors.white},
+      {'icon': Icons.park_rounded, 'label': 'พาเดินเล่น', 'color': _brown, 'bg': Colors.white},
     ];
 
     return Padding(
@@ -405,11 +410,7 @@ class HomePage extends StatelessWidget {
 
   // ── Nearby Section ────────────────────────────────────────────
   Widget _buildNearbySection(BuildContext context) {
-    final List<Map<String, dynamic>> nearby = [
-      {'name': 'รพ.สัตว์แผ่นดินทอง', 'dist': '1.2 กม.', 'price': '฿320', 'icon': Icons.local_hospital_rounded, 'rating': '4.8', 'tag': 'ยอดนิยม', 'desc': 'รับฝากสุนัขและแมว มีหมอตรวจก่อนเข้าพัก', 'image': 'assets/images/hotel1_1.jpg'},
-      {'name': 'Sky Cat Hotel', 'dist': '2.5 กม.', 'price': '฿300', 'icon': Icons.pets_rounded, 'rating': '4.9', 'tag': 'พรีเมียม', 'desc': 'โรงแรมแมวแอร์ 24 ชม. ลดก่อภูมิแพ้', 'image': 'assets/images/hotel2_1.jpg'},
-      {'name': 'PigPao Pet Shop', 'dist': '3.1 กม.', 'price': '฿350', 'icon': Icons.store_rounded, 'rating': '4.7', 'tag': 'ราคาดี', 'desc': 'ไม่ขังกรง มีกล้องตลอด 24 ชม.', 'image': 'assets/images/hotel3_1.jpg'},
-    ];
+  final List<Map<String, dynamic>> nearby = allHotels.take(3).toList();
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -461,9 +462,9 @@ class HomePage extends StatelessWidget {
                             ),
                             child: ClipRRect(
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
-                              child: h['image'] != null
+                              child: h['images'] != null && (h['images'] as List).isNotEmpty
                                   ? Image.asset(
-                                      h['image'] as String,
+                                      (h['images'] as List).first as String,
                                       fit: BoxFit.cover,
                                       width: double.infinity,
                                       errorBuilder: (_, __, ___) => Center(child: Icon(h['icon'] as IconData, size: 46, color: _brown)),
@@ -479,7 +480,10 @@ class HomePage extends StatelessWidget {
                                 color: _brown,
                                 borderRadius: BorderRadius.circular(8),
                               ),
-                              child: Text(h['tag'] as String, style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700)),
+                              child: Text(
+                                (h['tags'] as List?)?.isNotEmpty == true ? (h['tags'] as List).first.toString() : 'Pet Hotel',
+                                style: const TextStyle(color: Colors.white, fontSize: 9, fontWeight: FontWeight.w700),
+                              ),
                             ),
                           ),
                         ],
@@ -497,20 +501,20 @@ class HomePage extends StatelessWidget {
                               Row(
                                 children: [
                                   const Icon(Icons.star_rounded, size: 11, color: Color(0xFFFFC107)),
-                                  Text(' ${h['rating'] as String}',
+                                  Text(' ${h['rating']}',
                                       style: const TextStyle(fontSize: 10, color: _mutedBrown, fontWeight: FontWeight.w600)),
                                   const Text(' · ', style: TextStyle(fontSize: 10, color: _mutedBrown)),
                                   const Icon(Icons.location_on_outlined, size: 10, color: _mutedBrown),
-                                  Text(h['dist'] as String, style: const TextStyle(fontSize: 10, color: _mutedBrown)),
+                                  Text(h['distance']?.toString() ?? '', style: const TextStyle(fontSize: 10, color: _mutedBrown)),
                                 ],
                               ),
                               const SizedBox(height: 5),
-                              Text(h['desc'] as String,
+                              Text(h['description']?.toString() ?? '',
                                   style: const TextStyle(fontSize: 10, color: _mutedBrown, height: 1.3),
                                   maxLines: 2,
                                   overflow: TextOverflow.ellipsis),
                               const Spacer(),
-                              Text('${h['price'] as String}/คืน',
+                              Text('฿${h['price']}/คืน',
                                   style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w700, color: _brown)),
                             ],
                           ),
