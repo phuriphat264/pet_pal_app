@@ -6,6 +6,8 @@ class MatchResultPage extends StatelessWidget {
   final String aiSummary;
   final List<Map<String, dynamic>> matchedHotels;
   final Map<String, String> matchReasons;
+  final bool isFallback;
+  final String? fallbackNotice;
 
   const MatchResultPage({
     super.key,
@@ -13,6 +15,8 @@ class MatchResultPage extends StatelessWidget {
     required this.aiSummary,
     required this.matchedHotels,
     required this.matchReasons,
+    this.isFallback = false,
+    this.fallbackNotice,
   });
 
   static const Color _brown = Color(0xFF5C3D2E);
@@ -100,7 +104,7 @@ class MatchResultPage extends StatelessWidget {
                                 Container(
                                   padding: const EdgeInsets.all(8),
                                   decoration: BoxDecoration(
-                                    color: Colors.white.withOpacity(0.2),
+                                    color: Colors.white.withValues(alpha: 0.2),
                                     shape: BoxShape.circle,
                                   ),
                                   child: const Icon(Icons.auto_awesome, color: Colors.white, size: 24),
@@ -153,6 +157,35 @@ class MatchResultPage extends StatelessWidget {
             ),
           ),
 
+          // ── Fallback Notice Banner ───────────────────────────────────────
+          if (isFallback && fallbackNotice != null)
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFFFFF4E5),
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(color: const Color(0xFFFFD9A0)),
+                  ),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Icon(Icons.info_outline_rounded, size: 18, color: Color(0xFFB8740C)),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          fallbackNotice!,
+                          style: const TextStyle(fontSize: 12.5, color: Color(0xFF8A5A00), height: 1.4),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+
           // ── AI Summary Card ─────────────────────────────────────────────
           SliverToBoxAdapter(
             child: Padding(
@@ -182,13 +215,13 @@ class MatchResultPage extends StatelessWidget {
                             color: _accent.withValues(alpha: 0.12),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.auto_awesome, color: _accent, size: 18),
+                          child: Icon(isFallback ? Icons.psychology_alt_rounded : Icons.auto_awesome, color: _accent, size: 18),
                         ),
                         const SizedBox(width: 10),
-                        const Expanded(
+                        Expanded(
                           child: Text(
-                            'AI วิเคราะห์สัตว์เลี้ยงของคุณ',
-                            style: TextStyle(
+                            isFallback ? 'PetPal วิเคราะห์สัตว์เลี้ยงของคุณ' : 'AI วิเคราะห์สัตว์เลี้ยงของคุณ',
+                            style: const TextStyle(
                               fontSize: 15,
                               fontWeight: FontWeight.w700,
                               color: _darkBrown,
@@ -288,7 +321,7 @@ class MatchResultPage extends StatelessWidget {
   }
 
   Widget _buildHotelCard(BuildContext context, Map<String, dynamic> h, int index) {
-    final hotelName = h['name'] as String;
+    final hotelName = h['name']?.toString() ?? 'ไม่ทราบชื่อ';
     final reason = matchReasons[hotelName] ?? '';
     final isTop = index == 0;
 
@@ -329,10 +362,10 @@ class MatchResultPage extends StatelessWidget {
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
                     child: (h['images'] != null && (h['images'] as List).isNotEmpty)
                         ? Image.asset(
-                            (h['images'] as List).first as String,
+                            (h['images'] as List).first.toString(),
                             fit: BoxFit.cover,
                             width: double.infinity,
-                            errorBuilder: (_, __, ___) => Center(
+                            errorBuilder: (_, e, s) => Center(
                               child: Icon(h['icon'] as IconData, size: 80, color: _brown),
                             ),
                           )
@@ -385,7 +418,7 @@ class MatchResultPage extends StatelessWidget {
                         const Icon(Icons.location_on, size: 13, color: _brown),
                         const SizedBox(width: 3),
                         Text(
-                          h['distance'] as String,
+                          h['distance']?.toString() ?? '',
                           style: const TextStyle(fontSize: 12, color: _brown, fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -431,7 +464,7 @@ class MatchResultPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 4),
                   Text(
-                    h['type'] as String,
+                    h['location']?.toString() ?? '',
                     style: const TextStyle(fontSize: 14, color: _mutedBrown),
                   ),
 

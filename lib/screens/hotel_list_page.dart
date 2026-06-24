@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../data/hotel_data.dart';
+import 'package:provider/provider.dart';
+import '../services/hotel_repository.dart';
+import '../utils/pet_pal_image.dart';
 import 'hotel_detail_page.dart';
 
 class HotelListPage extends StatefulWidget {
@@ -19,13 +21,32 @@ class _HotelListPageState extends State<HotelListPage> {
   String _selectedFilter = 'ทั้งหมด';
   final _filters = ['ทั้งหมด', 'ใกล้ที่สุด', 'ราคาถูก', 'คะแนนสูง'];
 
-  final List<Map<String, dynamic>> _hotels = allHotels;
+  List<Map<String, dynamic>>? _hotels;
+  String? _error;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHotels();
+  }
+
+  Future<void> _loadHotels() async {
+    setState(() => _error = null);
+    try {
+      final hotels = await context.read<HotelRepository>().fetchHotels(availableOnly: false);
+      if (!mounted) return;
+      setState(() => _hotels = hotels);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _error = 'โหลดข้อมูลโรงแรมไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
+  }
 
   List<Map<String, dynamic>> get _filteredHotels {
-    var list = [..._hotels];
+    var list = [...(_hotels ?? const <Map<String, dynamic>>[])];
     if (_selectedFilter == 'ใกล้ที่สุด') {
-      list.sort((a, b) => double.parse(a['distance'].replaceAll(' กม.', ''))
-          .compareTo(double.parse(b['distance'].replaceAll(' กม.', ''))));
+      list.sort((a, b) => double.parse((a['distance'] as String).replaceAll(' กม.', ''))
+          .compareTo(double.parse((b['distance'] as String).replaceAll(' กม.', ''))));
     } else if (_selectedFilter == 'ราคาถูก') {
       list.sort((a, b) => (a['price'] as int).compareTo(b['price'] as int));
     } else if (_selectedFilter == 'คะแนนสูง') {
@@ -44,11 +65,30 @@ class _HotelListPageState extends State<HotelListPage> {
             _buildHeader(context),
             _buildSearchBar(),
             _buildFilters(),
-            Expanded(child: _buildHotelList()),
+            Expanded(child: _buildBody()),
           ],
         ),
       ),
     );
+  }
+
+  Widget _buildBody() {
+    if (_error != null) {
+      return Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(_error!, style: const TextStyle(color: _mutedBrown)),
+            const SizedBox(height: 12),
+            ElevatedButton(onPressed: _loadHotels, child: const Text('ลองใหม่')),
+          ],
+        ),
+      );
+    }
+    if (_hotels == null) {
+      return const Center(child: CircularProgressIndicator(color: _brown));
+    }
+    return _buildHotelList();
   }
 
   Widget _buildHeader(BuildContext context) {
@@ -65,12 +105,12 @@ class _HotelListPageState extends State<HotelListPage> {
             ),
           ),
           const SizedBox(width: 12),
-          const Column(
+          Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('โรงแรมสัตว์เลี้ยง',
+              const Text('โรงแรมสัตว์เลี้ยง',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
-              Text('4 แห่งใกล้คุณ', style: TextStyle(fontSize: 14, color: _mutedBrown)),
+              Text('${_hotels?.length ?? 0} แห่งใกล้คุณ', style: const TextStyle(fontSize: 14, color: _mutedBrown)),
             ],
           ),
           const Spacer(),
@@ -181,10 +221,8 @@ class _HotelListPageState extends State<HotelListPage> {
                       else
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-                          child: Image.asset(
-                            coverImage,
-                            fit: BoxFit.cover,
-                            width: double.infinity,
+                          child: PetPalImage(
+                            path: coverImage,
                             errorBuilder: (context, error, stackTrace) => Center(
                               child: Icon(hotel['icon'] as IconData, size: 80, color: _brown),
                             ),

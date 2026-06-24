@@ -49,11 +49,9 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   }
 
   int get _basePrice => widget.hotel['price'] as int;
-  int get _roomExtra {
-    if (_selectedRoom == null) return 0;
-    final r = _rooms.firstWhere((r) => r['type'] == _selectedRoom, orElse: () => {'price': 0});
-    return (r['price'] as int?) ?? 0;
-  }
+  Map<String, dynamic>? get _selectedRoomData =>
+      _rooms.cast<Map<String, dynamic>?>().firstWhere((r) => r?['type'] == _selectedRoom, orElse: () => null);
+  int get _roomExtra => (_selectedRoomData?['price'] as int?) ?? 0;
   int get _total => (_basePrice + _roomExtra) * _nights;
 
   @override
@@ -565,10 +563,13 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
       MaterialPageRoute(
         builder: (_) => BookingPage(
           hotel: widget.hotel,
+          roomId: _selectedRoomData?['id'] as String?,
           roomType: _selectedRoom ?? 'Standard',
           nights: _nights,
           total: _total,
           matchingPrompt: widget.matchingPrompt,
+          checkIn: _checkIn,
+          checkOut: _checkOut,
         ),
       ),
     );

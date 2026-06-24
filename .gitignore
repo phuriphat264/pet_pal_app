@@ -45,3 +45,10 @@ app.*.map.json
 /android/app/release
 
 .env
+backend/.env
+
+# Python backend
+backend/__pycache__/
+backend/**/__pycache__/
+backend/.venv/
+backend/.pytest_cache/

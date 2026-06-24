@@ -1,20 +1,28 @@
 import 'package:flutter/material.dart';
-import '../data/hotel_data.dart';
+import 'package:provider/provider.dart';
+import '../services/booking_repository.dart';
+import '../services/pet_repository.dart';
 
 class BookingPage extends StatefulWidget {
   final Map<String, dynamic>? hotel;
+  final String? roomId;
   final String roomType;
   final int nights;
   final int total;
   final String? matchingPrompt;
+  final DateTime? checkIn;
+  final DateTime? checkOut;
 
   const BookingPage({
     super.key,
     this.hotel,
+    this.roomId,
     this.roomType = 'Standard',
     this.nights = 3,
     this.total = 1350,
     this.matchingPrompt,
+    this.checkIn,
+    this.checkOut,
   });
 
   @override
@@ -29,6 +37,28 @@ class _BookingPageState extends State<BookingPage> {
   static const Color _mutedBrown = Color(0xFF9E7A60);
 
   String _paymentMethod = 'Credit Card';
+  bool _sharePrompt = true;
+  bool _submitting = false;
+  Map<String, dynamic>? _firstPet;
+
+  late final DateTime _checkIn = widget.checkIn ?? DateTime.now();
+  late final DateTime _checkOut = widget.checkOut ?? DateTime.now().add(Duration(days: widget.nights));
+
+  @override
+  void initState() {
+    super.initState();
+    _loadPet();
+  }
+
+  Future<void> _loadPet() async {
+    try {
+      final pets = await context.read<PetRepository>().fetchPets();
+      if (!mounted) return;
+      if (pets.isNotEmpty) setState(() => _firstPet = pets.first);
+    } catch (_) {
+      // No pet on file yet -- booking still proceeds without one.
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -71,6 +101,10 @@ class _BookingPageState extends State<BookingPage> {
             const SizedBox(height: 20),
             _buildBookingDetails(),
             const SizedBox(height: 20),
+            if (widget.matchingPrompt != null && widget.matchingPrompt!.isNotEmpty)
+              _buildSharePromptCard(),
+            if (widget.matchingPrompt != null && widget.matchingPrompt!.isNotEmpty)
+              const SizedBox(height: 20),
             _buildPaymentMethods(),
             const SizedBox(height: 20),
             _buildReceipt(),
@@ -195,13 +229,14 @@ class _BookingPageState extends State<BookingPage> {
           const Text('รายละเอียดการจอง',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
           const SizedBox(height: 16),
-          _detailRow(Icons.calendar_month_rounded, 'เช็คอิน - เช็คเอาท์', '12 ส.ค. - 15 ส.ค.'),
+          _detailRow(Icons.calendar_month_rounded, 'เช็คอิน - เช็คเอาท์',
+              '${_checkIn.day}/${_checkIn.month} - ${_checkOut.day}/${_checkOut.month}'),
           const Divider(height: 24, color: Color(0xFFE8D8C8)),
           _detailRow(Icons.nightlight_round, 'ระยะเวลา', '${widget.nights} คืน'),
           const Divider(height: 24, color: Color(0xFFE8D8C8)),
           _detailRow(Icons.meeting_room_rounded, 'ประเภทห้อง', widget.roomType),
           const Divider(height: 24, color: Color(0xFFE8D8C8)),
-          _detailRow(Icons.pets_rounded, 'สัตว์เลี้ยง', 'มะม่วง (สุนัข)'),
+          _detailRow(Icons.pets_rounded, 'สัตว์เลี้ยง', _firstPet != null ? '${_firstPet!['name']} (${_firstPet!['breed']})' : 'ยังไม่มีข้อมูลสัตว์เลี้ยง'),
         ],
       ),
     );
@@ -216,6 +251,115 @@ class _BookingPageState extends State<BookingPage> {
         const Spacer(),
         Text(value, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _darkBrown)),
       ],
+    );
+  }
+
+  Widget _buildSharePromptCard() {
+    return Container(
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: const Color(0xFFD9C5B2), width: 0.5),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: const Color(0xFFF5EFE8),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.auto_awesome, size: 18, color: _brown),
+              ),
+              const SizedBox(width: 12),
+              const Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'ข้อมูลจาก AI Smart Match',
+                      style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _darkBrown),
+                    ),
+                    Text(
+                      'ส่งให้โรงแรมเพื่อดูแลน้องได้ตรงใจขึ้น',
+                      style: TextStyle(fontSize: 12, color: _mutedBrown),
+                    ),
+                  ],
+                ),
+              ),
+              Switch(
+                value: _sharePrompt,
+                onChanged: (val) => setState(() => _sharePrompt = val),
+                activeThumbColor: _brown,
+                activeTrackColor: _brown.withValues(alpha: 0.4),
+              ),
+            ],
+          ),
+          if (_sharePrompt) ...[
+            const SizedBox(height: 14),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: const Color(0xFFF5EFE8),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(color: const Color(0xFFD9C5B2)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Row(
+                    children: [
+                      Icon(Icons.format_quote, size: 16, color: _mutedBrown),
+                      SizedBox(width: 4),
+                      Text(
+                        'ที่คุณบอกเราไว้',
+                        style: TextStyle(fontSize: 12, color: _mutedBrown, fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    widget.matchingPrompt!,
+                    style: const TextStyle(fontSize: 14, color: _darkBrown, height: 1.5),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 10),
+            const Row(
+              children: [
+                Icon(Icons.info_outline, size: 14, color: _mutedBrown),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'โรงแรมจะเห็นข้อความนี้เพื่อเตรียมการดูแลน้องให้เหมาะสม',
+                    style: TextStyle(fontSize: 12, color: _mutedBrown, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ] else ...[
+            const SizedBox(height: 10),
+            const Row(
+              children: [
+                Icon(Icons.info_outline, size: 14, color: _mutedBrown),
+                SizedBox(width: 6),
+                Expanded(
+                  child: Text(
+                    'โรงแรมจะไม่ได้รับข้อมูลนี้ คุณสามารถแจ้งรายละเอียดเองตอนเช็กอิน',
+                    style: TextStyle(fontSize: 12, color: _mutedBrown, height: 1.4),
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ],
+      ),
     );
   }
 
@@ -313,23 +457,52 @@ class _BookingPageState extends State<BookingPage> {
         borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
       ),
       child: ElevatedButton(
-        onPressed: _onPay,
+        onPressed: _submitting ? null : _onPay,
         style: ElevatedButton.styleFrom(
           backgroundColor: _brown,
           padding: const EdgeInsets.symmetric(vertical: 18),
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         ),
-        child: Text('ชำระเงิน ฿${widget.total}',
-            style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
+        child: _submitting
+            ? const SizedBox(
+                width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+            : Text('ชำระเงิน ฿${widget.total}',
+                style: const TextStyle(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w700)),
       ),
     );
   }
 
-  void _onPay() {
-    // Add to global active bookings
-    if (widget.hotel != null) {
-      addBooking(widget.hotel!, matchingPrompt: widget.matchingPrompt);
+  Future<void> _onPay() async {
+    final hotelId = widget.hotel?['id'] as String?;
+    if (hotelId == null) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ไม่พบข้อมูลโรงแรม ลองใหม่อีกครั้ง'), backgroundColor: Colors.redAccent),
+      );
+      return;
     }
+
+    setState(() => _submitting = true);
+    try {
+      await context.read<BookingRepository>().createBooking(
+            hotelId: hotelId,
+            roomId: widget.roomId,
+            petId: _firstPet?['id'] as String?,
+            checkIn: _checkIn,
+            checkOut: _checkOut,
+            paymentMethod: _paymentMethod,
+            matchingPrompt: _sharePrompt ? widget.matchingPrompt : null,
+          );
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('จองไม่สำเร็จ: $e'), backgroundColor: Colors.redAccent),
+      );
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _submitting = false);
+
     showDialog(
       context: context,
       barrierDismissible: false,

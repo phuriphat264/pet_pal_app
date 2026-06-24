@@ -1,5 +1,33 @@
 // lib/screens/notification_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+
+import '../services/notification_repository.dart';
+
+const Map<String, String> _typeIcons = {
+  'booking': '🏡',
+  'match': '❤️',
+  'chat': '💬',
+  'system': '🔔',
+};
+
+const Map<String, Color> _typeColors = {
+  'booking': Color(0xFF7CB9A8),
+  'match': Color(0xFFE8936A),
+  'chat': Color(0xFF1E88E5),
+  'system': Color(0xFF9B7EC8),
+};
+
+String _timeAgo(String isoTimestamp) {
+  final time = DateTime.tryParse(isoTimestamp);
+  if (time == null) return '';
+  final diff = DateTime.now().toUtc().difference(time.toUtc());
+  if (diff.inMinutes < 1) return 'เมื่อสักครู่';
+  if (diff.inMinutes < 60) return '${diff.inMinutes} นาทีที่แล้ว';
+  if (diff.inHours < 24) return '${diff.inHours} ชั่วโมงที่แล้ว';
+  if (diff.inDays == 1) return 'เมื่อวาน';
+  return '${diff.inDays} วันที่แล้ว';
+}
 
 class NotificationPage extends StatefulWidget {
   const NotificationPage({super.key});
@@ -15,101 +43,47 @@ class _NotificationPageState extends State<NotificationPage> {
   static const Color _bgCard = Color(0xFFEDE2D5);
   static const Color _mutedBrown = Color(0xFF9E7A60);
 
-  final List<Map<String, dynamic>> _notifications = [
-    {
-      'title': 'มะม่วงกำลังนอนหลับ',
-      'body': 'น้องหมาเข้านอนเวลา 22:03 น.',
-      'time': '2 นาทีที่แล้ว',
-      'icon': '😴',
-      'color': const Color(0xFF9B7EC8),
-      'read': false,
-      'type': 'activity',
-    },
-    {
-      'title': 'ตรวจจับการเคลื่อนไหว',
-      'body': 'มีการเคลื่อนไหวในห้องนอนเวลา 21:45 น.',
-      'time': '18 นาทีที่แล้ว',
-      'icon': '🚨',
-      'color': const Color(0xFFE57373),
-      'read': false,
-      'type': 'alert',
-    },
-    {
-      'title': 'การจองได้รับการยืนยัน',
-      'body': 'Paw Paradise Resort · 15-17 เม.ย. 68',
-      'time': '1 ชั่วโมงที่แล้ว',
-      'icon': '🏡',
-      'color': const Color(0xFF7CB9A8),
-      'read': true,
-      'type': 'booking',
-    },
-    {
-      'title': 'จับคู่สำเร็จ!',
-      'body': 'บัตเตอร์ กับ มะม่วงถูกใจกัน รีบติดต่อเลย!',
-      'time': '3 ชั่วโมงที่แล้ว',
-      'icon': '❤️',
-      'color': const Color(0xFFE8936A),
-      'read': true,
-      'type': 'match',
-    },
-    {
-      'title': 'ใกล้ถึงเวลาให้อาหาร',
-      'body': 'มะม่วงควรกินข้าวมื้อเย็นแล้ว เวลา 18:00 น.',
-      'time': '5 ชั่วโมงที่แล้ว',
-      'icon': '🍖',
-      'color': const Color(0xFFD4956A),
-      'read': true,
-      'type': 'reminder',
-    },
-    {
-      'title': 'เตือนความจำฝากเลี้ยง',
-      'body': 'คุณมีคิวพามะม่วงไปฝากเลี้ยง พรุ่งนี้เวลา 10:00 น.',
-      'time': 'เมื่อวาน',
-      'icon': '🏨',
-      'color': const Color(0xFFFFD54F),
-      'read': true,
-      'type': 'hotel',
-    },
-    {
-      'title': 'วัคซีนครบแล้ว',
-      'body': 'มะม่วงได้รับวัคซีนครบตามกำหนดแล้ว',
-      'time': '2 วันที่แล้ว',
-      'icon': '💉',
-      'color': const Color(0xFF81C784),
-      'read': true,
-      'type': 'health',
-    },
-  ];
-
+  bool _loading = true;
   String _filter = 'ทั้งหมด';
-  final _filters = ['ทั้งหมด', 'ยังไม่อ่าน', 'แจ้งเตือน', 'จอง'];
+  final _filters = ['ทั้งหมด', 'ยังไม่อ่าน', 'แชท', 'จอง'];
 
-  List<Map<String, dynamic>> get _filtered {
-    if (_filter == 'ยังไม่อ่าน') return _notifications.where((n) => n['read'] == false).toList();
-    if (_filter == 'แจ้งเตือน') return _notifications.where((n) => n['type'] == 'alert' || n['type'] == 'activity').toList();
-    if (_filter == 'จอง') return _notifications.where((n) => n['type'] == 'booking').toList();
-    return _notifications;
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotificationRepository>().loadNotifications().then((_) {
+      if (mounted) setState(() => _loading = false);
+    });
   }
 
-  int get _unread => _notifications.where((n) => n['read'] == false).length;
+  List<Map<String, dynamic>> _filtered(List<Map<String, dynamic>> notifications) {
+    if (_filter == 'ยังไม่อ่าน') return notifications.where((n) => n['read'] == false).toList();
+    if (_filter == 'แชท') return notifications.where((n) => n['type'] == 'chat').toList();
+    if (_filter == 'จอง') return notifications.where((n) => n['type'] == 'booking').toList();
+    return notifications;
+  }
 
   @override
   Widget build(BuildContext context) {
+    final repo = context.watch<NotificationRepository>();
+    final unread = repo.unreadCount;
+
     return Scaffold(
       backgroundColor: _bgCream,
       body: SafeArea(
-        child: Column(
-          children: [
-            _buildHeader(),
-            _buildFilters(),
-            Expanded(child: _buildList()),
-          ],
-        ),
+        child: _loading
+            ? const Center(child: CircularProgressIndicator(color: _brown))
+            : Column(
+                children: [
+                  _buildHeader(unread, repo),
+                  _buildFilters(),
+                  Expanded(child: _buildList(_filtered(repo.notifications))),
+                ],
+              ),
       ),
     );
   }
 
-  Widget _buildHeader() {
+  Widget _buildHeader(int unread, NotificationRepository repo) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 16, 20, 12),
       child: Row(
@@ -119,17 +93,15 @@ class _NotificationPageState extends State<NotificationPage> {
             children: [
               const Text('การแจ้งเตือน',
                   style: TextStyle(fontSize: 24, fontWeight: FontWeight.w700, color: _darkBrown)),
-              if (_unread > 0)
-                Text('ยังไม่อ่าน $_unread รายการ',
+              if (unread > 0)
+                Text('ยังไม่อ่าน $unread รายการ',
                     style: const TextStyle(fontSize: 14, color: _mutedBrown)),
             ],
           ),
           const Spacer(),
-          if (_unread > 0)
+          if (unread > 0)
             GestureDetector(
-              onTap: () => setState(() {
-                for (var n in _notifications) { n['read'] = true; }
-              }),
+              onTap: () => repo.markAllRead(),
               child: const Text('อ่านทั้งหมด',
                   style: TextStyle(fontSize: 14, color: _brown, fontWeight: FontWeight.w600)),
             ),
@@ -170,8 +142,7 @@ class _NotificationPageState extends State<NotificationPage> {
     );
   }
 
-  Widget _buildList() {
-    final items = _filtered;
+  Widget _buildList(List<Map<String, dynamic>> items) {
     if (items.isEmpty) {
       return Center(
         child: Column(
@@ -193,8 +164,10 @@ class _NotificationPageState extends State<NotificationPage> {
 
   Widget _buildNotifCard(Map<String, dynamic> n) {
     final unread = n['read'] == false;
+    final color = _typeColors[n['type']] ?? _typeColors['system']!;
+    final icon = _typeIcons[n['type']] ?? _typeIcons['system']!;
     return GestureDetector(
-      onTap: () => setState(() => n['read'] = true),
+      onTap: () => context.read<NotificationRepository>().markRead(n['id'] as String),
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
         margin: const EdgeInsets.only(bottom: 10),
@@ -203,7 +176,7 @@ class _NotificationPageState extends State<NotificationPage> {
           color: unread ? Colors.white : _bgCard.withValues(alpha:0.5),
           borderRadius: BorderRadius.circular(16),
           border: Border.all(
-            color: unread ? (n['color'] as Color).withValues(alpha:0.4) : const Color(0xFFD9C5B2),
+            color: unread ? color.withValues(alpha:0.4) : const Color(0xFFD9C5B2),
             width: unread ? 1 : 0.5,
           ),
         ),
@@ -213,10 +186,10 @@ class _NotificationPageState extends State<NotificationPage> {
             Container(
               width: 52, height: 52,
               decoration: BoxDecoration(
-                color: (n['color'] as Color).withValues(alpha:0.15),
+                color: color.withValues(alpha:0.15),
                 borderRadius: BorderRadius.circular(14),
               ),
-              child: Center(child: Text(n['icon'] as String, style: const TextStyle(fontSize: 26))),
+              child: Center(child: Text(icon, style: const TextStyle(fontSize: 26))),
             ),
             const SizedBox(width: 14),
             Expanded(
@@ -235,15 +208,17 @@ class _NotificationPageState extends State<NotificationPage> {
                       if (unread)
                         Container(
                           width: 10, height: 10,
-                          decoration: BoxDecoration(color: n['color'] as Color, shape: BoxShape.circle),
+                          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
                         ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-                  Text(n['body'] as String,
-                      style: const TextStyle(fontSize: 14, color: _mutedBrown, height: 1.4)),
+                  if ((n['body'] as String?)?.isNotEmpty == true) ...[
+                    const SizedBox(height: 4),
+                    Text(n['body'] as String,
+                        style: const TextStyle(fontSize: 14, color: _mutedBrown, height: 1.4)),
+                  ],
                   const SizedBox(height: 6),
-                  Text(n['time'] as String,
+                  Text(_timeAgo(n['createdAt'] as String),
                       style: const TextStyle(fontSize: 13, color: _mutedBrown)),
                 ],
               ),

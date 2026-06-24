@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_generative_ai/google_generative_ai.dart';
-import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../data/hotel_data.dart';
+import '../services/match_api_service.dart';
+import '../utils/semantic_match.dart';
 import 'match_result_page.dart';
 import 'hotel_detail_page.dart';
 
@@ -22,18 +22,6 @@ class _MatchingPageState extends State<MatchingPage> {
   static const Color _bgCream = Color(0xFFF5EFE8);
   static const Color _mutedBrown = Color(0xFF9E7A60);
   static const Color _accent = Color(0xFFE8936A);
-
-  final List<Map<String, dynamic>> _traits = [
-    {'key': 'playful', 'label': 'ขี้เล่น', 'icon': Icons.toys_rounded},
-    {'key': 'water', 'label': 'ชอบน้ำ', 'icon': Icons.waves_rounded},
-    {'key': 'calm', 'label': 'รักสงบ', 'icon': Icons.self_improvement_rounded},
-    {'key': 'lazy', 'label': 'สายขี้เกียจ', 'icon': Icons.bed_rounded},
-    {'key': 'active', 'label': 'พลังเยอะ', 'icon': Icons.bolt_rounded},
-    {'key': 'social', 'label': 'เข้าสังคมเก่ง', 'icon': Icons.groups_rounded},
-    {'key': 'nature', 'label': 'รักธรรมชาติ', 'icon': Icons.forest_rounded},
-    {'key': 'care', 'label': 'ต้องการคนดูแล', 'icon': Icons.favorite_rounded},
-    {'key': 'friendly', 'label': 'เป็นมิตร', 'icon': Icons.sentiment_very_satisfied_rounded},
-  ];
 
   final List<Map<String, dynamic>> _hotels = allHotels;
 
@@ -60,77 +48,33 @@ class _MatchingPageState extends State<MatchingPage> {
     FocusScope.of(context).unfocus();
 
     try {
-      final apiKey = dotenv.env['GEMINI_API_KEY'];
-      if (apiKey == null || apiKey.isEmpty || apiKey == 'YOUR_API_KEY_HERE') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('⚠️ ไม่พบ API Key! กรุณาใส่ API Key ในไฟล์ .env'), backgroundColor: Colors.red),
-        );
-        setState(() => _isAiLoading = false);
-        return;
-      }
-
-      final hotelContext = _hotels.asMap().entries.map((entry) {
-        final i = entry.key + 1;
-        final h = entry.value;
-        final tags = (h['tags'] as List<dynamic>).join(', ');
-        final desc = (h['description'] as String? ?? '');
-        final shortDesc = desc.length > 150 ? desc.substring(0, 150) : desc;
-        return 'โรงแรม $i: "${h['name']}"\n  ประเภท: ${h['type']}\n  จุดเด่น: $tags\n  รายละเอียด: $shortDesc';
-      }).join('\n\n');
-
-      final model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: apiKey);
-      final prompt = '''
-คุณคือ AI ผู้เชี่ยวชาญจับคู่สัตว์เลี้ยงกับโรงแรมสัตว์เลี้ยง
-
---- ข้อมูลโรงแรมที่มีให้เลือก ---
-$hotelContext
-
---- สิ่งที่เจ้าของเล่ามาเกี่ยวกับสัตว์เลี้ยง ---
-"$text"
-
---- หน้าที่ของคุณ ---
-1. วิเคราะห์ว่าสัตว์เลี้ยงตัวนี้ต้องการอะไรจากโรงแรม
-2. เลือกเฉพาะโรงแรมที่ตอบโจทย์จริงๆ
-3. อธิบายเหตุผลสั้นๆ เป็นภาษาไทยเข้าใจง่าย
-
-ตอบเป็น JSON เท่านั้น:
-{
-  "summary": "สรุปนิสัยสัตว์เลี้ยงใน 1 ประโยค",
-  "matches": [
-    { "hotelName": "ชื่อโรงแรม", "reason": "เหตุผลว่าทำไมเหมาะ" }
-  ]
-}
-''';
-
-      final response = await model.generateContent([Content.text(prompt)]);
-      final rawResult = response.text?.trim() ?? '';
-      
-      final jsonStr = rawResult
-          .replaceAll(RegExp(r'```json\s*'), '')
-          .replaceAll(RegExp(r'```\s*'), '')
-          .trim();
-
-      final parsed = _parseJsonResult(jsonStr);
-      final summary = parsed['summary'] as String? ?? '';
-      final matchList = parsed['matches'] as List<dynamic>? ?? [];
-
-      if (matchList.isEmpty) {
-        if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('ไม่พบโรงแรมที่เหมาะสม')));
-        return;
-      }
+      final result = await fetchMatch(text);
 
       final matchedHotels = <Map<String, dynamic>>[];
       final matchReasons = <String, String>{};
 
-      for (final m in matchList) {
-        final name = (m as Map)['hotelName'] ?? '';
+      for (final m in result.matches) {
         try {
           final hotel = _hotels.firstWhere(
-            (h) => (h['name'] as String).contains(name) || name.contains(h['name'] as String),
+            (h) {
+              final hName = h['name']?.toString() ?? '';
+              return hName.contains(m.hotelName) || m.hotelName.contains(hName);
+            },
           );
+          final name = hotel['name']?.toString() ?? '';
           matchedHotels.add(hotel);
-          matchReasons[hotel['name'] as String] = m['reason'] ?? '';
+          matchReasons[name] = m.reason;
         } catch (_) {}
+      }
+
+      // The backend's hotel names didn't resolve to anything locally ->
+      // fall back to the local semantic matcher instead of an empty result.
+      if (matchedHotels.isEmpty) {
+        _showFallbackResult(
+          text,
+          notice: '🤖 ไม่สามารถจับคู่ผลลัพธ์จากเซิร์ฟเวอร์ได้ ระบบจึงจับคู่จากนิสัยที่คุณอธิบายด้วยฐานข้อมูลพื้นฐานให้ก่อน',
+        );
+        return;
       }
 
       matchedHotels.sort((a, b) {
@@ -145,50 +89,45 @@ $hotelContext
           MaterialPageRoute(
             builder: (_) => MatchResultPage(
               inputText: text,
-              aiSummary: summary,
+              aiSummary: result.summary,
               matchedHotels: matchedHotels,
               matchReasons: matchReasons,
+              isFallback: result.isFallback,
+              fallbackNotice: result.fallbackNotice,
             ),
           ),
         );
       }
-    } catch (e) {
-      if (mounted) ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Error: $e')));
+    } catch (_) {
+      // Backend unreachable, timed out, or returned an unexpected response ->
+      // fall back to the local semantic matcher so the demo never gets stuck.
+      _showFallbackResult(
+        text,
+        notice: '⚠️ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ AI ได้ ระบบจึงจับคู่จากนิสัยที่คุณอธิบายด้วยฐานข้อมูลพื้นฐานให้ก่อน',
+      );
     } finally {
       if (mounted) setState(() => _isAiLoading = false);
     }
   }
 
-  Map<String, dynamic> _parseJsonResult(String json) {
-    try {
-      final start = json.indexOf('{');
-      final end = json.lastIndexOf('}');
-      if (start == -1 || end == -1) return {};
-      final cleaned = json.substring(start, end + 1);
-
-      final result = <String, dynamic>{};
-      final summaryRx = RegExp(r'"summary"\s* : \s*"((?:[^"\\]|\\.)*)"', caseSensitive: false);
-      final sm = summaryRx.firstMatch(cleaned);
-      if (sm != null) result['summary'] = sm.group(1)?.replaceAll(r'\"', '"') ?? '';
-
-      final matches = <Map<String, String>>[];
-      final matchBlocks = RegExp(r'\{[^{}]*\}').allMatches(cleaned.substring(cleaned.indexOf('[')));
-      for (final m in matchBlocks) {
-        final block = m.group(0)!;
-        final nRx = RegExp(r'"hotelName"\s*:\s*"((?:[^"\\]|\\.)*)"');
-        final rRx = RegExp(r'"reason"\s*:\s*"((?:[^"\\]|\\.)*)"');
-        final nM = nRx.firstMatch(block);
-        final rM = rRx.firstMatch(block);
-        if (nM != null) {
-          matches.add({
-            'hotelName': nM.group(1)?.replaceAll(r'\"', '"') ?? '',
-            'reason': rM?.group(1)?.replaceAll(r'\"', '"') ?? '',
-          });
-        }
-      }
-      result['matches'] = matches;
-      return result;
-    } catch (_) { return {}; }
+  void _showFallbackResult(String text, {required String notice}) {
+    final fallback = localSemanticMatch(text, _hotels);
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MatchResultPage(
+            inputText: text,
+            aiSummary: fallback.summary,
+            matchedHotels: fallback.matchedHotels,
+            matchReasons: fallback.matchReasons,
+            isFallback: true,
+            fallbackNotice: notice,
+          ),
+        ),
+      );
+    }
+    if (mounted) setState(() => _isAiLoading = false);
   }
 
   @override
@@ -307,10 +246,10 @@ $hotelContext
             height: 45,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              itemCount: _traits.length,
-              separatorBuilder: (_, __) => const SizedBox(width: 10),
+              itemCount: petTraits.length,
+              separatorBuilder: (_, i) => const SizedBox(width: 10),
               itemBuilder: (ctx, i) {
-                final t = _traits[i];
+                final t = petTraits[i];
                 final isSelected = _selected.contains(t['key']);
                 return FilterChip(
                   selected: isSelected,

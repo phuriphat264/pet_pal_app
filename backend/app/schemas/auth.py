@@ -1,0 +1,45 @@
+import uuid
+
+from pydantic import BaseModel, ConfigDict, EmailStr, Field
+
+from ..models.user import UserRole
+
+
+class RegisterRequest(BaseModel):
+    email: EmailStr
+    password: str = Field(min_length=8)
+    name: str = Field(min_length=1)
+    phone: str | None = None
+
+
+class LoginRequest(BaseModel):
+    email: EmailStr
+    password: str
+
+
+class RefreshRequest(BaseModel):
+    refresh_token: str
+
+
+class GoogleLoginRequest(BaseModel):
+    id_token: str
+
+
+class FacebookLoginRequest(BaseModel):
+    access_token: str
+
+
+class TokenResponse(BaseModel):
+    access_token: str
+    refresh_token: str
+    token_type: str = "bearer"
+
+
+class UserResponse(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: uuid.UUID
+    email: str
+    name: str
+    phone: str | None
+    role: UserRole

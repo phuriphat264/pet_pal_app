@@ -1,5 +1,12 @@
 // lib/screens/pet_profile_page.dart
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../services/auth_service.dart';
+import '../services/partner_repository.dart';
+import '../services/pet_repository.dart';
+import 'hotel_partner_application_page.dart';
+import 'partner_status_page.dart';
+import 'hotel_dashboard_page.dart';
 
 class PetProfilePage extends StatefulWidget {
   const PetProfilePage({super.key});
@@ -18,93 +25,49 @@ class _PetProfilePageState extends State<PetProfilePage> {
   static const Color _borderColor = Color(0xFFD9C5B2);
 
   int _selectedPet = 0;
+  List<Map<String, dynamic>>? _pets;
+  String? _error;
+  Map<String, dynamic>? _partnerApp;
+  bool _partnerLoading = true;
 
-  // ── ข้อมูลสัตว์เลี้ยง ─────────────────────────────────────────
-  final List<Map<String, dynamic>> _pets = [
-    {
-      'name': 'มะม่วง',
-      'breed': 'โกลเด้นรีทรีฟเวอร์',
-      'age': '3 ปี',
-      'weight': '28 กก.',
-      'height': '60 ซม.',
-      'temp': '38.5°C',
-      'heartRate': '80 bpm',
-      'icon': Icons.pets_rounded,
-      'color': const Color(0xFFD4956A),
-      'gender': 'ชาย',
-      'dob': '12 มี.ค. 65',
-      'color_desc': 'สีทอง',
-      'vaccine': 'ครบแล้ว',
-      'nextVet': '15 เม.ย. 68',
-      'lastVet': '10 ม.ค. 68',
-      'chip': 'TH-2024-001234',
-      'allergies': 'ไม่มี',
-      'food': 'Royal Canin Adult',
-      'feedingTimes': '2 ครั้ง/วัน',
-      'neutered': 'ยังไม่ได้ทำหมัน',
-      // นิสัย
-      'traits': ['ขี้เล่น', 'ชอบน้ำ', 'เป็นมิตร', 'กระฉับกระเฉง'],
-      // ประวัติการรักษา
-      'medHistory': [
-        {'date': '10 ม.ค. 68', 'event': 'ฉีดวัคซีนประจำปี', 'vet': 'ร้านสัตวแพทย์ใจดี'},
-        {'date': '5 ต.ค. 67', 'event': 'ตรวจสุขภาพทั่วไป', 'vet': 'โรงพยาบาลสัตว์เมืองไทย'},
-        {'date': '20 ก.ค. 67', 'event': 'กำจัดเห็บหมัด', 'vet': 'ร้านสัตวแพทย์ใจดี'},
-      ],
-      'health': [
-        {'label': 'น้ำหนัก', 'value': '28 กก.', 'icon': '⚖️'},
-        {'label': 'ส่วนสูง', 'value': '60 ซม.', 'icon': '📏'},
-        {'label': 'อุณหภูมิ', 'value': '38.5°C', 'icon': '🌡️'},
-        {'label': 'ชีพจร', 'value': '80 bpm', 'icon': '💓'},
-      ],
-      'activities': [
-        {'label': 'เดินวันนี้', 'value': '2.3 กม.'},
-        {'label': 'แคลอรี่', 'value': '320 kcal'},
-        {'label': 'นอนหลับ', 'value': '8 ชม.'},
-      ],
-    },
-    {
-      'name': 'ช็อคโกแลต',
-      'breed': 'มิเนเจอร์ ชเนาเซอร์',
-      'age': '5 ปี',
-      'weight': '8 กก.',
-      'height': '35 ซม.',
-      'temp': '38.2°C',
-      'heartRate': '90 bpm',
-      'icon': Icons.pets_rounded,
-      'color': const Color(0xFF6B4F3A),
-      'gender': 'หญิง',
-      'dob': '3 พ.ค. 63',
-      'color_desc': 'สีเทาเข้ม',
-      'vaccine': 'ครบแล้ว',
-      'nextVet': '20 มิ.ย. 68',
-      'lastVet': '15 ธ.ค. 67',
-      'chip': 'TH-2021-005678',
-      'allergies': 'ไก่',
-      'food': "Hill's Science Diet",
-      'feedingTimes': '2 ครั้ง/วัน',
-      'neutered': 'ทำหมันแล้ว',
-      'traits': ['เงียบๆ', 'ขี้อาย', 'เป็นมิตร', 'ชอบนอน'],
-      'medHistory': [
-        {'date': '15 ธ.ค. 67', 'event': 'ฉีดวัคซีนประจำปี', 'vet': 'โรงพยาบาลสัตว์เมืองไทย'},
-        {'date': '8 ส.ค. 67', 'event': 'ผ่าตัดทำหมัน', 'vet': 'คลินิกสัตว์เลี้ยงรัก'},
-      ],
-      'health': [
-        {'label': 'น้ำหนัก', 'value': '8 กก.', 'icon': '⚖️'},
-        {'label': 'ส่วนสูง', 'value': '35 ซม.', 'icon': '📏'},
-        {'label': 'อุณหภูมิ', 'value': '38.2°C', 'icon': '🌡️'},
-        {'label': 'ชีพจร', 'value': '90 bpm', 'icon': '💓'},
-      ],
-      'activities': [
-        {'label': 'เดินวันนี้', 'value': '1.1 กม.'},
-        {'label': 'แคลอรี่', 'value': '180 kcal'},
-        {'label': 'นอนหลับ', 'value': '10 ชม.'},
-      ],
-    },
-  ];
+  @override
+  void initState() {
+    super.initState();
+    _loadPets();
+    _loadPartnerApp();
+  }
+
+  Future<void> _loadPets() async {
+    setState(() => _error = null);
+    try {
+      final pets = await context.read<PetRepository>().fetchPets();
+      if (!mounted) return;
+      setState(() {
+        _pets = pets;
+        if (_selectedPet >= pets.length) _selectedPet = 0;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _error = 'โหลดข้อมูลน้องไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
+  }
+
+  Future<void> _loadPartnerApp() async {
+    try {
+      final app = await context.read<PartnerRepository>().fetchMyApplication();
+      if (!mounted) return;
+      setState(() {
+        _partnerApp = app;
+        _partnerLoading = false;
+      });
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _partnerLoading = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
-    final pet = _pets[_selectedPet];
     return Scaffold(
       backgroundColor: _bgCream,
       body: SingleChildScrollView(
@@ -115,27 +78,76 @@ class _PetProfilePageState extends State<PetProfilePage> {
             const SizedBox(height: 10),
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  _buildHeader(pet),
-                  _buildSectionHeader('🏥 สุขภาพและร่างกาย'),
-                  _buildHealthCards(pet),
-                  _buildTraitsSection(pet),
-                  _buildSectionHeader('⚡ กิจกรรมและการนอน'),
-                  _buildActivitySection(pet),
-                  _buildSectionHeader('📋 ข้อมูลทั่วไป'),
-                  _buildInfoSection(pet),
-                  _buildSectionHeader('🏥 ประวัติการรักษา'),
-                  _buildMedHistorySection(pet),
-                  _buildVetSection(pet),
-                ],
-              ),
+              child: _buildPartnerCard(),
+            ),
+            const SizedBox(height: 10),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24),
+              child: _buildPetSection(),
             ),
             const SizedBox(height: 32),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildPetSection() {
+    if (_error != null) {
+      return Column(
+        children: [
+          Text(_error!, style: const TextStyle(color: _mutedBrown)),
+          const SizedBox(height: 12),
+          ElevatedButton(onPressed: _loadPets, child: const Text('ลองใหม่')),
+        ],
+      );
+    }
+    if (_pets == null) {
+      return const Padding(
+        padding: EdgeInsets.symmetric(vertical: 60),
+        child: Center(child: CircularProgressIndicator(color: _brown)),
+      );
+    }
+    if (_pets!.isEmpty) {
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          _buildSectionHeader('🐾 โปรไฟล์น้อง'),
+          Container(
+            padding: const EdgeInsets.all(24),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(20)),
+            child: Column(
+              children: [
+                const Text('ยังไม่มีข้อมูลน้อง', style: TextStyle(color: _mutedBrown)),
+                const SizedBox(height: 12),
+                ElevatedButton(
+                  onPressed: _showAddPetSheet,
+                  style: ElevatedButton.styleFrom(backgroundColor: _brown),
+                  child: const Text('เพิ่มน้อง', style: TextStyle(color: Colors.white)),
+                ),
+              ],
+            ),
+          ),
+        ],
+      );
+    }
+
+    final pet = _pets![_selectedPet];
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _buildHeader(pet),
+        _buildSectionHeader('🏥 สุขภาพและร่างกาย'),
+        _buildHealthCards(pet),
+        _buildTraitsSection(pet),
+        _buildSectionHeader('⚡ กิจกรรมและการนอน'),
+        _buildActivitySection(pet),
+        _buildSectionHeader('📋 ข้อมูลทั่วไป'),
+        _buildInfoSection(pet),
+        _buildSectionHeader('🏥 ประวัติการรักษา'),
+        _buildMedHistorySection(pet),
+        _buildVetSection(pet),
+      ],
     );
   }
 
@@ -244,13 +256,14 @@ class _PetProfilePageState extends State<PetProfilePage> {
 
   // ── Pet Selector ──────────────────────────────────────────────
   Widget _buildPetSelector() {
-    if (_pets.length <= 1) return const SizedBox.shrink();
+    final pets = _pets!;
+    if (pets.length <= 1) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.only(bottom: 0),
       child: Row(
-        children: List.generate(_pets.length, (i) {
+        children: List.generate(pets.length, (i) {
           final selected = i == _selectedPet;
-          final isLast = i == _pets.length - 1;
+          final isLast = i == pets.length - 1;
           return Expanded(
             child: GestureDetector(
               onTap: () => setState(() => _selectedPet = i),
@@ -265,9 +278,9 @@ class _PetProfilePageState extends State<PetProfilePage> {
                 child: Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(_pets[i]['icon'] as IconData, size: 18, color: selected ? Colors.white : _mutedBrown),
+                    Icon(pets[i]['icon'] as IconData, size: 18, color: selected ? Colors.white : _mutedBrown),
                     const SizedBox(width: 8),
-                    Text(_pets[i]['name'],
+                    Text(pets[i]['name'],
                         style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold,
                             color: selected ? Colors.white : _mutedBrown)),
                   ],
@@ -745,12 +758,35 @@ class _PetProfilePageState extends State<PetProfilePage> {
                 SizedBox(
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('🐾 เพิ่มน้องแล้ว!'),
-                            backgroundColor: _brown, duration: Duration(seconds: 1)),
-                      );
+                    onPressed: () async {
+                      final name = nameCtrl.text.trim();
+                      if (name.isEmpty) return;
+                      try {
+                        await context.read<PetRepository>().createPet(
+                              name: name,
+                              breed: breedCtrl.text.trim().isEmpty ? 'ไม่ระบุสายพันธุ์' : breedCtrl.text.trim(),
+                              age: ageCtrl.text.trim().isEmpty ? 'ไม่ระบุอายุ' : ageCtrl.text.trim(),
+                              weight: weightCtrl.text.trim().isEmpty ? '-' : weightCtrl.text.trim(),
+                              gender: selectedGender,
+                              neutered: selectedNeutered,
+                              food: foodCtrl.text.trim().isEmpty ? 'ไม่ระบุ' : foodCtrl.text.trim(),
+                              allergies: allergiesCtrl.text.trim().isEmpty ? 'ไม่มี' : allergiesCtrl.text.trim(),
+                              traits: selectedTraits.toList(),
+                            );
+                        await _loadPets();
+                        if (!mounted) return;
+                        setState(() => _selectedPet = (_pets?.length ?? 1) - 1);
+                        Navigator.pop(ctx);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('🐾 เพิ่มน้อง $name แล้ว!'),
+                              backgroundColor: _brown, duration: const Duration(seconds: 2)),
+                        );
+                      } catch (e) {
+                        if (!mounted) return;
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text('เพิ่มน้องไม่สำเร็จ: $e'), backgroundColor: Colors.redAccent),
+                        );
+                      }
                     },
                     style: ElevatedButton.styleFrom(
                       backgroundColor: _brown,
@@ -840,7 +876,10 @@ class _PetProfilePageState extends State<PetProfilePage> {
                 SizedBox(
                   width: double.infinity,
                   child: OutlinedButton.icon(
-                    onPressed: () => Navigator.pushReplacementNamed(context, '/login'),
+                    onPressed: () async {
+                      await context.read<AuthService>().logout();
+                      if (context.mounted) Navigator.pushReplacementNamed(context, '/login');
+                    },
                     icon: const Icon(Icons.logout_rounded, color: Colors.redAccent, size: 20),
                     label: const Text('ออกจากระบบ',
                         style: TextStyle(color: Colors.redAccent, fontWeight: FontWeight.w600)),
@@ -857,6 +896,84 @@ class _PetProfilePageState extends State<PetProfilePage> {
         ],
       ),
     );
+  }
+
+  // ── Partner / Shop Owner Entry Point ───────────────────────────
+  Widget _buildPartnerCard() {
+    if (_partnerLoading) return const SizedBox.shrink();
+
+    final status = _partnerApp?['status'] as String? ?? 'none';
+
+    IconData icon;
+    String title;
+    String subtitle;
+    VoidCallback onTap;
+
+    switch (status) {
+      case 'pending':
+        icon = Icons.hourglass_top_rounded;
+        title = 'ติดตามสถานะการสมัครเปิดร้าน';
+        subtitle = 'คำขอของคุณอยู่ระหว่างตรวจสอบเอกสาร';
+        onTap = () => _openPartnerPage(const PartnerStatusPage());
+        break;
+      case 'rejected':
+        icon = Icons.hourglass_top_rounded;
+        title = 'คำขอเปิดร้านไม่ผ่านการอนุมัติ';
+        subtitle = 'แตะเพื่อดูรายละเอียดและส่งคำขอใหม่';
+        onTap = () => _openPartnerPage(const PartnerStatusPage());
+        break;
+      case 'approved':
+        icon = Icons.storefront_rounded;
+        title = 'จัดการร้านของฉัน';
+        final shopName = _partnerApp?['shopName'] as String? ?? '';
+        subtitle = shopName.isEmpty ? 'เจ้าของร้าน · PetPal Partner' : '$shopName · เจ้าของร้าน';
+        onTap = () => _openPartnerPage(const HotelDashboardPage());
+        break;
+      default:
+        icon = Icons.storefront_rounded;
+        title = 'สมัครเปิดร้านกับ PetPal';
+        subtitle = 'เป็นพาร์ทเนอร์โรงแรม/ร้านดูแลสัตว์เลี้ยง รับลูกค้าผ่านแอป';
+        onTap = () => _openPartnerPage(const HotelPartnerApplicationPage());
+    }
+
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: _brown,
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.25), blurRadius: 12, offset: const Offset(0, 4))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 48, height: 48,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(14)),
+              child: Icon(icon, color: Colors.white, size: 24),
+            ),
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title, style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: Colors.white)),
+                  const SizedBox(height: 3),
+                  Text(subtitle, style: const TextStyle(fontSize: 12, color: Colors.white70), maxLines: 1, overflow: TextOverflow.ellipsis),
+                ],
+              ),
+            ),
+            const Icon(Icons.chevron_right_rounded, color: Colors.white70),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _openPartnerPage(Widget page) {
+    Navigator.push(context, MaterialPageRoute(builder: (_) => page)).then((_) {
+      if (mounted) _loadPartnerApp();
+    });
   }
 
   Widget _buildSectionHeader(String title) {
@@ -901,7 +1018,13 @@ class _PetProfilePageState extends State<PetProfilePage> {
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
           borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
-      builder: (ctx) => Padding(
+      builder: (ctx) {
+        final nameCtrl = TextEditingController(text: pet['name'] as String? ?? '');
+        final weightCtrl = TextEditingController(text: pet['weight'] as String? ?? '');
+        final heightCtrl = TextEditingController(text: pet['height'] as String? ?? '');
+        final foodCtrl = TextEditingController(text: pet['food'] as String? ?? '');
+        final allergiesCtrl = TextEditingController(text: pet['allergies'] as String? ?? '');
+        return Padding(
         padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -915,29 +1038,46 @@ class _PetProfilePageState extends State<PetProfilePage> {
             Text('แก้ไขข้อมูล ${pet['name']}',
                 style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
             const SizedBox(height: 16),
-            _inputField('ชื่อน้อง', hint: pet['name']),
+            _inputField('ชื่อน้อง', ctrl: nameCtrl, hint: pet['name'] as String?),
             const SizedBox(height: 10),
             Row(
               children: [
-                Expanded(child: _inputField('น้ำหนัก', hint: pet['weight'])),
+                Expanded(child: _inputField('น้ำหนัก', ctrl: weightCtrl, hint: pet['weight'] as String?)),
                 const SizedBox(width: 10),
-                Expanded(child: _inputField('ส่วนสูง', hint: pet['height'])),
+                Expanded(child: _inputField('ส่วนสูง', ctrl: heightCtrl, hint: pet['height'] as String?)),
               ],
             ),
             const SizedBox(height: 10),
-            _inputField('อาหาร', hint: pet['food']),
+            _inputField('อาหาร', ctrl: foodCtrl, hint: pet['food'] as String?),
             const SizedBox(height: 10),
-            _inputField('สิ่งที่แพ้', hint: pet['allergies']),
+            _inputField('สิ่งที่แพ้', ctrl: allergiesCtrl, hint: pet['allergies'] as String?),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
               child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(ctx);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('✅ บันทึกแล้ว'),
-                        backgroundColor: _brown, duration: Duration(seconds: 1)),
-                  );
+                onPressed: () async {
+                  final updates = <String, dynamic>{
+                    if (nameCtrl.text.trim().isNotEmpty) 'name': nameCtrl.text.trim(),
+                    if (weightCtrl.text.trim().isNotEmpty) 'weight': weightCtrl.text.trim(),
+                    if (heightCtrl.text.trim().isNotEmpty) 'height': heightCtrl.text.trim(),
+                    if (foodCtrl.text.trim().isNotEmpty) 'food': foodCtrl.text.trim(),
+                    if (allergiesCtrl.text.trim().isNotEmpty) 'allergies': allergiesCtrl.text.trim(),
+                  };
+                  try {
+                    await context.read<PetRepository>().updatePet(pet['id'] as String, updates);
+                    await _loadPets();
+                    if (!mounted) return;
+                    Navigator.pop(ctx);
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('✅ บันทึกแล้ว'),
+                          backgroundColor: _brown, duration: Duration(seconds: 1)),
+                    );
+                  } catch (e) {
+                    if (!mounted) return;
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(content: Text('บันทึกไม่สำเร็จ: $e'), backgroundColor: Colors.redAccent),
+                    );
+                  }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: _brown,
@@ -949,7 +1089,8 @@ class _PetProfilePageState extends State<PetProfilePage> {
             ),
           ],
         ),
-      ),
+      );
+      },
     );
   }
 

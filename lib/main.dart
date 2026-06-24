@@ -1,7 +1,11 @@
 // lib/main.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:http/http.dart' as http;
+import 'package:provider/provider.dart';
 
+import 'data/care_tips_data.dart';
+import 'screens/care_tip_detail_page.dart';
 import 'screens/live_cam_page.dart';
 import 'screens/matching_page.dart';
 import 'screens/pet_profile_page.dart';
@@ -10,43 +14,84 @@ import 'screens/notification_page.dart';
 import 'screens/login_page.dart';
 import 'screens/chat_room_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'data/hotel_data.dart';
 import 'screens/hotel_detail_page.dart';
+import 'services/api_client.dart';
+import 'services/auth_service.dart';
+import 'services/booking_repository.dart';
+import 'services/camera_repository.dart';
+import 'services/chat_repository.dart';
+import 'services/hotel_repository.dart';
+import 'services/notification_repository.dart';
+import 'services/partner_repository.dart';
+import 'services/pet_repository.dart';
+import 'services/realtime_service.dart';
+import 'utils/pet_pal_image.dart';
+import 'utils/role_router.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await dotenv.load(fileName: ".env");
-  runApp(const PetPalApp());
+  final authService = AuthService();
+  await authService.bootstrap();
+  runApp(PetPalApp(authService: authService));
 }
 
 class PetPalApp extends StatelessWidget {
-  const PetPalApp({super.key});
+  final AuthService authService;
+  /// Test-only: overrides the HTTP client used for both the API and direct
+  /// (presigned-URL) uploads, so widget tests can fake the backend instead
+  /// of hitting the network.
+  final http.Client? httpClient;
+  const PetPalApp({super.key, required this.authService, this.httpClient});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      debugShowCheckedModeBanner: false,
-      title: 'PetPal',
-      theme: ThemeData(
-        useMaterial3: true,
-        textTheme: GoogleFonts.kanitTextTheme(),
-        scaffoldBackgroundColor: const Color(0xFFFFF9F1),
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: const Color(0xFF5C3D2E),
-          primary: const Color(0xFF5C3D2E),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider<AuthService>.value(value: authService),
+        Provider<ApiClient>(create: (_) => ApiClient(authService: authService, client: httpClient)),
+        Provider<HotelRepository>(create: (ctx) => HotelRepository(ctx.read<ApiClient>())),
+        Provider<PetRepository>(create: (ctx) => PetRepository(ctx.read<ApiClient>())),
+        Provider<BookingRepository>(create: (ctx) => BookingRepository(ctx.read<ApiClient>())),
+        Provider<PartnerRepository>(
+          create: (ctx) => PartnerRepository(ctx.read<ApiClient>(), uploadClient: httpClient),
         ),
-        pageTransitionsTheme: const PageTransitionsTheme(
-          builders: {
-            TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
-            TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
-          },
+        Provider<CameraRepository>(create: (ctx) => CameraRepository(ctx.read<ApiClient>())),
+        Provider<RealtimeService>(
+          create: (_) => RealtimeService(authService: authService),
+          dispose: (_, service) => service.dispose(),
         ),
+        ChangeNotifierProvider<ChatRepository>(
+          create: (ctx) => ChatRepository(client: ctx.read<ApiClient>(), realtime: ctx.read<RealtimeService>()),
+        ),
+        ChangeNotifierProvider<NotificationRepository>(
+          create: (ctx) => NotificationRepository(client: ctx.read<ApiClient>(), realtime: ctx.read<RealtimeService>()),
+        ),
+      ],
+      child: MaterialApp(
+        debugShowCheckedModeBanner: false,
+        title: 'PetPal',
+        theme: ThemeData(
+          useMaterial3: true,
+          textTheme: GoogleFonts.kanitTextTheme(),
+          scaffoldBackgroundColor: const Color(0xFFFFF9F1),
+          colorScheme: ColorScheme.fromSeed(
+            seedColor: const Color(0xFF5C3D2E),
+            primary: const Color(0xFF5C3D2E),
+          ),
+          pageTransitionsTheme: const PageTransitionsTheme(
+            builders: {
+              TargetPlatform.android: FadeUpwardsPageTransitionsBuilder(),
+              TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+            },
+          ),
+        ),
+        home: authService.isLoggedIn ? homeForRole(authService.role) : const LoginPage(),
+        routes: {
+          '/login': (_) => const LoginPage(),
+          '/home': (_) => const MainNavigation(),
+        },
       ),
-      initialRoute: '/home',
-      routes: {
-        '/login': (_) => const LoginPage(),
-        '/home': (_) => const MainNavigation(),
-      },
     );
   }
 }
@@ -69,7 +114,7 @@ class _MainNavigationState extends State<MainNavigation> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HomePage(),
+          HomePage(onSwitchTab: (i) => setState(() => _selectedIndex = i)),
           LiveCamPage(),
           ChatRoomPage(),
           MatchingPage(),
@@ -100,7 +145,8 @@ class _MainNavigationState extends State<MainNavigation> {
 // ── Home Page ─────────────────────────────────────────────────────
 
 class HomePage extends StatelessWidget {
-  const HomePage({super.key});
+  final void Function(int)? onSwitchTab;
+  const HomePage({super.key, this.onSwitchTab});
 
   static const Color _brown = Color(0xFF5C3D2E);
   static const Color _darkBrown = Color(0xFF3D2316);
@@ -123,7 +169,7 @@ class HomePage extends StatelessWidget {
               _buildQuickActions(context),
               _buildTrustBanner(context),
               _buildNearbySection(context),
-              _buildTipsSection(),
+              _buildTipsSection(context),
               const SizedBox(height: 24),
             ],
           ),
@@ -261,7 +307,7 @@ class HomePage extends StatelessWidget {
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () {},
+                              onTap: () => onSwitchTab?.call(1),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                                 decoration: BoxDecoration(
@@ -348,7 +394,16 @@ class HomePage extends StatelessWidget {
                   if (a['label'] == 'จองที่พัก') {
                     Navigator.push(context, MaterialPageRoute(builder: (_) => const HotelListPage()));
                   } else if (a['label'] == 'แมตช์นิสัย') {
-                    Navigator.push(context, MaterialPageRoute(builder: (_) => const MatchingPage()));
+                    onSwitchTab?.call(3);
+                  } else {
+                    ScaffoldMessenger.of(context).showSnackBar(SnackBar(
+                      content: Text('${a['label']} — เร็วๆ นี้ 🚀'),
+                      backgroundColor: _brown,
+                      behavior: SnackBarBehavior.floating,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                      margin: const EdgeInsets.all(16),
+                      duration: const Duration(seconds: 2),
+                    ));
                   }
                 },
                 child: Column(
@@ -410,8 +465,22 @@ class HomePage extends StatelessWidget {
 
   // ── Nearby Section ────────────────────────────────────────────
   Widget _buildNearbySection(BuildContext context) {
-  final List<Map<String, dynamic>> nearby = allHotels.take(3).toList();
+    return FutureBuilder<List<Map<String, dynamic>>>(
+      future: context.read<HotelRepository>().fetchHotels(),
+      builder: (context, snapshot) {
+        final nearby = (snapshot.data ?? const <Map<String, dynamic>>[]).take(3).toList();
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 40),
+            child: Center(child: CircularProgressIndicator(color: _brown)),
+          );
+        }
+        return _buildNearbyList(context, nearby);
+      },
+    );
+  }
 
+  Widget _buildNearbyList(BuildContext context, List<Map<String, dynamic>> nearby) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -439,7 +508,7 @@ class HomePage extends StatelessWidget {
             itemBuilder: (_, i) {
               final h = nearby[i];
               return GestureDetector(
-                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HotelListPage())),
+                onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => HotelDetailPage(hotel: h))),
                 child: Container(
                   width: 160,
                   margin: const EdgeInsets.only(right: 12),
@@ -463,11 +532,9 @@ class HomePage extends StatelessWidget {
                             child: ClipRRect(
                               borderRadius: const BorderRadius.vertical(top: Radius.circular(18)),
                               child: h['images'] != null && (h['images'] as List).isNotEmpty
-                                  ? Image.asset(
-                                      (h['images'] as List).first as String,
-                                      fit: BoxFit.cover,
-                                      width: double.infinity,
-                                      errorBuilder: (_, __, ___) => Center(child: Icon(h['icon'] as IconData, size: 46, color: _brown)),
+                                  ? PetPalImage(
+                                      path: (h['images'] as List).first as String,
+                                      errorBuilder: (_, e, s) => Center(child: Icon(h['icon'] as IconData, size: 46, color: _brown)),
                                     )
                                   : Center(child: Icon(h['icon'] as IconData, size: 46, color: _brown)),
                             ),
@@ -505,7 +572,12 @@ class HomePage extends StatelessWidget {
                                       style: const TextStyle(fontSize: 10, color: _mutedBrown, fontWeight: FontWeight.w600)),
                                   const Text(' · ', style: TextStyle(fontSize: 10, color: _mutedBrown)),
                                   const Icon(Icons.location_on_outlined, size: 10, color: _mutedBrown),
-                                  Text(h['distance']?.toString() ?? '', style: const TextStyle(fontSize: 10, color: _mutedBrown)),
+                                  Expanded(
+                                    child: Text(h['distance']?.toString() ?? '',
+                                        style: const TextStyle(fontSize: 10, color: _mutedBrown),
+                                        maxLines: 1,
+                                        overflow: TextOverflow.ellipsis),
+                                  ),
                                 ],
                               ),
                               const SizedBox(height: 5),
@@ -532,7 +604,7 @@ class HomePage extends StatelessWidget {
   }
 
   // ── Tips Section ──────────────────────────────────────────────
-  Widget _buildTipsSection() {
+  Widget _buildTipsSection(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 0),
       child: Column(
@@ -541,52 +613,51 @@ class HomePage extends StatelessWidget {
           const Text('เคล็ดลับดูแลน้อง',
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
           const SizedBox(height: 12),
-          _tipCard(Icons.restaurant_rounded, 'อาหารที่ดีสำหรับหมา',
-              'อาหารสูตร adult ช่วยบำรุงกระดูกและขนให้แข็งแรง'),
-          const SizedBox(height: 8),
-          _tipCard(Icons.water_drop_rounded, 'น้ำสะอาดสำคัญมาก',
-              'น้องหมาควรดื่มน้ำอย่างน้อย 50 มล. ต่อน้ำหนัก 1 กก. ต่อวัน'),
-          const SizedBox(height: 8),
-          _tipCard(Icons.directions_walk_rounded, 'ออกกำลังกายทุกวัน',
-              'หมาขนาดกลางควรเดินอย่างน้อย 30 นาทีต่อวันเพื่อสุขภาพที่ดี'),
+          for (final tip in careTips) ...[
+            _tipCard(context, tip),
+            const SizedBox(height: 8),
+          ],
         ],
       ),
     );
   }
 
-  Widget _tipCard(IconData icon, String title, String body) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.03), blurRadius: 10, offset: const Offset(0, 4))],
-      ),
-      child: Row(
-        children: [
-          Container(
-            width: 52, height: 52,
-            decoration: BoxDecoration(
-              color: _bgCream,
-              borderRadius: BorderRadius.circular(14),
+  Widget _tipCard(BuildContext context, CareTip tip) {
+    return GestureDetector(
+      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => CareTipDetailPage(tip: tip))),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.white,
+          borderRadius: BorderRadius.circular(16),
+          boxShadow: [BoxShadow(color: Colors.black.withValues(alpha:0.03), blurRadius: 10, offset: const Offset(0, 4))],
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 52, height: 52,
+              decoration: BoxDecoration(
+                color: _bgCream,
+                borderRadius: BorderRadius.circular(14),
+              ),
+              child: Center(child: Icon(tip.icon, color: _brown, size: 28)),
             ),
-            child: Center(child: Icon(icon, color: _brown, size: 28)),
-          ),
-          const SizedBox(width: 14),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(title,
-                    style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _darkBrown)),
-                const SizedBox(height: 4),
-                Text(body,
-                    style: const TextStyle(fontSize: 13, color: _mutedBrown, height: 1.4)),
-              ],
+            const SizedBox(width: 14),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(tip.title,
+                      style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _darkBrown)),
+                  const SizedBox(height: 4),
+                  Text(tip.summary,
+                      style: const TextStyle(fontSize: 13, color: _mutedBrown, height: 1.4)),
+                ],
+              ),
             ),
-          ),
-          const Icon(Icons.chevron_right, color: _mutedBrown, size: 18),
-        ],
+            const Icon(Icons.chevron_right, color: _mutedBrown, size: 18),
+          ],
+        ),
       ),
     );
   }

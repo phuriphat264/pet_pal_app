@@ -1,5 +1,12 @@
 // lib/screens/login_page.dart
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
+import 'package:google_sign_in/google_sign_in.dart';
+import 'package:provider/provider.dart';
+
+import '../services/auth_service.dart';
+import '../utils/role_router.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -81,38 +88,125 @@ class _LoginPageState extends State<LoginPage>
     super.dispose();
   }
 
+  void _showError(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Text(message, style: const TextStyle(fontWeight: FontWeight.w600)),
+        backgroundColor: Colors.redAccent,
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        margin: const EdgeInsets.all(16),
+      ),
+    );
+  }
+
   Future<void> _onLogin() async {
     FocusScope.of(context).unfocus();
+    final email = _emailCtrl.text.trim();
+    final password = _passCtrl.text;
+    if (email.isEmpty || password.isEmpty) {
+      _showError('กรุณากรอกอีเมลและรหัสผ่าน');
+      return;
+    }
+
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    Navigator.of(context).pushReplacementNamed('/home');
+    try {
+      final auth = context.read<AuthService>();
+      await auth.login(email: email, password: password);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => homeForRole(auth.role)));
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _onGoogleLogin() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    try {
+      final serverClientId = dotenv.env['GOOGLE_SERVER_CLIENT_ID'];
+      if (serverClientId == null || serverClientId.isEmpty) {
+        _showError('ยังไม่ได้ตั้งค่า Google Sign-In (GOOGLE_SERVER_CLIENT_ID ใน .env)');
+        return;
+      }
+      final googleSignIn = GoogleSignIn(scopes: const ['email'], serverClientId: serverClientId);
+      final account = await googleSignIn.signIn();
+      if (account == null) return; // user cancelled the picker
+      final googleAuth = await account.authentication;
+      final idToken = googleAuth.idToken;
+      if (idToken == null) {
+        _showError('ไม่สามารถรับ Google ID token ได้');
+        return;
+      }
+      final auth = context.read<AuthService>();
+      await auth.loginWithGoogle(idToken: idToken);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => homeForRole(auth.role)));
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      _showError(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showError('เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  Future<void> _onFacebookLogin() async {
+    if (_loading) return;
+    setState(() => _loading = true);
+    try {
+      final result = await FacebookAuth.instance.login(
+        permissions: const ['email', 'public_profile'],
+        loginTracking: LoginTracking.enabled,
+      );
+      if (result.status == LoginStatus.cancelled) return;
+      final token = result.accessToken;
+      if (result.status != LoginStatus.success || token is! ClassicToken) {
+        _showError(result.message ?? 'เข้าสู่ระบบด้วย Facebook ไม่สำเร็จ');
+        return;
+      }
+      final auth = context.read<AuthService>();
+      await auth.loginWithFacebook(accessToken: token.tokenString);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => homeForRole(auth.role)));
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      _showError(e.message);
+    } catch (_) {
+      if (!mounted) return;
+      _showError('เข้าสู่ระบบด้วย Facebook ไม่สำเร็จ');
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   Future<void> _onRegister() async {
     FocusScope.of(context).unfocus();
+    final name = _nameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final password = _passCtrl.text;
+    if (name.isEmpty || email.isEmpty || password.length < 8) {
+      _showError('กรุณากรอกข้อมูลให้ครบ และรหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+      return;
+    }
+
     setState(() => _loading = true);
-    await Future.delayed(const Duration(milliseconds: 1200));
-    if (!mounted) return;
-    setState(() => _loading = false);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Row(children: [
-          Text('🎉', style: TextStyle(fontSize: 16)),
-          SizedBox(width: 10),
-          Text('สมัครสมาชิกสำเร็จแล้ว!',
-              style: TextStyle(fontWeight: FontWeight.w600)),
-        ]),
-        backgroundColor: _brown,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        margin: const EdgeInsets.all(16),
-        duration: const Duration(seconds: 2),
-      ),
-    );
-    _tabController.animateTo(0);
-    setState(() => _tabIndex = 0);
+    try {
+      final auth = context.read<AuthService>();
+      await auth.register(email: email, password: password, name: name);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => homeForRole(auth.role)));
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
   }
 
   // ─── Build ───────────────────────────────────────────────────────
@@ -595,13 +689,13 @@ class _LoginPageState extends State<LoginPage>
         Expanded(child: _socialBtn(
           label: 'Google',
           logo: _GoogleLogo(),
-          onTap: _onLogin,
+          onTap: _loading ? null : _onGoogleLogin,
         )),
         const SizedBox(width: 12),
         Expanded(child: _socialBtn(
           label: 'Facebook',
           logo: _FacebookLogo(),
-          onTap: _onLogin,
+          onTap: _loading ? null : _onFacebookLogin,
         )),
       ],
     );
@@ -610,7 +704,7 @@ class _LoginPageState extends State<LoginPage>
   Widget _socialBtn({
     required String label,
     required Widget logo,
-    required VoidCallback onTap,
+    required VoidCallback? onTap,
   }) {
     return GestureDetector(
       onTap: onTap,
