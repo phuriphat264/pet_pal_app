@@ -55,3 +55,8 @@ class CameraTestResult(BaseModel):
     success: bool
     message: str | None
     camera: CameraResponse
+
+
+class CameraStreamResponse(BaseModel):
+    stream_url: str
+    protocol: CameraProtocol

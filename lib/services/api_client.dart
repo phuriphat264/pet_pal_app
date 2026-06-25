@@ -1,6 +1,7 @@
 // Shared HTTP client for the PetPal backend: resolves the base URL (same
 // convention as the existing AI Smart Match service), attaches the bearer
 // token, and transparently refreshes it once on a 401 before retrying.
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
@@ -32,6 +33,8 @@ class ApiException implements Exception {
 }
 
 class ApiClient {
+  static const _requestTimeout = Duration(seconds: 15);
+
   final AuthService authService;
   final http.Client _client;
 
@@ -65,21 +68,31 @@ class ApiClient {
     final uri = _uri(path, query);
     http.Response response;
 
-    switch (method) {
-      case 'GET':
-        response = await _client.get(uri, headers: headers);
-        break;
-      case 'POST':
-        response = await _client.post(uri, headers: headers, body: body == null ? null : jsonEncode(body));
-        break;
-      case 'PATCH':
-        response = await _client.patch(uri, headers: headers, body: body == null ? null : jsonEncode(body));
-        break;
-      case 'DELETE':
-        response = await _client.delete(uri, headers: headers);
-        break;
-      default:
-        throw ArgumentError('Unsupported method $method');
+    try {
+      switch (method) {
+        case 'GET':
+          response = await _client.get(uri, headers: headers).timeout(_requestTimeout);
+          break;
+        case 'POST':
+          response = await _client
+              .post(uri, headers: headers, body: body == null ? null : jsonEncode(body))
+              .timeout(_requestTimeout);
+          break;
+        case 'PATCH':
+          response = await _client
+              .patch(uri, headers: headers, body: body == null ? null : jsonEncode(body))
+              .timeout(_requestTimeout);
+          break;
+        case 'DELETE':
+          response = await _client.delete(uri, headers: headers).timeout(_requestTimeout);
+          break;
+        default:
+          throw ArgumentError('Unsupported method $method');
+      }
+    } on TimeoutException {
+      throw ApiException(0, 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ (หมดเวลา) ตรวจสอบว่าเปิดเครื่อง backend ไว้และอยู่เครือข่ายเดียวกัน');
+    } on SocketException {
+      throw ApiException(0, 'เชื่อมต่อเซิร์ฟเวอร์ไม่ได้ ตรวจสอบ Wi-Fi และที่อยู่ API_BASE_URL');
     }
 
     if (response.statusCode == 401 && auth && !retried) {

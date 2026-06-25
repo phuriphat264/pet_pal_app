@@ -1,6 +1,15 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Needed in the main manifest (not just debug/profile) for release builds:
+         the app calls the backend API and plays RTSP camera streams over the network. -->
+    <uses-permission android:name="android.permission.INTERNET"/>
+    <!-- Voice/video calls (LiveKit). -->
+    <uses-permission android:name="android.permission.CAMERA"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
+    <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.BLUETOOTH"/>
     <application
-        android:label="pet_pal_app"
+        android:label="PetPal"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

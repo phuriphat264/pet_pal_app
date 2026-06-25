@@ -2,10 +2,12 @@ import uuid
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, WebSocket, WebSocketDisconnect, status
+from livekit import api as livekit_api
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from ..core.config import get_settings
 from ..core.deps import get_current_user, get_current_user_ws
 from ..db.session import AsyncSessionLocal, get_db
 from ..models.chat import ChatMessage, ChatThread
@@ -13,8 +15,17 @@ from ..models.hotel import Hotel
 from ..models.notification import Notification, NotificationType
 from ..models.partner import PartnerProfile
 from ..models.user import User, UserRole
-from ..schemas.chat import ChatMessageCreate, ChatMessageResponse, ChatThreadCreate, ChatThreadResponse
+from ..schemas.chat import (
+    CallTokenRequest,
+    CallTokenResponse,
+    ChatMessageCreate,
+    ChatMessageResponse,
+    ChatThreadCreate,
+    ChatThreadResponse,
+)
 from ..ws.connection_manager import manager
+
+settings = get_settings()
 
 router = APIRouter(prefix="/chat", tags=["chat"])
 
@@ -33,6 +44,10 @@ async def _other_party_id(thread: ChatThread, db: AsyncSession) -> uuid.UUID | N
         return None
     partner = await db.get(PartnerProfile, hotel.partner_id)
     return partner.user_id if partner else None
+
+
+async def _recipient_id(thread: ChatThread, sender: User, db: AsyncSession) -> uuid.UUID | None:
+    return thread.customer_id if sender.id != thread.customer_id else await _other_party_id(thread, db)
 
 
 async def _authorize_thread(thread: ChatThread, user: User, db: AsyncSession) -> None:
@@ -96,6 +111,16 @@ async def list_threads(user: User = Depends(get_current_user), db: AsyncSession 
     return responses
 
 
+async def _get_or_create_thread(customer_id: uuid.UUID, hotel_id: uuid.UUID, db: AsyncSession) -> ChatThread:
+    thread = await db.scalar(select(ChatThread).where(ChatThread.customer_id == customer_id, ChatThread.hotel_id == hotel_id))
+    if thread is None:
+        thread = ChatThread(customer_id=customer_id, hotel_id=hotel_id)
+        db.add(thread)
+        await db.commit()
+        await db.refresh(thread)
+    return thread
+
+
 @router.post("/threads", response_model=ChatThreadResponse, status_code=status.HTTP_201_CREATED)
 async def create_or_get_thread(
     payload: ChatThreadCreate, user: User = Depends(get_current_user), db: AsyncSession = Depends(get_db)
@@ -104,15 +129,7 @@ async def create_or_get_thread(
     if hotel is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Hotel not found")
 
-    thread = await db.scalar(
-        select(ChatThread).where(ChatThread.customer_id == user.id, ChatThread.hotel_id == payload.hotel_id)
-    )
-    if thread is None:
-        thread = ChatThread(customer_id=user.id, hotel_id=payload.hotel_id)
-        db.add(thread)
-        await db.commit()
-        await db.refresh(thread)
-
+    thread = await _get_or_create_thread(user.id, payload.hotel_id, db)
     thread = await _thread_with_relations(thread.id, db)
     return _to_thread_response(thread, hotel_name=hotel.name, customer_name=user.name, unread_count=0)
 
@@ -162,7 +179,7 @@ async def _create_message(thread_id: uuid.UUID, sender: User, body: str, db: Asy
     await db.commit()
     await db.refresh(message)
 
-    recipient_id = thread.customer_id if sender.id != thread.customer_id else await _other_party_id(thread, db)
+    recipient_id = await _recipient_id(thread, sender, db)
     if recipient_id is not None:
         notification = Notification(
             user_id=recipient_id,
@@ -212,6 +229,47 @@ async def send_message(
     return await _create_message(thread_id, user, payload.body, db)
 
 
+@router.post("/threads/{thread_id}/call-token", response_model=CallTokenResponse)
+async def get_call_token(
+    thread_id: uuid.UUID,
+    payload: CallTokenRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> CallTokenResponse:
+    thread = await db.get(ChatThread, thread_id)
+    if thread is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Thread not found")
+    await _authorize_thread(thread, user, db)
+
+    room = f"call-{thread_id}"
+    grants = livekit_api.VideoGrants(room_join=True, room=room, can_publish=True, can_subscribe=True)
+    token = (
+        livekit_api.AccessToken(settings.livekit_api_key, settings.livekit_api_secret)
+        .with_identity(str(user.id))
+        .with_name(user.name)
+        .with_grants(grants)
+        .to_jwt()
+    )
+
+    if not payload.is_accept:
+        recipient_id = await _recipient_id(thread, user, db)
+        if recipient_id is not None:
+            await manager.send_to_user(
+                recipient_id,
+                {
+                    "type": "call_signal",
+                    "signal": "invite",
+                    "thread_id": str(thread_id),
+                    "room": room,
+                    "call_type": payload.call_type,
+                    "caller_id": str(user.id),
+                    "caller_name": user.name,
+                },
+            )
+
+    return CallTokenResponse(room=room, token=token, livekit_url=settings.livekit_public_url, call_type=payload.call_type)
+
+
 @router.websocket("/ws")
 async def chat_websocket(websocket: WebSocket, user: User = Depends(get_current_user_ws)) -> None:
     await websocket.accept()
@@ -219,6 +277,21 @@ async def chat_websocket(websocket: WebSocket, user: User = Depends(get_current_
     try:
         while True:
             data = await websocket.receive_json()
+
+            if data.get("type") == "call_signal":
+                thread_id = data.get("thread_id")
+                if not thread_id:
+                    continue
+                async with AsyncSessionLocal() as db:
+                    thread = await db.get(ChatThread, uuid.UUID(thread_id))
+                    if thread is None:
+                        continue
+                    fresh_user = await db.get(User, user.id)
+                    recipient_id = await _recipient_id(thread, fresh_user, db)
+                    if recipient_id is not None:
+                        await manager.send_to_user(recipient_id, {**data, "from_user_id": str(user.id)})
+                continue
+
             thread_id = data.get("thread_id")
             body = data.get("body")
             if not thread_id or not body:

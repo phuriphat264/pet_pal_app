@@ -1,7 +1,6 @@
 // lib/screens/login_page.dart
 import 'package:flutter/material.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import 'package:flutter_facebook_auth/flutter_facebook_auth.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 import 'package:provider/provider.dart';
 
@@ -15,8 +14,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
-class _LoginPageState extends State<LoginPage>
-    with TickerProviderStateMixin {
+class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
   // ─── Palette ────────────────────────────────────────────────────
   static const Color _brown      = Color(0xFF6B4226);
   static const Color _darkBrown  = Color(0xFF3B2010);
@@ -33,9 +31,9 @@ class _LoginPageState extends State<LoginPage>
   late AnimationController _slideCtrl;
   late Animation<Offset> _slideAnim;
 
-  bool _obscure    = true;
-  bool _loading    = false;
-  int  _tabIndex   = 0;
+  bool _obscure  = true;
+  bool _loading  = false;
+  int  _tabIndex = 0;
 
   final _emailCtrl = TextEditingController();
   final _passCtrl  = TextEditingController();
@@ -55,15 +53,12 @@ class _LoginPageState extends State<LoginPage>
         }
       });
 
-    _fadeCtrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 900));
+    _fadeCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 900));
     _fadeAnim = CurvedAnimation(parent: _fadeCtrl, curve: Curves.easeOut);
 
-    _slideCtrl = AnimationController(
-      vsync: this, duration: const Duration(milliseconds: 400));
-    _slideAnim = Tween<Offset>(
-      begin: const Offset(0, 0.06), end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOutCubic));
+    _slideCtrl = AnimationController(vsync: this, duration: const Duration(milliseconds: 400));
+    _slideAnim = Tween<Offset>(begin: const Offset(0, 0.06), end: Offset.zero)
+        .animate(CurvedAnimation(parent: _slideCtrl, curve: Curves.easeOutCubic));
 
     _fadeCtrl.forward();
     _slideCtrl.forward();
@@ -123,6 +118,30 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
+  Future<void> _onRegister() async {
+    FocusScope.of(context).unfocus();
+    final name = _nameCtrl.text.trim();
+    final email = _emailCtrl.text.trim();
+    final password = _passCtrl.text;
+    if (name.isEmpty || email.isEmpty || password.length < 8) {
+      _showError('กรุณากรอกข้อมูลให้ครบ และรหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
+      return;
+    }
+
+    setState(() => _loading = true);
+    try {
+      final auth = context.read<AuthService>();
+      await auth.register(email: email, password: password, name: name);
+      if (!mounted) return;
+      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => homeForRole(auth.role)));
+    } on AuthException catch (e) {
+      if (!mounted) return;
+      _showError(e.message);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
   Future<void> _onGoogleLogin() async {
     if (_loading) return;
     setState(() => _loading = true);
@@ -156,57 +175,146 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
-  Future<void> _onFacebookLogin() async {
-    if (_loading) return;
-    setState(() => _loading = true);
-    try {
-      final result = await FacebookAuth.instance.login(
-        permissions: const ['email', 'public_profile'],
-        loginTracking: LoginTracking.enabled,
-      );
-      if (result.status == LoginStatus.cancelled) return;
-      final token = result.accessToken;
-      if (result.status != LoginStatus.success || token is! ClassicToken) {
-        _showError(result.message ?? 'เข้าสู่ระบบด้วย Facebook ไม่สำเร็จ');
-        return;
-      }
-      final auth = context.read<AuthService>();
-      await auth.loginWithFacebook(accessToken: token.tokenString);
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => homeForRole(auth.role)));
-    } on AuthException catch (e) {
-      if (!mounted) return;
-      _showError(e.message);
-    } catch (_) {
-      if (!mounted) return;
-      _showError('เข้าสู่ระบบด้วย Facebook ไม่สำเร็จ');
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
-  }
+  // ─── Forgot password ────────────────────────────────────────────
+  void _showForgotPasswordSheet() {
+    final emailCtrl = TextEditingController(text: _emailCtrl.text.trim());
+    final codeCtrl = TextEditingController();
+    final newPassCtrl = TextEditingController();
+    int step = 0; // 0 = request code, 1 = enter code + new password
+    bool submitting = false;
+    String? error;
 
-  Future<void> _onRegister() async {
-    FocusScope.of(context).unfocus();
-    final name = _nameCtrl.text.trim();
-    final email = _emailCtrl.text.trim();
-    final password = _passCtrl.text;
-    if (name.isEmpty || email.isEmpty || password.length < 8) {
-      _showError('กรุณากรอกข้อมูลให้ครบ และรหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร');
-      return;
-    }
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: _bgCream,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (sheetContext) => StatefulBuilder(
+        builder: (sheetContext, setSheetState) {
+          Future<void> requestCode() async {
+            final email = emailCtrl.text.trim();
+            if (email.isEmpty) {
+              setSheetState(() => error = 'กรุณากรอกอีเมล');
+              return;
+            }
+            setSheetState(() {
+              submitting = true;
+              error = null;
+            });
+            try {
+              await sheetContext.read<AuthService>().forgotPassword(email: email);
+              setSheetState(() {
+                submitting = false;
+                step = 1;
+              });
+            } catch (_) {
+              setSheetState(() {
+                submitting = false;
+                // Still advance -- the backend always returns success here
+                // to avoid leaking which emails are registered.
+                step = 1;
+              });
+            }
+          }
 
-    setState(() => _loading = true);
-    try {
-      final auth = context.read<AuthService>();
-      await auth.register(email: email, password: password, name: name);
-      if (!mounted) return;
-      Navigator.of(context).pushReplacement(MaterialPageRoute(builder: (_) => homeForRole(auth.role)));
-    } on AuthException catch (e) {
-      if (!mounted) return;
-      _showError(e.message);
-    } finally {
-      if (mounted) setState(() => _loading = false);
-    }
+          Future<void> confirmReset() async {
+            final code = codeCtrl.text.trim();
+            final newPassword = newPassCtrl.text;
+            if (code.isEmpty || newPassword.length < 8) {
+              setSheetState(() => error = 'กรุณากรอกโค้ดและรหัสผ่านใหม่อย่างน้อย 8 ตัวอักษร');
+              return;
+            }
+            setSheetState(() {
+              submitting = true;
+              error = null;
+            });
+            try {
+              await sheetContext.read<AuthService>().resetPassword(token: code, newPassword: newPassword);
+              if (!sheetContext.mounted) return;
+              Navigator.pop(sheetContext);
+              if (!mounted) return;
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(content: Text('🔑 เปลี่ยนรหัสผ่านสำเร็จแล้ว เข้าสู่ระบบได้เลย')),
+              );
+            } on AuthException catch (e) {
+              setSheetState(() {
+                error = e.message;
+                submitting = false;
+              });
+            } catch (_) {
+              setSheetState(() {
+                error = 'เปลี่ยนรหัสผ่านไม่สำเร็จ ลองขอโค้ดใหม่อีกครั้ง';
+                submitting = false;
+              });
+            }
+          }
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(sheetContext).viewInsets.bottom + 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  step == 0 ? 'ลืมรหัสผ่าน' : 'ตั้งรหัสผ่านใหม่',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown),
+                ),
+                const SizedBox(height: 6),
+                Text(
+                  step == 0
+                      ? 'กรอกอีเมลที่ใช้สมัคร เราจะส่งโค้ดสำหรับตั้งรหัสผ่านใหม่ไปให้'
+                      : 'กรอกโค้ดที่ได้รับ และตั้งรหัสผ่านใหม่',
+                  style: const TextStyle(fontSize: 13, color: _mutedBrown),
+                ),
+                const SizedBox(height: 16),
+                if (step == 0)
+                  TextField(
+                    controller: emailCtrl,
+                    keyboardType: TextInputType.emailAddress,
+                    decoration: const InputDecoration(labelText: 'อีเมล', border: OutlineInputBorder()),
+                  )
+                else ...[
+                  TextField(
+                    controller: codeCtrl,
+                    decoration: const InputDecoration(labelText: 'โค้ดยืนยัน', border: OutlineInputBorder()),
+                  ),
+                  const SizedBox(height: 12),
+                  TextField(
+                    controller: newPassCtrl,
+                    obscureText: true,
+                    decoration: const InputDecoration(labelText: 'รหัสผ่านใหม่', border: OutlineInputBorder()),
+                    onSubmitted: (_) => confirmReset(),
+                  ),
+                ],
+                if (error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(error!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: submitting ? null : (step == 0 ? requestCode : confirmReset),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _brown,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: submitting
+                        ? const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        : Text(step == 0 ? 'ส่งโค้ด' : 'ยืนยันรหัสผ่านใหม่',
+                            style: const TextStyle(fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
+    );
   }
 
   // ─── Build ───────────────────────────────────────────────────────
@@ -216,16 +324,8 @@ class _LoginPageState extends State<LoginPage>
       backgroundColor: _bgCream,
       body: Stack(
         children: [
-          // Decorative blobs
-          Positioned(
-            top: -60, right: -60,
-            child: _blob(200, _accent.withValues(alpha:0.12)),
-          ),
-          Positioned(
-            bottom: 120, left: -80,
-            child: _blob(240, _brown.withValues(alpha:0.08)),
-          ),
-          // Main content
+          Positioned(top: -60, right: -60, child: _blob(200, _accent.withValues(alpha: 0.12))),
+          Positioned(bottom: 120, left: -80, child: _blob(240, _brown.withValues(alpha: 0.08))),
           FadeTransition(
             opacity: _fadeAnim,
             child: SafeArea(
@@ -244,19 +344,14 @@ class _LoginPageState extends State<LoginPage>
                         duration: const Duration(milliseconds: 280),
                         switchInCurve: Curves.easeOutCubic,
                         switchOutCurve: Curves.easeIn,
-                        transitionBuilder: (child, anim) => FadeTransition(
-                          opacity: anim,
-                          child: child,
-                        ),
-                        child: _tabIndex == 0
-                            ? _buildLoginCard()
-                            : _buildRegisterCard(),
+                        transitionBuilder: (child, anim) => FadeTransition(opacity: anim, child: child),
+                        child: _tabIndex == 0 ? _buildLoginCard() : _buildRegisterCard(),
                       ),
                     ),
                     const SizedBox(height: 28),
                     _buildDivider(),
                     const SizedBox(height: 20),
-                    _buildSocialRow(),
+                    _buildGoogleButton(),
                     const SizedBox(height: 32),
                   ],
                 ),
@@ -272,26 +367,13 @@ class _LoginPageState extends State<LoginPage>
   Widget _buildHero() {
     return Column(
       children: [
-        // Logo with layered rings
         SizedBox(
           width: 96, height: 96,
           child: Stack(
             alignment: Alignment.center,
             children: [
-              Container(
-                width: 96, height: 96,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _brown.withValues(alpha:0.08),
-                ),
-              ),
-              Container(
-                width: 76, height: 76,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: _brown.withValues(alpha:0.12),
-                ),
-              ),
+              Container(width: 96, height: 96, decoration: BoxDecoration(shape: BoxShape.circle, color: _brown.withValues(alpha: 0.08))),
+              Container(width: 76, height: 76, decoration: BoxDecoration(shape: BoxShape.circle, color: _brown.withValues(alpha: 0.12))),
               Container(
                 width: 60, height: 60,
                 decoration: BoxDecoration(
@@ -301,40 +383,18 @@ class _LoginPageState extends State<LoginPage>
                     end: Alignment.bottomRight,
                   ),
                   shape: BoxShape.circle,
-                  boxShadow: [
-                    BoxShadow(
-                      color: _brown.withValues(alpha:0.35),
-                      blurRadius: 18,
-                      offset: const Offset(0, 6),
-                    ),
-                  ],
+                  boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.35), blurRadius: 18, offset: const Offset(0, 6))],
                 ),
-                child: const Center(
-                  child: Icon(Icons.pets_rounded, color: Colors.white, size: 28),
-                ),
+                child: const Center(child: Icon(Icons.pets_rounded, color: Colors.white, size: 28)),
               ),
             ],
           ),
         ),
         const SizedBox(height: 16),
-        const Text(
-          'PetPal',
-          style: TextStyle(
-            fontSize: 32,
-            fontWeight: FontWeight.w800,
-            color: _darkBrown,
-            letterSpacing: -0.5,
-          ),
-        ),
+        const Text('PetPal',
+            style: TextStyle(fontSize: 32, fontWeight: FontWeight.w800, color: _darkBrown, letterSpacing: -0.5)),
         const SizedBox(height: 4),
-        const Text(
-          'ดูแลลูกรักด้วยใจ',
-          style: TextStyle(
-            fontSize: 16,
-            color: _mutedBrown,
-            letterSpacing: 0.2,
-          ),
-        ),
+        const Text('ดูแลลูกรักด้วยใจ', style: TextStyle(fontSize: 16, color: _mutedBrown, letterSpacing: 0.2)),
       ],
     );
   }
@@ -343,10 +403,7 @@ class _LoginPageState extends State<LoginPage>
   Widget _buildTabBar() {
     return Container(
       height: 48,
-      decoration: BoxDecoration(
-        color: _border.withValues(alpha:0.4),
-        borderRadius: BorderRadius.circular(16),
-      ),
+      decoration: BoxDecoration(color: _border.withValues(alpha: 0.4), borderRadius: BorderRadius.circular(16)),
       padding: const EdgeInsets.all(4),
       child: TabBar(
         controller: _tabController,
@@ -357,21 +414,13 @@ class _LoginPageState extends State<LoginPage>
             end: Alignment.bottomRight,
           ),
           borderRadius: BorderRadius.circular(12),
-          boxShadow: [
-            BoxShadow(
-              color: _brown.withValues(alpha:0.3),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+          boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.3), blurRadius: 8, offset: const Offset(0, 3))],
         ),
         indicatorSize: TabBarIndicatorSize.tab,
         labelColor: Colors.white,
         unselectedLabelColor: _mutedBrown,
-        labelStyle: const TextStyle(
-            fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 0.1),
-        unselectedLabelStyle:
-            const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
+        labelStyle: const TextStyle(fontWeight: FontWeight.w700, fontSize: 16, letterSpacing: 0.1),
+        unselectedLabelStyle: const TextStyle(fontWeight: FontWeight.w500, fontSize: 16),
         dividerColor: Colors.transparent,
         splashFactory: NoSplash.splashFactory,
         overlayColor: WidgetStateProperty.all(Colors.transparent),
@@ -411,29 +460,17 @@ class _LoginPageState extends State<LoginPage>
             obscure: _obscure,
             trailing: GestureDetector(
               onTap: () => setState(() => _obscure = !_obscure),
-              child: Icon(
-                _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 18,
-                color: _mutedBrown,
-              ),
+              child: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 18, color: _mutedBrown),
             ),
           ),
           const SizedBox(height: 24),
-          _primaryButton(
-            label: 'เข้าสู่ระบบ',
-            onTap: _loading ? null : _onLogin,
-          ),
+          _primaryButton(label: 'เข้าสู่ระบบ', onTap: _loading ? null : _onLogin),
           const SizedBox(height: 18),
           Center(
             child: GestureDetector(
-              onTap: () {},
-              child: const Text(
-                'ลืมรหัสผ่าน?',
-                style: TextStyle(
-                    fontSize: 14,
-                    color: _accent,
-                    fontWeight: FontWeight.w600),
-              ),
+              onTap: _loading ? null : _showForgotPasswordSheet,
+              child: const Text('ลืมรหัสผ่าน?',
+                  style: TextStyle(fontSize: 14, color: _accent, fontWeight: FontWeight.w600)),
             ),
           ),
         ],
@@ -479,32 +516,20 @@ class _LoginPageState extends State<LoginPage>
             obscure: _obscure,
             trailing: GestureDetector(
               onTap: () => setState(() => _obscure = !_obscure),
-              child: Icon(
-                _obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined,
-                size: 18,
-                color: _mutedBrown,
-              ),
+              child: Icon(_obscure ? Icons.visibility_off_outlined : Icons.visibility_outlined, size: 18, color: _mutedBrown),
             ),
           ),
           const SizedBox(height: 6),
           Row(
             children: [
-              const Icon(Icons.info_outline_rounded,
-                  size: 12, color: _mutedBrown),
+              const Icon(Icons.info_outline_rounded, size: 12, color: _mutedBrown),
               const SizedBox(width: 5),
-              Text(
-                'รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
-                style: TextStyle(
-                    fontSize: 13,
-                    color: _mutedBrown.withValues(alpha:0.9)),
-              ),
+              Text('รหัสผ่านต้องมีอย่างน้อย 8 ตัวอักษร',
+                  style: TextStyle(fontSize: 13, color: _mutedBrown.withValues(alpha: 0.9))),
             ],
           ),
           const SizedBox(height: 24),
-          _primaryButton(
-            label: 'สร้างบัญชีใหม่',
-            onTap: _loading ? null : _onRegister,
-          ),
+          _primaryButton(label: 'สร้างบัญชีใหม่', onTap: _loading ? null : _onRegister),
         ],
       ),
     );
@@ -513,10 +538,7 @@ class _LoginPageState extends State<LoginPage>
   // ─── Reusable Widgets ─────────────────────────────────────────────
 
   Widget _blob(double size, Color color) {
-    return Container(
-      width: size, height: size,
-      decoration: BoxDecoration(shape: BoxShape.circle, color: color),
-    );
+    return Container(width: size, height: size, decoration: BoxDecoration(shape: BoxShape.circle, color: color));
   }
 
   Widget _card({required Widget child, Key? key}) {
@@ -527,27 +549,15 @@ class _LoginPageState extends State<LoginPage>
         color: _bgCard,
         borderRadius: BorderRadius.circular(24),
         border: Border.all(color: _border, width: 1),
-        boxShadow: [
-          BoxShadow(
-            color: _brown.withValues(alpha:0.07),
-            blurRadius: 24,
-            offset: const Offset(0, 8),
-          ),
-        ],
+        boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.07), blurRadius: 24, offset: const Offset(0, 8))],
       ),
       child: child,
     );
   }
 
   Widget _label(String text) {
-    return Text(
-      text,
-      style: const TextStyle(
-          fontSize: 15,
-          fontWeight: FontWeight.w600,
-          color: _darkBrown,
-          letterSpacing: 0.1),
-    );
+    return Text(text,
+        style: const TextStyle(fontSize: 15, fontWeight: FontWeight.w600, color: _darkBrown, letterSpacing: 0.1));
   }
 
   Widget _inputField({
@@ -571,36 +581,18 @@ class _LoginPageState extends State<LoginPage>
         focusNode: focusNode,
         obscureText: obscure,
         keyboardType: keyboardType,
-        textInputAction:
-            nextFocus != null ? TextInputAction.next : TextInputAction.done,
+        textInputAction: nextFocus != null ? TextInputAction.next : TextInputAction.done,
         onSubmitted: (_) {
-          if (nextFocus != null) {
-            FocusScope.of(context).requestFocus(nextFocus);
-          }
+          if (nextFocus != null) FocusScope.of(context).requestFocus(nextFocus);
         },
-        style: const TextStyle(
-            fontSize: 16,
-            color: _darkBrown,
-            fontWeight: FontWeight.w500),
+        style: const TextStyle(fontSize: 16, color: _darkBrown, fontWeight: FontWeight.w500),
         decoration: InputDecoration(
-          prefixIcon: Padding(
-            padding: const EdgeInsets.only(left: 4),
-            child: Icon(icon, color: _mutedBrown, size: 20),
-          ),
-          suffixIcon: trailing != null
-              ? Padding(
-                  padding: const EdgeInsets.only(right: 4),
-                  child: trailing,
-                )
-              : null,
+          prefixIcon: Padding(padding: const EdgeInsets.only(left: 4), child: Icon(icon, color: _mutedBrown, size: 20)),
+          suffixIcon: trailing != null ? Padding(padding: const EdgeInsets.only(right: 4), child: trailing) : null,
           border: InputBorder.none,
           hintText: hint,
-          hintStyle: TextStyle(
-              color: _mutedBrown.withValues(alpha:0.6),
-              fontSize: 16,
-              fontWeight: FontWeight.w400),
-          contentPadding:
-              const EdgeInsets.symmetric(vertical: 15, horizontal: 4),
+          hintStyle: TextStyle(color: _mutedBrown.withValues(alpha: 0.6), fontSize: 16, fontWeight: FontWeight.w400),
+          contentPadding: const EdgeInsets.symmetric(vertical: 15, horizontal: 4),
         ),
       ),
     );
@@ -614,8 +606,7 @@ class _LoginPageState extends State<LoginPage>
         onPressed: onTap,
         style: ElevatedButton.styleFrom(
           padding: EdgeInsets.zero,
-          shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
         ).copyWith(
           backgroundColor: WidgetStateProperty.all(Colors.transparent),
@@ -624,8 +615,7 @@ class _LoginPageState extends State<LoginPage>
         child: Ink(
           decoration: BoxDecoration(
             gradient: onTap == null
-                ? LinearGradient(
-                    colors: [_mutedBrown, _mutedBrown.withValues(alpha:0.8)])
+                ? LinearGradient(colors: [_mutedBrown, _mutedBrown.withValues(alpha: 0.8)])
                 : const LinearGradient(
                     colors: [Color(0xFF8B5E3C), Color(0xFF5C3218)],
                     begin: Alignment.centerLeft,
@@ -633,31 +623,15 @@ class _LoginPageState extends State<LoginPage>
                   ),
             borderRadius: BorderRadius.circular(16),
             boxShadow: onTap != null
-                ? [
-                    BoxShadow(
-                      color: _brown.withValues(alpha:0.35),
-                      blurRadius: 14,
-                      offset: const Offset(0, 5),
-                    )
-                  ]
+                ? [BoxShadow(color: _brown.withValues(alpha: 0.35), blurRadius: 14, offset: const Offset(0, 5))]
                 : [],
           ),
           child: Container(
             alignment: Alignment.center,
             child: _loading
-                ? const SizedBox(
-                    width: 22, height: 22,
-                    child: CircularProgressIndicator(
-                        color: Colors.white, strokeWidth: 2.5))
-                : Text(
-                    label,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w700,
-                      letterSpacing: 0.3,
-                    ),
-                  ),
+                ? const SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                : Text(label,
+                    style: const TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700, letterSpacing: 0.3)),
           ),
         ),
       ),
@@ -670,140 +644,36 @@ class _LoginPageState extends State<LoginPage>
         Expanded(child: Divider(color: _border, thickness: 1)),
         Padding(
           padding: const EdgeInsets.symmetric(horizontal: 14),
-          child: Text(
-            'หรือเข้าสู่ระบบด้วย',
-            style: TextStyle(
-                fontSize: 14,
-                color: _mutedBrown.withValues(alpha:0.8),
-                fontWeight: FontWeight.w500),
-          ),
+          child: Text('หรือเข้าสู่ระบบด้วย',
+              style: TextStyle(fontSize: 14, color: _mutedBrown.withValues(alpha: 0.8), fontWeight: FontWeight.w500)),
         ),
         Expanded(child: Divider(color: _border, thickness: 1)),
       ],
     );
   }
 
-  Widget _buildSocialRow() {
-    return Row(
-      children: [
-        Expanded(child: _socialBtn(
-          label: 'Google',
-          logo: _GoogleLogo(),
-          onTap: _loading ? null : _onGoogleLogin,
-        )),
-        const SizedBox(width: 12),
-        Expanded(child: _socialBtn(
-          label: 'Facebook',
-          logo: _FacebookLogo(),
-          onTap: _loading ? null : _onFacebookLogin,
-        )),
-      ],
-    );
-  }
-
-  Widget _socialBtn({
-    required String label,
-    required Widget logo,
-    required VoidCallback? onTap,
-  }) {
-    return GestureDetector(
-      onTap: onTap,
-      child: Container(
-        height: 50,
-        decoration: BoxDecoration(
-          color: _bgCard,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: _border, width: 1),
-          boxShadow: [
-            BoxShadow(
-              color: _brown.withValues(alpha:0.05),
-              blurRadius: 8,
-              offset: const Offset(0, 3),
-            ),
-          ],
+  Widget _buildGoogleButton() {
+    return SizedBox(
+      width: double.infinity,
+      height: 56,
+      child: ElevatedButton(
+        onPressed: _loading ? null : _onGoogleLogin,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: Colors.white,
+          foregroundColor: _darkBrown,
+          elevation: 2,
+          shadowColor: _brown.withValues(alpha: 0.2),
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          side: BorderSide(color: _border, width: 1),
         ),
         child: Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            SizedBox(width: 22, height: 22, child: logo),
-            const SizedBox(width: 9),
-            Text(
-              label,
-              style: const TextStyle(
-                  fontSize: 15,
-                  fontWeight: FontWeight.w600,
-                  color: _darkBrown),
-            ),
+            SizedBox(width: 22, height: 22, child: Image.asset('assets/images/google_logo.png')),
+            const SizedBox(width: 12),
+            const Text('เข้าสู่ระบบด้วย Google', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700)),
           ],
         ),
-      ),
-    );
-  }
-}
-
-// ─── Google Logo (SVG-style via CustomPaint) ──────────────────
-class _GoogleLogo extends StatelessWidget {
-  const _GoogleLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    return CustomPaint(
-      size: const Size(22, 22),
-      painter: _GoogleGPainter(),
-    );
-  }
-}
-
-class _GoogleGPainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final rect = Rect.fromLTWH(0, 0, w, h);
-    final paint = Paint()..style = PaintingStyle.fill;
-
-    // Green Part
-    paint.color = const Color(0xFF34A853);
-    canvas.drawArc(rect, 0.75, 1.25, true, paint);
-
-    // Yellow Part
-    paint.color = const Color(0xFFFBBC05);
-    canvas.drawArc(rect, 2.0, 1.15, true, paint);
-
-    // Red Part
-    paint.color = const Color(0xFFEA4335);
-    canvas.drawArc(rect, 3.15, 1.25, true, paint);
-
-    // Blue Part
-    paint.color = const Color(0xFF4285F4);
-    canvas.drawArc(rect, 4.4, 3, true, paint);
-
-    // White Center to make it "G"
-    paint.color = Colors.white;
-    canvas.drawCircle(Offset(w / 2, h / 2), w * 0.35, paint);
-
-    // Horizontal bar of G
-    paint.color = const Color(0xFF4285F4);
-    canvas.drawRect(Rect.fromLTWH(w / 2, h * 0.42, w / 2, h * 0.16), paint);
-  }
-
-  @override
-  bool shouldRepaint(CustomPainter oldDelegate) => false;
-}
-
-// ─── Facebook Logo ────────────────────────────────────────────
-class _FacebookLogo extends StatelessWidget {
-  const _FacebookLogo();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      decoration: const BoxDecoration(
-        color: Color(0xFF1877F2),
-        shape: BoxShape.circle,
-      ),
-      child: const Center(
-        child: Icon(Icons.facebook, color: Colors.white, size: 22),
       ),
     );
   }

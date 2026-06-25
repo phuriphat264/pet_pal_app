@@ -115,4 +115,18 @@ class PetRepository {
     final result = await client.patch('/pets/$id', body: fieldUpdates);
     return petFromJson(result as Map<String, dynamic>);
   }
+
+  Future<Map<String, dynamic>> addMedicalHistory({
+    required String petId,
+    required String date,
+    required String event,
+    String? vet,
+  }) async {
+    final result = await client.post('/pets/$petId/medical-history', body: {
+      'date': date,
+      'event': event,
+      if (vet != null && vet.isNotEmpty) 'vet': vet,
+    });
+    return petFromJson(result as Map<String, dynamic>);
+  }
 }

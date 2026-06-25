@@ -40,6 +40,7 @@ app.include_router(bookings.router)
 app.include_router(partners.router)
 app.include_router(admin.router)
 app.include_router(cameras.router)
+app.include_router(cameras.stream_router)
 app.include_router(chat.router)
 app.include_router(notifications.router)
 

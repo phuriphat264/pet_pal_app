@@ -5,6 +5,7 @@ import 'package:http/http.dart' as http;
 import 'package:provider/provider.dart';
 
 import 'data/care_tips_data.dart';
+import 'screens/call_page.dart';
 import 'screens/care_tip_detail_page.dart';
 import 'screens/live_cam_page.dart';
 import 'screens/matching_page.dart';
@@ -15,9 +16,11 @@ import 'screens/login_page.dart';
 import 'screens/chat_room_page.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'screens/hotel_detail_page.dart';
+import 'services/admin_user_repository.dart';
 import 'services/api_client.dart';
 import 'services/auth_service.dart';
 import 'services/booking_repository.dart';
+import 'services/call_service.dart';
 import 'services/camera_repository.dart';
 import 'services/chat_repository.dart';
 import 'services/hotel_repository.dart';
@@ -26,7 +29,13 @@ import 'services/partner_repository.dart';
 import 'services/pet_repository.dart';
 import 'services/realtime_service.dart';
 import 'utils/pet_pal_image.dart';
+import 'utils/reloadable.dart';
 import 'utils/role_router.dart';
+
+// Lets CallService push the incoming-call screen from anywhere in the app
+// (not just while a chat thread is open), since a call invite can arrive
+// while the user is on any tab.
+final GlobalKey<NavigatorState> rootNavigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -57,6 +66,7 @@ class PetPalApp extends StatelessWidget {
           create: (ctx) => PartnerRepository(ctx.read<ApiClient>(), uploadClient: httpClient),
         ),
         Provider<CameraRepository>(create: (ctx) => CameraRepository(ctx.read<ApiClient>())),
+        Provider<AdminUserRepository>(create: (ctx) => AdminUserRepository(ctx.read<ApiClient>())),
         Provider<RealtimeService>(
           create: (_) => RealtimeService(authService: authService),
           dispose: (_, service) => service.dispose(),
@@ -67,8 +77,12 @@ class PetPalApp extends StatelessWidget {
         ChangeNotifierProvider<NotificationRepository>(
           create: (ctx) => NotificationRepository(client: ctx.read<ApiClient>(), realtime: ctx.read<RealtimeService>()),
         ),
+        ChangeNotifierProvider<CallService>(
+          create: (ctx) => CallService(client: ctx.read<ApiClient>(), realtime: ctx.read<RealtimeService>()),
+        ),
       ],
       child: MaterialApp(
+        navigatorKey: rootNavigatorKey,
         debugShowCheckedModeBanner: false,
         title: 'PetPal',
         theme: ThemeData(
@@ -91,9 +105,52 @@ class PetPalApp extends StatelessWidget {
           '/login': (_) => const LoginPage(),
           '/home': (_) => const MainNavigation(),
         },
+        builder: (context, child) => _IncomingCallListener(child: child),
       ),
     );
   }
+}
+
+// Watches CallService globally and pushes the incoming-call screen the
+// moment an invite arrives, regardless of which tab/screen is on top.
+class _IncomingCallListener extends StatefulWidget {
+  final Widget? child;
+  const _IncomingCallListener({required this.child});
+
+  @override
+  State<_IncomingCallListener> createState() => _IncomingCallListenerState();
+}
+
+class _IncomingCallListenerState extends State<_IncomingCallListener> {
+  bool _showingIncoming = false;
+  bool _listening = false;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (_listening) return;
+    _listening = true;
+    context.read<CallService>().addListener(_onCallChanged);
+  }
+
+  void _onCallChanged() {
+    final call = context.read<CallService>();
+    if (call.state == CallState.ringingIncoming && !_showingIncoming) {
+      _showingIncoming = true;
+      rootNavigatorKey.currentState
+          ?.push(MaterialPageRoute(builder: (_) => const IncomingCallPage()))
+          .then((_) => _showingIncoming = false);
+    }
+  }
+
+  @override
+  void dispose() {
+    context.read<CallService>().removeListener(_onCallChanged);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child ?? const SizedBox.shrink();
 }
 
 // ── Bottom Navigation Shell ───────────────────────────────────────
@@ -107,6 +164,27 @@ class MainNavigation extends StatefulWidget {
 
 class _MainNavigationState extends State<MainNavigation> {
   int _selectedIndex = 0;
+  final _liveCamKey = GlobalKey<State<LiveCamPage>>();
+  final _chatKey = GlobalKey<State<ChatRoomPage>>();
+
+  @override
+  void initState() {
+    super.initState();
+    context.read<NotificationRepository>().loadNotifications();
+  }
+
+  // LiveCamPage/ChatRoomPage stay mounted inside the IndexedStack (so their
+  // initState only ever runs once) -- without this, switching back to their
+  // tab after booking a hotel elsewhere would show stale data.
+  void _reloadTab(int index) {
+    if (index == 1) (_liveCamKey.currentState as Reloadable?)?.reload();
+    if (index == 2) (_chatKey.currentState as Reloadable?)?.reload();
+  }
+
+  void _switchTab(int index) {
+    setState(() => _selectedIndex = index);
+    _reloadTab(index);
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -114,16 +192,16 @@ class _MainNavigationState extends State<MainNavigation> {
       body: IndexedStack(
         index: _selectedIndex,
         children: [
-          HomePage(onSwitchTab: (i) => setState(() => _selectedIndex = i)),
-          LiveCamPage(),
-          ChatRoomPage(),
+          HomePage(onSwitchTab: _switchTab),
+          LiveCamPage(key: _liveCamKey),
+          ChatRoomPage(key: _chatKey),
           MatchingPage(),
           PetProfilePage(),
         ],
       ),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: _selectedIndex,
-        onTap: (i) => setState(() => _selectedIndex = i),
+        onTap: _switchTab,
         type: BottomNavigationBarType.fixed,
         selectedItemColor: const Color(0xFF5C3D2E),
         unselectedItemColor: Colors.grey,
@@ -184,30 +262,38 @@ class HomePage extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(20, 20, 20, 16),
       child: Row(
         children: [
-          Row(
-            children: [
-              Container(
-                width: 44, height: 44,
-                decoration: BoxDecoration(
-                  color: _brown,
-                  shape: BoxShape.circle,
-                  boxShadow: [BoxShadow(color: _brown.withValues(alpha:0.3), blurRadius: 8, offset: const Offset(0, 3))],
+          Expanded(
+            child: Row(
+              children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(
+                    color: _brown,
+                    shape: BoxShape.circle,
+                    boxShadow: [BoxShadow(color: _brown.withValues(alpha:0.3), blurRadius: 8, offset: const Offset(0, 3))],
+                  ),
+                  child: const Center(child: Icon(Icons.pets_rounded, color: Colors.white, size: 24)),
                 ),
-                child: const Center(child: Icon(Icons.pets_rounded, color: Colors.white, size: 24)),
-              ),
-              const SizedBox(width: 12),
-              const Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('สวัสดี, คุณภูริภัทร 👋',
-                      style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
-                  Text('วันนี้น้องของคุณเป็นอย่างไรบ้าง?',
-                      style: TextStyle(fontSize: 14, color: _mutedBrown)),
-                ],
-              ),
-            ],
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text('สวัสดี, คุณ${(context.watch<AuthService>().currentUser?.name ?? "ผู้ใช้").trim().split(' ').first} 👋',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: _darkBrown)),
+                      const Text('วันนี้น้องของคุณเป็นอย่างไรบ้าง?',
+                          overflow: TextOverflow.ellipsis,
+                          maxLines: 1,
+                          style: TextStyle(fontSize: 14, color: _mutedBrown)),
+                    ],
+                  ),
+                ),
+              ],
+            ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           GestureDetector(
             onTap: () => Navigator.push(context,
                 MaterialPageRoute(builder: (_) => const NotificationPage())),
@@ -222,10 +308,11 @@ class HomePage extends StatelessWidget {
                   ),
                   child: const Icon(Icons.notifications_outlined, color: _brown, size: 22),
                 ),
-                Positioned(
-                  top: 10, right: 10,
-                  child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)),
-                ),
+                if (context.watch<NotificationRepository>().unreadCount > 0)
+                  Positioned(
+                    top: 10, right: 10,
+                    child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)),
+                  ),
               ],
             ),
           ),
@@ -235,10 +322,70 @@ class HomePage extends StatelessWidget {
   }
 
   // ── Hero Card ─────────────────────────────────────────────────
+  Future<Map<String, dynamic>> _loadHeroData(BuildContext context) async {
+    final pets = await context.read<PetRepository>().fetchPets();
+    final bookings = await context.read<BookingRepository>().fetchMyBookings();
+    final activeBookings = bookings.where((b) => b['status'] != 'cancelled').toList();
+
+    String? hotelName;
+    int cameraCount = 0;
+    if (activeBookings.isNotEmpty) {
+      final hotelId = activeBookings.first['hotel_id'] as String;
+      try {
+        final hotel = await context.read<HotelRepository>().fetchHotel(hotelId);
+        hotelName = hotel['name'] as String?;
+      } catch (_) {}
+      try {
+        final cameras = await context.read<CameraRepository>().fetchCamerasForHotel(hotelId);
+        cameraCount = cameras.length;
+      } catch (_) {
+        // no cameras registered yet for this hotel -- not fatal
+      }
+    }
+
+    return {
+      'pet': pets.isNotEmpty ? pets.first : null,
+      'hotelName': hotelName,
+      'cameraCount': cameraCount,
+    };
+  }
+
   Widget _buildHeroCard(BuildContext context) {
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 16),
-      child: Container(
+      child: FutureBuilder<Map<String, dynamic>>(
+        future: _loadHeroData(context),
+        builder: (context, snapshot) {
+          final data = snapshot.data;
+          final pet = data?['pet'] as Map<String, dynamic>?;
+          final hotelName = data?['hotelName'] as String?;
+          final cameraCount = (data?['cameraCount'] as int?) ?? 0;
+          return _heroCardContent(context, pet: pet, hotelName: hotelName, cameraCount: cameraCount);
+        },
+      ),
+    );
+  }
+
+  Widget _heroCardContent(
+    BuildContext context, {
+    required Map<String, dynamic>? pet,
+    required String? hotelName,
+    required int cameraCount,
+  }) {
+    final hasCamera = cameraCount > 0;
+    final titleText = pet != null ? '${pet['name']}กำลังนอนหลับ 😴' : 'เพิ่มน้องตัวแรกของคุณ 🐾';
+    final String subtitleText;
+    if (pet == null) {
+      subtitleText = 'เพิ่มข้อมูลสัตว์เลี้ยงเพื่อดู Live';
+    } else if (hotelName == null) {
+      subtitleText = 'ยังไม่มีการจองที่พัก';
+    } else if (!hasCamera) {
+      subtitleText = '$hotelName · ยังไม่มีกล้องเชื่อมต่อ';
+    } else {
+      subtitleText = '$hotelName · กล้อง $cameraCount ตัว';
+    }
+
+    return Container(
         width: double.infinity,
         decoration: BoxDecoration(
           gradient: const LinearGradient(
@@ -298,16 +445,16 @@ class HomePage extends StatelessWidget {
                           ),
                         ),
                         const SizedBox(height: 10),
-                        const Text('มะม่วงกำลังนอนหลับ 😴',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
+                        Text(titleText,
+                            style: const TextStyle(fontSize: 20, fontWeight: FontWeight.w700, color: Colors.white)),
                         const SizedBox(height: 4),
-                        Text('ห้องนอน · กล้อง 1 · อัปเดต 2 นาทีที่แล้ว',
+                        Text(subtitleText,
                             style: TextStyle(fontSize: 13, color: Colors.white.withValues(alpha:0.65))),
                         const SizedBox(height: 16),
                         Row(
                           children: [
                             GestureDetector(
-                              onTap: () => onSwitchTab?.call(1),
+                              onTap: () => onSwitchTab?.call(pet == null ? 4 : 1),
                               child: Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 9),
                                 decoration: BoxDecoration(
@@ -348,15 +495,20 @@ class HomePage extends StatelessWidget {
                   const SizedBox(width: 8),
                   Column(
                     children: [
-                      const Text('🐶', style: TextStyle(fontSize: 72)),
+                      Icon(
+                        pet != null ? pet['icon'] as IconData : Icons.pets_rounded,
+                        color: Colors.white,
+                        size: 64,
+                      ),
+                      const SizedBox(height: 4),
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                         decoration: BoxDecoration(
-                          color: const Color(0xFF81C784).withValues(alpha:0.25),
+                          color: (hasCamera ? const Color(0xFF81C784) : Colors.white).withValues(alpha:0.25),
                           borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Text('ปลอดภัย',
-                            style: TextStyle(fontSize: 12, color: Color(0xFF81C784), fontWeight: FontWeight.w600)),
+                        child: Text(hasCamera ? 'ปลอดภัย' : 'ยังไม่เชื่อมต่อ',
+                            style: TextStyle(fontSize: 12, color: hasCamera ? const Color(0xFF81C784) : Colors.white, fontWeight: FontWeight.w600)),
                       ),
                     ],
                   ),
@@ -365,7 +517,6 @@ class HomePage extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 

@@ -76,4 +76,16 @@ class CameraRepository {
       'camera': cameraFromJson(result['camera'] as Map<String, dynamic>),
     };
   }
+
+  // Customer-facing: only returns cameras for hotels the caller has actually
+  // booked (or all, for technician/admin) -- enforced server-side.
+  Future<List<Map<String, dynamic>>> fetchCamerasForHotel(String hotelId) async {
+    final result = await client.get('/cameras/by-hotel/$hotelId');
+    return (result as List).map((c) => cameraFromJson(c as Map<String, dynamic>)).toList();
+  }
+
+  Future<String> fetchStreamUrl(String cameraId) async {
+    final result = await client.get('/cameras/$cameraId/stream') as Map<String, dynamic>;
+    return result['stream_url'] as String;
+  }
 }

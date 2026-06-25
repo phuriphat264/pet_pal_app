@@ -28,8 +28,16 @@ class AuthUser {
   final String name;
   final String? phone;
   final String role;
+  final bool hasPassword;
 
-  const AuthUser({required this.id, required this.email, required this.name, this.phone, required this.role});
+  const AuthUser({
+    required this.id,
+    required this.email,
+    required this.name,
+    this.phone,
+    required this.role,
+    this.hasPassword = false,
+  });
 
   factory AuthUser.fromJson(Map<String, dynamic> json) => AuthUser(
         id: json['id'] as String,
@@ -37,6 +45,7 @@ class AuthUser {
         name: json['name'] as String,
         phone: json['phone'] as String?,
         role: json['role'] as String,
+        hasPassword: json['has_password'] as bool? ?? false,
       );
 }
 
@@ -91,15 +100,20 @@ class AuthService extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Emails are case-insensitive (the backend normalizes too, but trimming
+  // client-side avoids a round-trip for an obvious typo). Passwords are
+  // NEVER touched here -- they stay byte-for-byte what the user typed.
+  String _normalizeEmail(String email) => email.trim().toLowerCase();
+
   Future<void> login({required String email, required String password}) async {
-    final body = await _post('/auth/login', {'email': email, 'password': password});
+    final body = await _post('/auth/login', {'email': _normalizeEmail(email), 'password': password});
     await _storeTokens(body);
     await _fetchAndSetCurrentUser();
   }
 
   Future<void> register({required String email, required String password, required String name, String? phone}) async {
     final body = await _post('/auth/register', {
-      'email': email,
+      'email': _normalizeEmail(email),
       'password': password,
       'name': name,
       if (phone != null && phone.isNotEmpty) 'phone': phone,
@@ -114,10 +128,37 @@ class AuthService extends ChangeNotifier {
     await _fetchAndSetCurrentUser();
   }
 
-  Future<void> loginWithFacebook({required String accessToken}) async {
-    final body = await _post('/auth/facebook', {'access_token': accessToken});
-    await _storeTokens(body);
-    await _fetchAndSetCurrentUser();
+  Future<void> forgotPassword({required String email}) async {
+    await _post('/auth/forgot-password', {'email': _normalizeEmail(email)});
+  }
+
+  Future<void> resetPassword({required String token, required String newPassword}) async {
+    await _post('/auth/reset-password', {'token': token, 'new_password': newPassword});
+  }
+
+  /// Lets the signed-in user add or change a password -- this is how a
+  /// Google/Facebook-only account (no password yet) opts into also using
+  /// the email/password form. [currentPassword] is required only if the
+  /// account already has a password set.
+  Future<void> setPassword({String? currentPassword, required String newPassword}) async {
+    final response = await _client
+        .post(
+          Uri.parse('$authApiBaseUrl/auth/set-password'),
+          headers: {'Authorization': 'Bearer $_accessToken', 'Content-Type': 'application/json'},
+          body: jsonEncode({
+            if (currentPassword != null && currentPassword.isNotEmpty) 'current_password': currentPassword,
+            'new_password': newPassword,
+          }),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode != 200) {
+      String message = 'ตั้งรหัสผ่านไม่สำเร็จ';
+      try {
+        final decoded = jsonDecode(utf8.decode(response.bodyBytes));
+        if (decoded is Map && decoded['detail'] != null) message = decoded['detail'].toString();
+      } catch (_) {}
+      throw AuthException(message);
+    }
   }
 
   Future<void> logout() async {
@@ -146,6 +187,10 @@ class AuthService extends ChangeNotifier {
     }
   }
 
+  /// Re-fetches the current user, e.g. after setPassword() changes
+  /// has_password server-side and the UI needs to reflect that.
+  Future<void> refreshCurrentUser() => _fetchAndSetCurrentUser();
+
   Future<void> _fetchAndSetCurrentUser() async {
     final response = await _client.get(
       Uri.parse('$authApiBaseUrl/users/me'),
@@ -153,6 +198,21 @@ class AuthService extends ChangeNotifier {
     );
     if (response.statusCode != 200) {
       throw AuthException('Could not load the signed-in user');
+    }
+    _currentUser = AuthUser.fromJson(jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>);
+    notifyListeners();
+  }
+
+  Future<void> updateProfile({String? name, String? phone}) async {
+    final response = await _client
+        .patch(
+          Uri.parse('$authApiBaseUrl/users/me'),
+          headers: {'Authorization': 'Bearer $_accessToken', 'Content-Type': 'application/json'},
+          body: jsonEncode({if (name != null) 'name': name, if (phone != null) 'phone': phone}),
+        )
+        .timeout(const Duration(seconds: 20));
+    if (response.statusCode != 200) {
+      throw AuthException('อัปเดตโปรไฟล์ไม่สำเร็จ');
     }
     _currentUser = AuthUser.fromJson(jsonDecode(utf8.decode(response.bodyBytes)) as Map<String, dynamic>);
     notifyListeners();

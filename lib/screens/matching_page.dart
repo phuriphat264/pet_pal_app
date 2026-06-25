@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
-import '../data/hotel_data.dart';
+import 'package:provider/provider.dart';
+import '../services/hotel_repository.dart';
 import '../services/match_api_service.dart';
+import '../utils/pet_pal_image.dart';
 import '../utils/semantic_match.dart';
 import 'match_result_page.dart';
 import 'hotel_detail_page.dart';
@@ -23,10 +25,29 @@ class _MatchingPageState extends State<MatchingPage> {
   static const Color _mutedBrown = Color(0xFF9E7A60);
   static const Color _accent = Color(0xFFE8936A);
 
-  final List<Map<String, dynamic>> _hotels = allHotels;
+  List<Map<String, dynamic>>? _hotels;
+  String? _loadError;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadHotels();
+  }
+
+  Future<void> _loadHotels() async {
+    setState(() => _loadError = null);
+    try {
+      final hotels = await context.read<HotelRepository>().fetchHotels(availableOnly: false);
+      if (!mounted) return;
+      setState(() => _hotels = hotels);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _loadError = 'โหลดข้อมูลโรงแรมไม่สำเร็จ ลองใหม่อีกครั้ง');
+    }
+  }
 
   List<Map<String, dynamic>> get _filteredHotels {
-    final list = _hotels.toList();
+    final list = [...(_hotels ?? const <Map<String, dynamic>>[])];
     list.sort((a, b) {
       final dA = double.tryParse(a['distance'].toString().replaceAll(' กม.', '')) ?? 99.0;
       final dB = double.tryParse(b['distance'].toString().replaceAll(' กม.', '')) ?? 99.0;
@@ -55,7 +76,7 @@ class _MatchingPageState extends State<MatchingPage> {
 
       for (final m in result.matches) {
         try {
-          final hotel = _hotels.firstWhere(
+          final hotel = (_hotels ?? const <Map<String, dynamic>>[]).firstWhere(
             (h) {
               final hName = h['name']?.toString() ?? '';
               return hName.contains(m.hotelName) || m.hotelName.contains(hName);
@@ -111,7 +132,7 @@ class _MatchingPageState extends State<MatchingPage> {
   }
 
   void _showFallbackResult(String text, {required String notice}) {
-    final fallback = localSemanticMatch(text, _hotels);
+    final fallback = localSemanticMatch(text, _hotels ?? const <Map<String, dynamic>>[]);
     if (mounted) {
       Navigator.push(
         context,
@@ -138,15 +159,38 @@ class _MatchingPageState extends State<MatchingPage> {
         slivers: [
           SliverToBoxAdapter(child: _buildHeader()),
           SliverToBoxAdapter(child: _buildTraitSection()),
-          SliverPadding(
-            padding: const EdgeInsets.only(top: 8),
-            sliver: SliverList(
-              delegate: SliverChildBuilderDelegate(
-                (ctx, i) => _buildHotelCard(_filteredHotels[i], i),
-                childCount: _filteredHotels.length,
+          if (_loadError != null)
+            SliverToBoxAdapter(
+              child: Center(
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    children: [
+                      Text(_loadError!, style: const TextStyle(color: _mutedBrown)),
+                      const SizedBox(height: 12),
+                      ElevatedButton(onPressed: _loadHotels, child: const Text('ลองใหม่')),
+                    ],
+                  ),
+                ),
+              ),
+            )
+          else if (_hotels == null)
+            const SliverToBoxAdapter(
+              child: Padding(
+                padding: EdgeInsets.all(40),
+                child: Center(child: CircularProgressIndicator(color: _brown)),
+              ),
+            )
+          else
+            SliverPadding(
+              padding: const EdgeInsets.only(top: 8),
+              sliver: SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (ctx, i) => _buildHotelCard(_filteredHotels[i], i),
+                  childCount: _filteredHotels.length,
+                ),
               ),
             ),
-          ),
           const SliverToBoxAdapter(child: SizedBox(height: 100)),
         ],
       ),
@@ -304,7 +348,10 @@ class _MatchingPageState extends State<MatchingPage> {
                   child: ClipRRect(
                     borderRadius: const BorderRadius.vertical(top: Radius.circular(24)),
                     child: h['images'] != null && (h['images'] as List).isNotEmpty
-                        ? Image.asset((h['images'] as List).first as String, fit: BoxFit.cover)
+                        ? PetPalImage(
+                            path: (h['images'] as List).first as String,
+                            errorBuilder: (_, __, ___) => Center(child: Icon(h['icon'] as IconData? ?? Icons.hotel, size: 60, color: _brown)),
+                          )
                         : Center(child: Icon(h['icon'] as IconData? ?? Icons.hotel, size: 60, color: _brown)),
                   ),
                 ),
@@ -374,29 +421,22 @@ class _MatchingPageState extends State<MatchingPage> {
                     h['type']?.toString() ?? '',
                     style: const TextStyle(fontSize: 13, color: _mutedBrown, fontWeight: FontWeight.w500),
                   ),
+                  if ((h['description']?.toString() ?? '').isNotEmpty) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      h['description'].toString(),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: TextStyle(fontSize: 12.5, color: _mutedBrown.withValues(alpha: 0.85), height: 1.2),
+                    ),
+                  ],
                   const SizedBox(height: 16),
                   Row(
                     children: [
-                      ...petTypes.map((e) {
-                        Color color;
-                        if (e == '🐶') {
-                          color = Colors.orange.shade700;
-                        } else if (e == '🐱') {
-                          color = Colors.blue.shade700;
-                        } else {
-                          color = _mutedBrown;
-                        }
-                        return Container(
-                          margin: const EdgeInsets.only(right: 8),
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                          decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(color: color.withValues(alpha: 0.2)),
-                          ),
-                          child: Text(e, style: const TextStyle(fontSize: 16)),
-                        );
-                      }),
+                      ...petTypes.map((e) => Padding(
+                            padding: const EdgeInsets.only(right: 6),
+                            child: Text(e, style: const TextStyle(fontSize: 18)),
+                          )),
                       const Spacer(),
                       const SizedBox(width: 8),
                       Column(

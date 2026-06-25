@@ -32,6 +32,13 @@ class RealtimeService {
 
   Stream<Map<String, dynamic>> get events => _controller.stream;
 
+  /// Sends a JSON-encodable event back over the socket (e.g. call signaling).
+  /// No-ops if we're currently disconnected -- callers should treat this as
+  /// best-effort, same as the rest of the realtime layer.
+  void send(Map<String, dynamic> data) {
+    _channel?.sink.add(jsonEncode(data));
+  }
+
   Future<void> connect() async {
     final token = await authService.ensureValidAccessToken();
     if (token == null) return;

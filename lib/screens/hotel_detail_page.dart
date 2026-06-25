@@ -1,6 +1,7 @@
 // lib/screens/hotel_detail_page.dart
 import 'dart:ui';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'booking_page.dart';
 
 class HotelDetailPage extends StatefulWidget {
@@ -57,27 +58,30 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
   @override
   Widget build(BuildContext context) {
     final hotel = widget.hotel;
-    return Scaffold(
-      backgroundColor: _bgCream,
-      body: Stack(
-        children: [
-          SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 100),
-            child: Column(
-              children: [
-                _buildHero(hotel, context),
-                _buildInfo(hotel),
-                _buildRoomSelector(),
-                _buildDatePicker(),
-                _buildReviews(),
-              ],
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle.light,
+      child: Scaffold(
+        backgroundColor: _bgCream,
+        body: Stack(
+          children: [
+            SingleChildScrollView(
+              padding: const EdgeInsets.only(bottom: 100),
+              child: Column(
+                children: [
+                  _buildHero(hotel, context),
+                  _buildInfo(hotel),
+                  _buildRoomSelector(),
+                  _buildDatePicker(),
+                  _buildReviews(),
+                ],
+              ),
             ),
-          ),
-          Positioned(
-            bottom: 0, left: 0, right: 0,
-            child: _buildBookingBar(),
-          ),
-        ],
+            Positioned(
+              bottom: 0, left: 0, right: 0,
+              child: _buildBookingBar(),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -131,6 +135,23 @@ class _HotelDetailPageState extends State<HotelDetailPage> {
                     );
                   },
                 ),
+        ),
+        Positioned(
+          top: 0,
+          left: 0,
+          right: 0,
+          height: MediaQuery.of(context).padding.top + 56,
+          child: IgnorePointer(
+            child: DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [Colors.black.withValues(alpha: 0.45), Colors.transparent],
+                ),
+              ),
+            ),
+          ),
         ),
         if (images.length > 1)
           Positioned(

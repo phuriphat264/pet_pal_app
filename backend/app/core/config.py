@@ -25,6 +25,17 @@ class Settings(BaseSettings):
     facebook_app_id: str = ""
     facebook_app_secret: str = ""
 
+    # Outgoing email (password reset codes). Leave blank in dev -- the code
+    # is logged to the backend console instead of actually being sent, same
+    # "never crashes, just tells you it's unconfigured" pattern as the OAuth
+    # settings above.
+    smtp_host: str = ""
+    smtp_port: int = 587
+    smtp_user: str = ""
+    smtp_password: str = ""
+    smtp_from: str = "PetPal <no-reply@petpal.app>"
+    smtp_use_tls: bool = True
+
     # Object storage (MinIO / S3-compatible)
     s3_endpoint_url: str = "http://localhost:9000"
     s3_access_key: str = "petpal"
@@ -35,6 +46,15 @@ class Settings(BaseSettings):
 
     # Camera credential encryption (Fernet key, 32 url-safe base64 bytes)
     camera_secret_key: str = "dev-camera-key-change-me-32-bytes-min!!"
+
+    # LiveKit (self-hosted, voice/video calls in chat). livekit_url is the
+    # backend-internal address (the docker-compose service name); livekit_public_url
+    # is what the Flutter app connects to -- same internal/public split as
+    # s3_endpoint_url/s3_public_endpoint_url above.
+    livekit_api_key: str = "devkey"
+    livekit_api_secret: str = "dev-livekit-secret-change-me-min-32-bytes"
+    livekit_url: str = "ws://livekit:7880"
+    livekit_public_url: str = "ws://localhost:7880"
 
     # Gemini (existing AI Smart Match enrichment)
     gemini_api_key: str = ""

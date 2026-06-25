@@ -3,9 +3,30 @@ import 'package:provider/provider.dart';
 
 import '../services/auth_service.dart';
 import '../services/booking_repository.dart';
+import '../services/call_service.dart';
 import '../services/chat_repository.dart';
+import '../services/hotel_repository.dart';
+import '../services/pet_repository.dart';
 import '../services/realtime_service.dart';
+import '../utils/reloadable.dart';
+import 'call_page.dart';
 import 'hotel_list_page.dart';
+
+ImageProvider _hotelImageProvider(String path) {
+  return path.startsWith('http') ? NetworkImage(path) : AssetImage(path) as ImageProvider;
+}
+
+String _formatPetDetails(Map<String, dynamic> pet) {
+  return '📋 ข้อมูลสัตว์เลี้ยง: ${pet['name']}\n'
+      'สายพันธุ์: ${pet['breed']}\n'
+      'อายุ: ${pet['age']}\n'
+      'น้ำหนัก: ${pet['weight']}\n'
+      'เพศ: ${pet['gender']} (${pet['neutered']})\n'
+      'อาหาร: ${pet['food']}\n'
+      'อาการแพ้: ${pet['allergies']}\n'
+      'วัคซีน: ${pet['vaccine']}'
+      '${(pet['traits'] as List).isNotEmpty ? '\nบุคลิก: ${(pet['traits'] as List).join(', ')}' : ''}';
+}
 
 class ChatRoomPage extends StatefulWidget {
   const ChatRoomPage({super.key});
@@ -13,7 +34,7 @@ class ChatRoomPage extends StatefulWidget {
   State<ChatRoomPage> createState() => _ChatRoomPageState();
 }
 
-class _ChatRoomPageState extends State<ChatRoomPage> {
+class _ChatRoomPageState extends State<ChatRoomPage> implements Reloadable {
   static const Color _brown = Color(0xFF5C3D2E);
   static const Color _darkBrown = Color(0xFF3D2316);
   static const Color _bgCream = Color(0xFFF5EFE8);
@@ -22,12 +43,16 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
   bool _loading = true;
   String? _error;
   List<Map<String, dynamic>> _bookedHotelsWithoutThread = [];
+  Map<String, String?> _hotelImages = {};
 
   @override
   void initState() {
     super.initState();
     _load();
   }
+
+  @override
+  Future<void> reload() => _load();
 
   Future<void> _load() async {
     setState(() {
@@ -38,18 +63,34 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       final chatRepo = context.read<ChatRepository>();
       await chatRepo.loadThreads();
       final bookings = await context.read<BookingRepository>().fetchMyBookings();
-      final threadHotelIds = chatRepo.threads.map((t) => t['hotelId']).toSet();
+      final threadHotelIds = chatRepo.threads.map((t) => t['hotelId'] as String).toSet();
       final seen = <String>{};
-      final bookedWithoutThread = <Map<String, dynamic>>[];
       for (final b in bookings) {
         final hotelId = b['hotel_id'] as String;
         if (threadHotelIds.contains(hotelId) || seen.contains(hotelId)) continue;
         seen.add(hotelId);
-        bookedWithoutThread.add({'hotelId': hotelId});
       }
+
+      final hotelRepo = context.read<HotelRepository>();
+      final images = <String, String?>{};
+      final bookedWithoutThread = <Map<String, dynamic>>[];
+      for (final hotelId in {...threadHotelIds, ...seen}) {
+        try {
+          final hotel = await hotelRepo.fetchHotel(hotelId);
+          final hotelImages = hotel['images'] as List?;
+          images[hotelId] = (hotelImages != null && hotelImages.isNotEmpty) ? hotelImages.first as String : null;
+          if (seen.contains(hotelId)) {
+            bookedWithoutThread.add({'hotelId': hotelId, 'hotelName': hotel['name'] as String});
+          }
+        } catch (_) {
+          images[hotelId] = null;
+        }
+      }
+
       if (!mounted) return;
       setState(() {
         _bookedHotelsWithoutThread = bookedWithoutThread;
+        _hotelImages = images;
         _loading = false;
       });
     } catch (e) {
@@ -67,7 +108,13 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       if (!mounted) return;
       await Navigator.push(
         context,
-        MaterialPageRoute(builder: (_) => ChatDetailViewPage(threadId: thread['id'] as String, title: thread['hotelName'] as String)),
+        MaterialPageRoute(
+          builder: (_) => ChatDetailViewPage(
+            threadId: thread['id'] as String,
+            title: thread['hotelName'] as String,
+            hotelImage: _hotelImages[hotelId],
+          ),
+        ),
       );
       if (mounted) _load();
     } catch (e) {
@@ -106,39 +153,19 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
               padding: const EdgeInsets.all(20),
               sliver: SliverList(
                 delegate: SliverChildBuilderDelegate(
-                  (context, index) => _threadTile(threads[index]),
-                  childCount: threads.length,
+                  (context, index) => index < threads.length
+                      ? _threadTile(threads[index])
+                      : _threadTile({
+                          'id': null,
+                          'hotelId': _bookedHotelsWithoutThread[index - threads.length]['hotelId'],
+                          'hotelName': _bookedHotelsWithoutThread[index - threads.length]['hotelName'],
+                          'lastMessage': null,
+                          'unreadCount': 0,
+                        }),
+                  childCount: threads.length + _bookedHotelsWithoutThread.length,
                 ),
               ),
             ),
-            if (_bookedHotelsWithoutThread.isNotEmpty) ...[
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20),
-                  child: Text('เริ่มแชทกับร้านที่จองไว้', style: TextStyle(fontSize: 15, fontWeight: FontWeight.w700, color: _darkBrown)),
-                ),
-              ),
-              SliverPadding(
-                padding: const EdgeInsets.fromLTRB(20, 12, 20, 20),
-                sliver: SliverList(
-                  delegate: SliverChildBuilderDelegate(
-                    (context, index) {
-                      final hotelId = _bookedHotelsWithoutThread[index]['hotelId'] as String;
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: OutlinedButton.icon(
-                          onPressed: () => _startChat(hotelId),
-                          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
-                          label: const Text('แชทกับร้านนี้'),
-                          style: OutlinedButton.styleFrom(foregroundColor: _brown, side: const BorderSide(color: _brown)),
-                        ),
-                      );
-                    },
-                    childCount: _bookedHotelsWithoutThread.length,
-                  ),
-                ),
-              ),
-            ],
           ],
         ),
       ),
@@ -147,6 +174,7 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 
   Widget _threadTile(Map<String, dynamic> thread) {
     final unread = thread['unreadCount'] as int;
+    final hotelImage = _hotelImages[thread['hotelId']];
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -157,9 +185,19 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
         leading: Container(
-          width: 54, height: 54,
-          decoration: BoxDecoration(borderRadius: BorderRadius.circular(14), color: _brown.withValues(alpha: 0.08)),
-          child: const Icon(Icons.storefront_rounded, color: _brown, size: 24),
+          width: 60, height: 60,
+          decoration: BoxDecoration(borderRadius: BorderRadius.circular(15), color: _brown.withValues(alpha: 0.08)),
+          child: hotelImage != null
+              ? ClipRRect(
+                  borderRadius: BorderRadius.circular(15),
+                  child: Image(
+                    image: _hotelImageProvider(hotelImage),
+                    width: 60, height: 60,
+                    fit: BoxFit.cover,
+                    errorBuilder: (_, _, _) => const Icon(Icons.storefront_rounded, color: _brown, size: 24),
+                  ),
+                )
+              : const Icon(Icons.storefront_rounded, color: _brown, size: 24),
         ),
         title: Text(thread['hotelName'] as String, style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 16, color: _darkBrown)),
         subtitle: Text(
@@ -168,20 +206,36 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
         ),
-        trailing: unread > 0
-            ? Container(
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (unread > 0) ...[
+              Container(
                 padding: const EdgeInsets.all(6),
                 decoration: const BoxDecoration(color: _brown, shape: BoxShape.circle),
                 child: Text('$unread', style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold)),
-              )
-            : null,
+              ),
+              const SizedBox(width: 8),
+            ],
+            const Icon(Icons.chevron_right_rounded, color: _brown),
+          ],
+        ),
         onTap: () async {
-          await context.read<ChatRepository>().markThreadRead(thread['id'] as String);
+          final threadId = thread['id'] as String?;
+          if (threadId == null) {
+            await _startChat(thread['hotelId'] as String);
+            return;
+          }
+          await context.read<ChatRepository>().markThreadRead(threadId);
           if (!context.mounted) return;
           await Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (_) => ChatDetailViewPage(threadId: thread['id'] as String, title: thread['hotelName'] as String),
+              builder: (_) => ChatDetailViewPage(
+                threadId: threadId,
+                title: thread['hotelName'] as String,
+                hotelImage: hotelImage,
+              ),
             ),
           );
         },
@@ -268,7 +322,8 @@ class _ChatRoomPageState extends State<ChatRoomPage> {
 class ChatDetailViewPage extends StatefulWidget {
   final String threadId;
   final String title;
-  const ChatDetailViewPage({super.key, required this.threadId, required this.title});
+  final String? hotelImage;
+  const ChatDetailViewPage({super.key, required this.threadId, required this.title, this.hotelImage});
 
   @override
   State<ChatDetailViewPage> createState() => _ChatDetailViewPageState();
@@ -319,6 +374,10 @@ class _ChatDetailViewPageState extends State<ChatDetailViewPage> {
     final text = _ctrl.text.trim();
     if (text.isEmpty) return;
     _ctrl.clear();
+    await _sendText(text);
+  }
+
+  Future<void> _sendText(String text) async {
     try {
       final message = await context.read<ChatRepository>().sendMessage(widget.threadId, text);
       if (!mounted) return;
@@ -327,6 +386,67 @@ class _ChatDetailViewPageState extends State<ChatDetailViewPage> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('ส่งข้อความไม่สำเร็จ: $e')));
     }
+  }
+
+  Future<void> _startCall(CallType type) async {
+    final call = context.read<CallService>();
+    if (call.state != CallState.idle) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('กำลังมีสายอยู่')));
+      return;
+    }
+    Navigator.push(context, MaterialPageRoute(builder: (_) => const CallPage()));
+    try {
+      await call.startCall(widget.threadId, type);
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('โทรไม่สำเร็จ: $e')));
+    }
+  }
+
+  Future<void> _sharePet() async {
+    List<Map<String, dynamic>> pets;
+    try {
+      pets = await context.read<PetRepository>().fetchPets();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('โหลดข้อมูลสัตว์เลี้ยงไม่สำเร็จ: $e')));
+      return;
+    }
+    if (pets.isEmpty) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('ยังไม่มีข้อมูลสัตว์เลี้ยง กรุณาเพิ่มในหน้าโปรไฟล์ก่อน')),
+      );
+      return;
+    }
+    if (!mounted) return;
+    final selected = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(20))),
+      builder: (sheetContext) => SafeArea(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 20, 20, 8),
+              child: Text('เลือกสัตว์เลี้ยงที่จะส่งข้อมูล',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w700, color: _darkBrown)),
+            ),
+            for (final pet in pets)
+              ListTile(
+                leading: Icon(pet['icon'] as IconData, color: _brown),
+                title: Text(pet['name'] as String),
+                subtitle: Text(pet['breed'] as String),
+                onTap: () => Navigator.pop(sheetContext, pet),
+              ),
+            const SizedBox(height: 8),
+          ],
+        ),
+      ),
+    );
+    if (selected == null) return;
+    await _sendText(_formatPetDetails(selected));
   }
 
   @override
@@ -354,7 +474,16 @@ class _ChatDetailViewPageState extends State<ChatDetailViewPage> {
             Container(
               width: 38, height: 38,
               decoration: BoxDecoration(color: _brown.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: const Icon(Icons.storefront_rounded, color: _brown, size: 18),
+              child: widget.hotelImage != null
+                  ? ClipOval(
+                      child: Image(
+                        image: _hotelImageProvider(widget.hotelImage!),
+                        width: 38, height: 38,
+                        fit: BoxFit.cover,
+                        errorBuilder: (_, _, _) => const Icon(Icons.storefront_rounded, color: _brown, size: 18),
+                      ),
+                    )
+                  : const Icon(Icons.storefront_rounded, color: _brown, size: 18),
             ),
             const SizedBox(width: 10),
             Expanded(
@@ -364,6 +493,18 @@ class _ChatDetailViewPageState extends State<ChatDetailViewPage> {
             ),
           ],
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.call_rounded, color: _brown, size: 22),
+            tooltip: 'โทรเสียง',
+            onPressed: () => _startCall(CallType.audio),
+          ),
+          IconButton(
+            icon: const Icon(Icons.videocam_rounded, color: _brown, size: 24),
+            tooltip: 'วิดีโอคอล',
+            onPressed: () => _startCall(CallType.video),
+          ),
+        ],
       ),
       body: Column(
         children: [
@@ -405,6 +546,11 @@ class _ChatDetailViewPageState extends State<ChatDetailViewPage> {
             child: SafeArea(
               child: Row(
                 children: [
+                  IconButton(
+                    icon: const Icon(Icons.pets_rounded, color: _brown),
+                    tooltip: 'ส่งข้อมูลสัตว์เลี้ยง',
+                    onPressed: _sharePet,
+                  ),
                   Expanded(
                     child: TextField(
                       controller: _ctrl,

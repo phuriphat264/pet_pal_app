@@ -1,11 +1,26 @@
 import uuid
 from datetime import datetime
+from typing import Literal
 
 from pydantic import BaseModel, ConfigDict
 
 
 class ChatThreadCreate(BaseModel):
     hotel_id: uuid.UUID
+
+
+class CallTokenRequest(BaseModel):
+    call_type: Literal["audio", "video"] = "video"
+    # True when the callee is accepting an existing invite -- suppresses
+    # sending another "invite" push (the caller already sent one).
+    is_accept: bool = False
+
+
+class CallTokenResponse(BaseModel):
+    room: str
+    token: str
+    livekit_url: str
+    call_type: Literal["audio", "video"]
 
 
 class ChatMessageCreate(BaseModel):

@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
-	<string>Pet Pal App</string>
+	<string>PetPal</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -15,7 +15,7 @@
 	<key>CFBundleInfoDictionaryVersion</key>
 	<string>6.0</string>
 	<key>CFBundleName</key>
-	<string>pet_pal_app</string>
+	<string>PetPal</string>
 	<key>CFBundlePackageType</key>
 	<string>APPL</string>
 	<key>CFBundleShortVersionString</key>
@@ -66,6 +66,12 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+
+	<!-- Voice/video calls (LiveKit). -->
+	<key>NSCameraUsageDescription</key>
+	<string>ใช้กล้องสำหรับวิดีโอคอลกับพี่เลี้ยง</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ใช้ไมโครโฟนสำหรับโทรเสียงและวิดีโอคอลกับพี่เลี้ยง</string>
 
 	<!-- Facebook Login. Get these from developers.facebook.com > your app >
 	     Settings > Basic. FacebookClientToken is under Settings > Advanced. -->

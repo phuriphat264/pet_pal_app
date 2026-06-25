@@ -36,6 +36,29 @@ services:
       timeout: 5s
       retries: 10
 
+  # Self-hosted LiveKit SFU for voice/video calls in chat. No per-minute fees
+  # since this is your own server -- only the small RTC port range below has
+  # a real cost (bandwidth). LIVEKIT_CONFIG is read directly by the official
+  # image's entrypoint, so no separate config file/volume is needed.
+  livekit:
+    image: livekit/livekit-server:latest
+    container_name: petpal-livekit
+    restart: unless-stopped
+    ports:
+      - "7880:7880"
+      - "7881:7881"
+      - "50000-50019:50000-50019/udp"
+    environment:
+      LIVEKIT_CONFIG: |
+        port: 7880
+        rtc:
+          tcp_port: 7881
+          port_range_start: 50000
+          port_range_end: 50019
+          use_external_ip: true
+        keys:
+          ${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-dev-livekit-secret-change-me-min-32-bytes}
+
   backend:
     build: .
     image: petpal-api
@@ -46,6 +69,8 @@ services:
         condition: service_healthy
       minio:
         condition: service_healthy
+      livekit:
+        condition: service_started
     ports:
       - "8001:8000"
     env_file:
@@ -54,6 +79,8 @@ services:
       DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-petpal}:${POSTGRES_PASSWORD:-petpal}@postgres:5432/${POSTGRES_DB:-petpal}
       S3_ENDPOINT_URL: http://minio:9000
       S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-http://localhost:9000}
+      LIVEKIT_URL: ws://livekit:7880
+      LIVEKIT_PUBLIC_URL: ${LIVEKIT_PUBLIC_URL:-ws://localhost:7880}
 
 volumes:
   petpal-postgres-data:

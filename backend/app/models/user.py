@@ -1,7 +1,8 @@
 import enum
 import uuid
+from datetime import datetime
 
-from sqlalchemy import Enum, String
+from sqlalchemy import DateTime, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from ..db.base import Base, TimestampMixin, UUIDPkMixin
@@ -24,6 +25,11 @@ class User(UUIDPkMixin, TimestampMixin, Base):
     role: Mapped[UserRole] = mapped_column(
         Enum(UserRole, name="user_role"), default=UserRole.customer, nullable=False
     )
+    # Set on /auth/forgot-password, cleared on successful /auth/reset-password.
+    # We store a hash (not the raw token) so a DB leak alone can't be used to
+    # take over an account, same reasoning as password_hash.
+    password_reset_token_hash: Mapped[str | None] = mapped_column(String(64), nullable=True)
+    password_reset_expires_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True), nullable=True)
 
     pets = relationship("Pet", back_populates="owner", cascade="all, delete-orphan")
     bookings = relationship("Booking", back_populates="customer", cascade="all, delete-orphan")
@@ -35,3 +41,10 @@ class User(UUIDPkMixin, TimestampMixin, Base):
     assigned_cameras: Mapped[list["uuid.UUID"]] = relationship(
         "Camera", back_populates="assigned_technician", foreign_keys="Camera.assigned_technician_id"
     )
+
+    @property
+    def has_password(self) -> bool:
+        """Lets the client decide whether to ask for a 'current password'
+        before /auth/set-password -- Google/Facebook-only accounts have
+        password_hash=None and don't have one to confirm yet."""
+        return self.password_hash is not None

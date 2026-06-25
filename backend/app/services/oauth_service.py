@@ -10,6 +10,7 @@ from google.auth.transport import requests as google_requests
 from google.oauth2 import id_token as google_id_token
 
 from ..core.config import get_settings
+from ..core.security import normalize_email
 
 settings = get_settings()
 
@@ -31,7 +32,7 @@ def verify_google_id_token(token: str) -> dict:
     email = claims.get("email")
     if not email:
         raise OAuthVerificationError("Google account has no email")
-    return {"email": email, "name": claims.get("name") or email.split("@")[0]}
+    return {"email": normalize_email(email), "name": claims.get("name") or email.split("@")[0]}
 
 
 async def verify_facebook_access_token(token: str) -> dict:
@@ -64,4 +65,4 @@ async def verify_facebook_access_token(token: str) -> dict:
         raise OAuthVerificationError(
             "This Facebook account has no email on file or didn't grant email permission"
         )
-    return {"email": email, "name": me_data.get("name") or email.split("@")[0]}
+    return {"email": normalize_email(email), "name": me_data.get("name") or email.split("@")[0]}

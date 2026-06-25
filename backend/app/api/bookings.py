@@ -12,6 +12,7 @@ from ..models.hotel import Hotel, HotelRoom
 from ..models.partner import PartnerProfile
 from ..models.user import User, UserRole
 from ..schemas.booking import BookingCreate, BookingResponse, BookingStatusUpdate, HotelBookingResponse
+from .chat import _create_message, _get_or_create_thread
 
 router = APIRouter(prefix="/bookings", tags=["bookings"])
 
@@ -51,6 +52,11 @@ async def create_booking(
     db.add(booking)
     await db.commit()
     await db.refresh(booking)
+
+    if payload.matching_prompt:
+        thread = await _get_or_create_thread(user.id, hotel.id, db)
+        await _create_message(thread.id, user, payload.matching_prompt, db)
+
     return booking
 
 

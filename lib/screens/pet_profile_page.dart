@@ -2,11 +2,32 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/auth_service.dart';
+import '../services/booking_repository.dart';
+import '../services/hotel_repository.dart';
 import '../services/partner_repository.dart';
 import '../services/pet_repository.dart';
+import 'hotel_list_page.dart';
 import 'hotel_partner_application_page.dart';
 import 'partner_status_page.dart';
 import 'hotel_dashboard_page.dart';
+
+const List<String> _thaiMonthsAbbr = [
+  'ม.ค.', 'ก.พ.', 'มี.ค.', 'เม.ย.', 'พ.ค.', 'มิ.ย.',
+  'ก.ค.', 'ส.ค.', 'ก.ย.', 'ต.ค.', 'พ.ย.', 'ธ.ค.',
+];
+
+String _thaiShortDate(DateTime d) {
+  final suffix = d.year == DateTime.now().year ? '' : ' ${(d.year + 543) % 100}';
+  return '${d.day} ${_thaiMonthsAbbr[d.month - 1]}$suffix';
+}
+
+String _thaiStayRange(DateTime checkIn, DateTime checkOut) {
+  if (checkIn.year == checkOut.year && checkIn.month == checkOut.month) {
+    final suffix = checkIn.year == DateTime.now().year ? '' : ' ${(checkIn.year + 543) % 100}';
+    return '${checkIn.day}-${checkOut.day} ${_thaiMonthsAbbr[checkIn.month - 1]}$suffix';
+  }
+  return '${_thaiShortDate(checkIn)} - ${_thaiShortDate(checkOut)}';
+}
 
 class PetProfilePage extends StatefulWidget {
   const PetProfilePage({super.key});
@@ -29,12 +50,62 @@ class _PetProfilePageState extends State<PetProfilePage> {
   String? _error;
   Map<String, dynamic>? _partnerApp;
   bool _partnerLoading = true;
+  List<Map<String, dynamic>>? _upcomingStays;
 
   @override
   void initState() {
     super.initState();
     _loadPets();
     _loadPartnerApp();
+    _loadUpcomingStays();
+  }
+
+  // Pulls every booking, keeps only the ones that haven't checked out yet
+  // and weren't cancelled, then resolves each hotel_id to a hotel name so
+  // the "next stay" card can show real data instead of the old hardcoded
+  // "15 เม.ย. นี้ ที่ Paw Paradise Resort" placeholder.
+  Future<void> _loadUpcomingStays() async {
+    final bookingRepo = context.read<BookingRepository>();
+    final hotelRepo = context.read<HotelRepository>();
+    try {
+      final bookings = await bookingRepo.fetchMyBookings();
+      final today = DateTime.now();
+      final todayDate = DateTime(today.year, today.month, today.day);
+
+      final upcoming = bookings.where((b) {
+        final status = b['status'] as String?;
+        if (status == 'cancelled' || status == 'completed') return false;
+        final checkOut = DateTime.tryParse(b['check_out'] as String? ?? '');
+        return checkOut != null && !checkOut.isBefore(todayDate);
+      }).toList();
+
+      final hotelNames = <String, String>{};
+      for (final hotelId in upcoming.map((b) => b['hotel_id'] as String).toSet()) {
+        try {
+          final hotel = await hotelRepo.fetchHotel(hotelId);
+          hotelNames[hotelId] = hotel['name'] as String? ?? 'โรงแรม';
+        } catch (_) {
+          hotelNames[hotelId] = 'โรงแรม';
+        }
+      }
+
+      final resolved = upcoming.map((b) {
+        return {
+          'petId': b['pet_id'] as String?,
+          'hotelName': hotelNames[b['hotel_id']] ?? 'โรงแรม',
+          'checkIn': DateTime.parse(b['check_in'] as String),
+          'checkOut': DateTime.parse(b['check_out'] as String),
+          'status': b['status'] as String,
+        };
+      }).toList()
+        ..sort((a, b) => (a['checkIn'] as DateTime).compareTo(b['checkIn'] as DateTime));
+
+      if (!mounted) return;
+      setState(() => _upcomingStays = resolved);
+    } catch (_) {
+      if (!mounted) return;
+      setState(() => _upcomingStays = []);
+    }
   }
 
   Future<void> _loadPets() async {
@@ -364,6 +435,9 @@ class _PetProfilePageState extends State<PetProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (traits.isEmpty)
+              const Text('ยังไม่ได้เลือกนิสัยของน้อง แก้ไขได้ที่ปุ่มแก้ไขด้านบน',
+                  style: TextStyle(color: _mutedBrown, fontSize: 14)),
             Wrap(
               spacing: 8, runSpacing: 8,
               children: traits.map((t) => Container(
@@ -475,6 +549,11 @@ class _PetProfilePageState extends State<PetProfilePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            if (history.isEmpty)
+              const Padding(
+                padding: EdgeInsets.symmetric(vertical: 8),
+                child: Text('ยังไม่มีประวัติการรักษา', style: TextStyle(color: _mutedBrown, fontSize: 14)),
+              ),
             ...List.generate(history.length, (i) {
               final h = history[i];
               final isLast = i == history.length - 1;
@@ -532,7 +611,109 @@ class _PetProfilePageState extends State<PetProfilePage> {
                 ],
               );
             }),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: () => _showAddMedicalHistorySheet(pet),
+                icon: const Icon(Icons.add_circle_outline, size: 18, color: _brown),
+                label: const Text('เพิ่มประวัติการรักษา', style: TextStyle(color: _brown)),
+              ),
+            ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showAddMedicalHistorySheet(Map<String, dynamic> pet) {
+    final eventCtrl = TextEditingController();
+    final vetCtrl = TextEditingController();
+    DateTime selectedDate = DateTime.now();
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _bgCream,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) => Padding(
+          padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Center(
+                child: Container(width: 40, height: 4,
+                    decoration: BoxDecoration(color: _borderColor, borderRadius: BorderRadius.circular(2))),
+              ),
+              const SizedBox(height: 16),
+              Text('เพิ่มประวัติการรักษา${pet['name'] != null ? ' - ${pet['name']}' : ''}',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+              const SizedBox(height: 16),
+              Text('วันที่', style: const TextStyle(fontSize: 12, color: _mutedBrown, fontWeight: FontWeight.w500)),
+              const SizedBox(height: 6),
+              InkWell(
+                borderRadius: BorderRadius.circular(12),
+                onTap: () async {
+                  final picked = await showDatePicker(
+                    context: ctx,
+                    initialDate: selectedDate,
+                    firstDate: DateTime(2000),
+                    lastDate: DateTime(2100),
+                  );
+                  if (picked != null) setSheetState(() => selectedDate = picked);
+                },
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+                  decoration: BoxDecoration(color: _bgCard, borderRadius: BorderRadius.circular(12)),
+                  child: Row(
+                    children: [
+                      Text(
+                        '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+                        style: const TextStyle(fontSize: 14, color: _darkBrown),
+                      ),
+                      const Spacer(),
+                      const Icon(Icons.calendar_today_outlined, size: 16, color: _mutedBrown),
+                    ],
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              _inputField('เหตุการณ์ / การรักษา', ctrl: eventCtrl, hint: 'เช่น ฉีดวัคซีนพิษสุนัขบ้า'),
+              const SizedBox(height: 10),
+              _inputField('สัตวแพทย์ / คลินิก (ไม่บังคับ)', ctrl: vetCtrl),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () async {
+                    if (eventCtrl.text.trim().isEmpty) return;
+                    try {
+                      await context.read<PetRepository>().addMedicalHistory(
+                            petId: pet['id'] as String,
+                            date:
+                                '${selectedDate.year}-${selectedDate.month.toString().padLeft(2, '0')}-${selectedDate.day.toString().padLeft(2, '0')}',
+                            event: eventCtrl.text.trim(),
+                            vet: vetCtrl.text.trim(),
+                          );
+                      if (ctx.mounted) Navigator.pop(ctx);
+                      await _loadPets();
+                    } catch (e) {
+                      if (ctx.mounted) {
+                        ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('บันทึกไม่สำเร็จ: $e')));
+                      }
+                    }
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: _brown,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
+                  ),
+                  child: const Text('บันทึก', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -540,6 +721,53 @@ class _PetProfilePageState extends State<PetProfilePage> {
 
   // ── Vet Section ───────────────────────────────────────────────
   Widget _buildVetSection(Map<String, dynamic> pet) {
+    if (_upcomingStays == null) {
+      return _vetCardShell(
+        child: const Center(
+          child: SizedBox(width: 22, height: 22, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5)),
+        ),
+      );
+    }
+
+    final stays = _upcomingStays!.where((s) => s['petId'] == pet['id']).toList();
+
+    if (stays.isEmpty) {
+      return _vetCardShell(
+        child: Row(
+          children: [
+            Container(
+              width: 52, height: 52,
+              decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(14)),
+              child: const Icon(Icons.hotel_rounded, color: Colors.white, size: 28),
+            ),
+            const SizedBox(width: 12),
+            const Expanded(
+              child: Text('ยังไม่มีรอบฝากเลี้ยงที่จะถึง',
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600, color: Colors.white)),
+            ),
+            GestureDetector(
+              onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const HotelListPage())),
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+                child: const Text('จองที่พัก', style: TextStyle(color: _brown, fontSize: 13, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ],
+        ),
+      );
+    }
+
+    if (stays.length == 1) {
+      return _vetCardShell(child: _stayRow(stays.first));
+    }
+
+    return _vetCardShell(
+      child: _StayCarousel(key: ValueKey(pet['id']), stays: stays, stayRowBuilder: _stayRow),
+    );
+  }
+
+  Widget _vetCardShell({required Widget child}) {
     return Padding(
       padding: const EdgeInsets.only(bottom: 16),
       child: Container(
@@ -549,48 +777,47 @@ class _PetProfilePageState extends State<PetProfilePage> {
           borderRadius: BorderRadius.circular(16),
           boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.2), blurRadius: 10, offset: const Offset(0, 4))],
         ),
-        child: Row(
-          children: [
-            Container(
-              width: 52, height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.2),
-                borderRadius: BorderRadius.circular(14),
-              ),
-              child: const Icon(Icons.hotel_rounded, color: Colors.white, size: 28),
-            ),
-            const SizedBox(width: 12),
-            const Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text('รอบฝากเลี้ยงถัดไป',
-                      style: TextStyle(fontSize: 13, color: Colors.white70)),
-                  Text('15 เม.ย. นี้',
-                      style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
-                  Text('ที่ Paw Paradise Resort',
-                      style: TextStyle(fontSize: 12, color: Colors.white60)),
-                ],
-              ),
-            ),
-            GestureDetector(
-              onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('📅 บันทึกในปฏิทินแล้ว'),
-                    backgroundColor: _brown, duration: Duration(seconds: 1)),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: const Text('ตั้งเตือน',
-                    style: TextStyle(color: _brown, fontSize: 13, fontWeight: FontWeight.w600)),
-              ),
-            ),
-          ],
-        ),
+        child: child,
       ),
+    );
+  }
+
+  Widget _stayRow(Map<String, dynamic> stay) {
+    final checkIn = stay['checkIn'] as DateTime;
+    final checkOut = stay['checkOut'] as DateTime;
+    final label = stay['status'] == 'pending' ? 'รอบฝากเลี้ยงถัดไป (รอยืนยัน)' : 'รอบฝากเลี้ยงถัดไป';
+    return Row(
+      children: [
+        Container(
+          width: 52, height: 52,
+          decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.2), borderRadius: BorderRadius.circular(14)),
+          child: const Icon(Icons.hotel_rounded, color: Colors.white, size: 28),
+        ),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: const TextStyle(fontSize: 13, color: Colors.white70), overflow: TextOverflow.ellipsis),
+              Text(_thaiStayRange(checkIn, checkOut),
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: Colors.white)),
+              Text('ที่ ${stay['hotelName']}',
+                  style: const TextStyle(fontSize: 12, color: Colors.white60), overflow: TextOverflow.ellipsis),
+            ],
+          ),
+        ),
+        GestureDetector(
+          onTap: () => ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('📅 บันทึกในปฏิทินแล้ว'),
+                backgroundColor: _brown, duration: Duration(seconds: 1)),
+          ),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+            decoration: BoxDecoration(color: Colors.white, borderRadius: BorderRadius.circular(12)),
+            child: const Text('ตั้งเตือน', style: TextStyle(color: _brown, fontSize: 13, fontWeight: FontWeight.w600)),
+          ),
+        ),
+      ],
     );
   }
 
@@ -851,27 +1078,34 @@ class _PetProfilePageState extends State<PetProfilePage> {
                       child: const Center(child: Icon(Icons.pets_rounded, color: Colors.white, size: 32)),
                     ),
                     const SizedBox(width: 16),
-                    const Expanded(
+                    Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('คุณภูริภัทร',
-                              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
-                          Text('Pet Owner (Premium Member)',
-                              style: TextStyle(fontSize: 13, color: _mutedBrown)),
+                          Text(context.watch<AuthService>().currentUser?.name ?? 'ผู้ใช้',
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown),
+                              overflow: TextOverflow.ellipsis),
+                          Text(context.watch<AuthService>().currentUser?.email ?? '',
+                              style: const TextStyle(fontSize: 13, color: _mutedBrown),
+                              overflow: TextOverflow.ellipsis),
                         ],
                       ),
                     ),
                     IconButton(
-                      onPressed: () {},
+                      onPressed: _showEditProfileSheet,
                       icon: const Icon(Icons.edit_outlined, color: _brown, size: 20),
                     ),
                   ],
                 ),
                 const Divider(height: 24, color: _bgCream),
-                _ownerActionTile(Icons.assignment_ind_outlined, 'ข้อมูลบัญชี'),
-                _ownerActionTile(Icons.payment_rounded, 'วิธีการชำระเงิน'),
-                _ownerActionTile(Icons.settings_outlined, 'การตั้งค่าระบบ'),
+                _ownerActionTile(Icons.assignment_ind_outlined, 'ข้อมูลบัญชี', _showEditProfileSheet),
+                _ownerActionTile(
+                  Icons.lock_outline_rounded,
+                  context.watch<AuthService>().currentUser?.hasPassword == true
+                      ? 'เปลี่ยนรหัสผ่าน'
+                      : 'ตั้งรหัสผ่าน (เข้าสู่ระบบด้วยอีเมลได้)',
+                  _showSetPasswordSheet,
+                ),
                 const SizedBox(height: 12),
                 SizedBox(
                   width: double.infinity,
@@ -995,17 +1229,179 @@ class _PetProfilePageState extends State<PetProfilePage> {
 
   // ── Owner Section ─────────────────────────────────────────────
 
-  Widget _ownerActionTile(IconData icon, String title) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8),
-      child: Row(
-        children: [
-          Icon(icon, size: 20, color: _brown),
-          const SizedBox(width: 12),
-          Text(title, style: const TextStyle(fontSize: 15, color: _darkBrown, fontWeight: FontWeight.w500)),
-          const Spacer(),
-          const Icon(Icons.chevron_right_rounded, size: 20, color: _mutedBrown),
-        ],
+  Widget _ownerActionTile(IconData icon, String title, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 8),
+        child: Row(
+          children: [
+            Icon(icon, size: 20, color: _brown),
+            const SizedBox(width: 12),
+            Text(title, style: const TextStyle(fontSize: 15, color: _darkBrown, fontWeight: FontWeight.w500)),
+            const Spacer(),
+            const Icon(Icons.chevron_right_rounded, size: 20, color: _mutedBrown),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditProfileSheet() {
+    final auth = context.read<AuthService>();
+    final nameCtrl = TextEditingController(text: auth.currentUser?.name ?? '');
+    final phoneCtrl = TextEditingController(text: auth.currentUser?.phone ?? '');
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _bgCream,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => Padding(
+        padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(width: 40, height: 4,
+                  decoration: BoxDecoration(color: _borderColor, borderRadius: BorderRadius.circular(2))),
+            ),
+            const SizedBox(height: 16),
+            const Text('แก้ไขข้อมูลบัญชี', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+            const SizedBox(height: 16),
+            _inputField('ชื่อ', ctrl: nameCtrl),
+            const SizedBox(height: 10),
+            _inputField('เบอร์โทร', ctrl: phoneCtrl),
+            const SizedBox(height: 20),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () async {
+                  try {
+                    await auth.updateProfile(
+                      name: nameCtrl.text.trim().isEmpty ? null : nameCtrl.text.trim(),
+                      phone: phoneCtrl.text.trim().isEmpty ? null : phoneCtrl.text.trim(),
+                    );
+                    if (ctx.mounted) Navigator.pop(ctx);
+                  } catch (e) {
+                    if (ctx.mounted) {
+                      ScaffoldMessenger.of(ctx).showSnackBar(SnackBar(content: Text('$e')));
+                    }
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _brown,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                ),
+                child: const Text('บันทึก', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showSetPasswordSheet() {
+    final auth = context.read<AuthService>();
+    final hasPassword = auth.currentUser?.hasPassword == true;
+    final currentCtrl = TextEditingController();
+    final newCtrl = TextEditingController();
+    bool submitting = false;
+    String? error;
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: _bgCream,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (ctx) => StatefulBuilder(
+        builder: (ctx, setSheetState) {
+          Future<void> submit() async {
+            if (newCtrl.text.length < 8) {
+              setSheetState(() => error = 'รหัสผ่านใหม่ต้องมีอย่างน้อย 8 ตัวอักษร');
+              return;
+            }
+            setSheetState(() {
+              submitting = true;
+              error = null;
+            });
+            try {
+              await auth.setPassword(
+                currentPassword: hasPassword ? currentCtrl.text : null,
+                newPassword: newCtrl.text,
+              );
+              await auth.refreshCurrentUser();
+              if (ctx.mounted) Navigator.pop(ctx);
+              if (mounted) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(content: Text(hasPassword ? '🔑 เปลี่ยนรหัสผ่านแล้ว' : '🔑 ตั้งรหัสผ่านแล้ว ใช้เข้าสู่ระบบด้วยอีเมลได้เลย'),
+                      backgroundColor: _brown, duration: const Duration(seconds: 2)),
+                );
+              }
+            } on AuthException catch (e) {
+              setSheetState(() {
+                error = e.message;
+                submitting = false;
+              });
+            } catch (_) {
+              setSheetState(() {
+                error = 'บันทึกไม่สำเร็จ ลองใหม่อีกครั้ง';
+                submitting = false;
+              });
+            }
+          }
+
+          return Padding(
+            padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(ctx).viewInsets.bottom + 32),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(width: 40, height: 4,
+                      decoration: BoxDecoration(color: _borderColor, borderRadius: BorderRadius.circular(2))),
+                ),
+                const SizedBox(height: 16),
+                Text(hasPassword ? 'เปลี่ยนรหัสผ่าน' : 'ตั้งรหัสผ่าน',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+                if (!hasPassword) ...[
+                  const SizedBox(height: 6),
+                  const Text('ตอนนี้คุณเข้าสู่ระบบด้วย Google/Facebook เท่านั้น ตั้งรหัสผ่านเพื่อเข้าสู่ระบบด้วยอีเมลได้ด้วย',
+                      style: TextStyle(fontSize: 13, color: _mutedBrown)),
+                ],
+                const SizedBox(height: 16),
+                if (hasPassword) ...[
+                  _inputField('รหัสผ่านปัจจุบัน', ctrl: currentCtrl, obscure: true),
+                  const SizedBox(height: 10),
+                ],
+                _inputField('รหัสผ่านใหม่', ctrl: newCtrl, hint: 'อย่างน้อย 8 ตัวอักษร', obscure: true),
+                if (error != null) ...[
+                  const SizedBox(height: 8),
+                  Text(error!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+                ],
+                const SizedBox(height: 20),
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: submitting ? null : submit,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: _brown,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                    ),
+                    child: submitting
+                        ? const SizedBox(
+                            width: 20, height: 20,
+                            child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2.5))
+                        : const Text('บันทึก', style: TextStyle(color: Colors.white, fontSize: 15, fontWeight: FontWeight.w700)),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -1024,7 +1420,14 @@ class _PetProfilePageState extends State<PetProfilePage> {
         final heightCtrl = TextEditingController(text: pet['height'] as String? ?? '');
         final foodCtrl = TextEditingController(text: pet['food'] as String? ?? '');
         final allergiesCtrl = TextEditingController(text: pet['allergies'] as String? ?? '');
-        return Padding(
+        final chipCtrl = TextEditingController(text: pet['chip'] as String? ?? '');
+        final vaccineCtrl = TextEditingController(text: pet['vaccine'] as String? ?? '');
+        final colorCtrl = TextEditingController(text: pet['color_desc'] as String? ?? '');
+        final allTraits = ['ขี้เล่น', 'ชอบน้ำ', 'เป็นมิตร', 'กระฉับกระเฉง',
+          'เงียบๆ', 'ขี้อาย', 'ชอบนอน', 'ฉลาด', 'ชอบธรรมชาติ'];
+        final selectedTraits = {...(pet['traits'] as List<String>)};
+        return StatefulBuilder(
+          builder: (ctx, setModalState) => Padding(
         padding: EdgeInsets.fromLTRB(24, 24, 24, MediaQuery.of(context).viewInsets.bottom + 32),
         child: Column(
           mainAxisSize: MainAxisSize.min,
@@ -1051,6 +1454,44 @@ class _PetProfilePageState extends State<PetProfilePage> {
             _inputField('อาหาร', ctrl: foodCtrl, hint: pet['food'] as String?),
             const SizedBox(height: 10),
             _inputField('สิ่งที่แพ้', ctrl: allergiesCtrl, hint: pet['allergies'] as String?),
+            const SizedBox(height: 10),
+            Row(
+              children: [
+                Expanded(child: _inputField('ไมโครชิป', ctrl: chipCtrl, hint: pet['chip'] as String?)),
+                const SizedBox(width: 10),
+                Expanded(child: _inputField('วัคซีน', ctrl: vaccineCtrl, hint: pet['vaccine'] as String?)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            _inputField('สี', ctrl: colorCtrl, hint: pet['color_desc'] as String?),
+            const SizedBox(height: 16),
+            _sectionLabel('🐾 นิสัยน้อง'),
+            const SizedBox(height: 10),
+            Wrap(
+              spacing: 8, runSpacing: 8,
+              children: allTraits.map((t) {
+                final sel = selectedTraits.contains(t);
+                return GestureDetector(
+                  onTap: () => setModalState(() {
+                    sel ? selectedTraits.remove(t) : selectedTraits.add(t);
+                  }),
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 7),
+                    decoration: BoxDecoration(
+                      color: sel ? _brown : _bgCard,
+                      borderRadius: BorderRadius.circular(20),
+                      border: Border.all(color: sel ? _brown : _borderColor),
+                    ),
+                    child: Text(t,
+                        style: TextStyle(
+                          fontSize: 12, fontWeight: FontWeight.w600,
+                          color: sel ? Colors.white : _mutedBrown,
+                        )),
+                  ),
+                );
+              }).toList(),
+            ),
             const SizedBox(height: 20),
             SizedBox(
               width: double.infinity,
@@ -1062,6 +1503,10 @@ class _PetProfilePageState extends State<PetProfilePage> {
                     if (heightCtrl.text.trim().isNotEmpty) 'height': heightCtrl.text.trim(),
                     if (foodCtrl.text.trim().isNotEmpty) 'food': foodCtrl.text.trim(),
                     if (allergiesCtrl.text.trim().isNotEmpty) 'allergies': allergiesCtrl.text.trim(),
+                    if (chipCtrl.text.trim().isNotEmpty) 'chip_id': chipCtrl.text.trim(),
+                    if (vaccineCtrl.text.trim().isNotEmpty) 'vaccine': vaccineCtrl.text.trim(),
+                    if (colorCtrl.text.trim().isNotEmpty) 'color_desc': colorCtrl.text.trim(),
+                    'traits': selectedTraits.toList(),
                   };
                   try {
                     await context.read<PetRepository>().updatePet(pet['id'] as String, updates);
@@ -1089,6 +1534,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
             ),
           ],
         ),
+      ),
       );
       },
     );
@@ -1099,7 +1545,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
         style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _darkBrown));
   }
 
-  Widget _inputField(String label, {TextEditingController? ctrl, String? hint}) {
+  Widget _inputField(String label, {TextEditingController? ctrl, String? hint, bool obscure = false}) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1107,6 +1553,7 @@ class _PetProfilePageState extends State<PetProfilePage> {
         const SizedBox(height: 6),
         TextField(
           controller: ctrl,
+          obscureText: obscure,
           style: const TextStyle(fontSize: 14, color: _darkBrown),
           decoration: InputDecoration(
             hintText: hint ?? label,
@@ -1119,6 +1566,66 @@ class _PetProfilePageState extends State<PetProfilePage> {
             ),
             contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// Swipeable "next stay" card for when a pet has more than one upcoming
+// booking -- separate StatefulWidget so its PageController/page index live
+// independently of the parent's rebuilds (a ValueKey(petId) at the call
+// site resets it cleanly when the selected pet changes).
+class _StayCarousel extends StatefulWidget {
+  final List<Map<String, dynamic>> stays;
+  final Widget Function(Map<String, dynamic> stay) stayRowBuilder;
+
+  const _StayCarousel({super.key, required this.stays, required this.stayRowBuilder});
+
+  @override
+  State<_StayCarousel> createState() => _StayCarouselState();
+}
+
+class _StayCarouselState extends State<_StayCarousel> {
+  final PageController _controller = PageController();
+  int _page = 0;
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 64,
+          child: PageView.builder(
+            controller: _controller,
+            itemCount: widget.stays.length,
+            onPageChanged: (i) => setState(() => _page = i),
+            itemBuilder: (_, i) => widget.stayRowBuilder(widget.stays[i]),
+          ),
+        ),
+        const SizedBox(height: 10),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(widget.stays.length, (i) {
+            final active = i == _page;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              margin: const EdgeInsets.symmetric(horizontal: 3),
+              width: active ? 16 : 6,
+              height: 6,
+              decoration: BoxDecoration(
+                color: Colors.white.withValues(alpha: active ? 0.9 : 0.4),
+                borderRadius: BorderRadius.circular(3),
+              ),
+            );
+          }),
         ),
       ],
     );

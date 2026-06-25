@@ -5,13 +5,26 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from ..core.deps import get_current_user, require_admin
 from ..db.session import get_db
 from ..models.user import User, UserRole
-from ..schemas.auth import UserResponse
+from ..schemas.auth import UserResponse, UserUpdateRequest
 
 router = APIRouter(prefix="/users", tags=["users"])
 
 
 @router.get("/me", response_model=UserResponse)
 async def get_me(user: User = Depends(get_current_user)) -> User:
+    return user
+
+
+@router.patch("/me", response_model=UserResponse)
+async def update_me(
+    payload: UserUpdateRequest,
+    user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> User:
+    for field, value in payload.model_dump(exclude_unset=True).items():
+        setattr(user, field, value)
+    await db.commit()
+    await db.refresh(user)
     return user
 
 

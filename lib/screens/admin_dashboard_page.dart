@@ -5,6 +5,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 
+import '../services/admin_user_repository.dart';
 import '../services/auth_service.dart';
 import '../services/partner_repository.dart';
 import '../utils/pet_pal_image.dart';
@@ -26,16 +27,82 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
   static const Color _orange = Color(0xFFFB8C00);
 
   final List<String> _statuses = const ['pending', 'approved', 'rejected'];
+  int _section = 0; // 0 = partner applications, 1 = technicians
   int _tab = 0;
   List<Map<String, dynamic>>? _applications;
   String? _error;
   bool _busyId(String id) => _busyIds.contains(id);
   final Set<String> _busyIds = {};
 
+  List<Map<String, dynamic>>? _technicians;
+  String? _technicianError;
+
   @override
   void initState() {
     super.initState();
     _load();
+  }
+
+  Future<void> _loadTechnicians() async {
+    setState(() {
+      _technicians = null;
+      _technicianError = null;
+    });
+    try {
+      final techs = await context.read<AdminUserRepository>().fetchUsersByRole('technician');
+      if (!mounted) return;
+      setState(() => _technicians = techs);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _technicianError = 'โหลดรายชื่อช่างไม่สำเร็จ: $e');
+    }
+  }
+
+  Future<void> _addTechnician() async {
+    final emailCtrl = TextEditingController();
+    final passwordCtrl = TextEditingController();
+    final nameCtrl = TextEditingController();
+    final phoneCtrl = TextEditingController();
+
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('เพิ่มบัญชีช่างใหม่'),
+        content: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              TextField(controller: nameCtrl, decoration: const InputDecoration(labelText: 'ชื่อช่าง')),
+              TextField(controller: emailCtrl, decoration: const InputDecoration(labelText: 'อีเมล')),
+              TextField(controller: passwordCtrl, decoration: const InputDecoration(labelText: 'รหัสผ่าน (อย่างน้อย 8 ตัว)')),
+              TextField(controller: phoneCtrl, decoration: const InputDecoration(labelText: 'เบอร์โทร (ไม่บังคับ)')),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(onPressed: () => Navigator.pop(ctx, false), child: const Text('ยกเลิก')),
+          ElevatedButton(onPressed: () => Navigator.pop(ctx, true), child: const Text('สร้างบัญชี')),
+        ],
+      ),
+    );
+    if (confirmed != true) return;
+
+    if (nameCtrl.text.trim().isEmpty || emailCtrl.text.trim().isEmpty || passwordCtrl.text.length < 8) {
+      _showError('กรุณากรอกชื่อ อีเมล และรหัสผ่านอย่างน้อย 8 ตัวอักษร');
+      return;
+    }
+
+    try {
+      await context.read<AdminUserRepository>().createTechnician(
+            email: emailCtrl.text.trim(),
+            password: passwordCtrl.text,
+            name: nameCtrl.text.trim(),
+            phone: phoneCtrl.text.trim().isEmpty ? null : phoneCtrl.text.trim(),
+          );
+      await _loadTechnicians();
+    } catch (e) {
+      _showError('สร้างบัญชีช่างไม่สำเร็จ: $e');
+    }
   }
 
   Future<void> _load() async {
@@ -111,8 +178,11 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
         backgroundColor: _bgCream,
         elevation: 0,
         foregroundColor: _darkBrown,
-        title: const Text('คำขอเปิดร้าน (แอดมิน)', style: TextStyle(fontWeight: FontWeight.w700, color: _darkBrown)),
+        title: Text(_section == 0 ? 'คำขอเปิดร้าน (แอดมิน)' : 'จัดการบัญชีช่าง',
+            style: const TextStyle(fontWeight: FontWeight.w700, color: _darkBrown)),
         actions: [
+          if (_section == 1)
+            IconButton(onPressed: _addTechnician, icon: const Icon(Icons.person_add_alt_1_rounded)),
           IconButton(
             onPressed: () async {
               await context.read<AuthService>().logout();
@@ -125,36 +195,143 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
       body: Column(
         children: [
           Padding(
-            padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+            padding: const EdgeInsets.fromLTRB(20, 8, 20, 0),
             child: Row(
-              children: List.generate(_statuses.length, (i) {
-                const labels = ['รอตรวจสอบ', 'อนุมัติแล้ว', 'ปฏิเสธ'];
-                final selected = i == _tab;
+              children: List.generate(2, (i) {
+                const labels = ['ร้านค้า', 'ช่าง'];
+                final selected = i == _section;
                 return Expanded(
                   child: GestureDetector(
                     onTap: () {
-                      setState(() => _tab = i);
-                      _load();
+                      setState(() => _section = i);
+                      if (i == 1 && _technicians == null) _loadTechnicians();
                     },
                     child: Container(
                       margin: const EdgeInsets.symmetric(horizontal: 4),
-                      padding: const EdgeInsets.symmetric(vertical: 10),
+                      padding: const EdgeInsets.symmetric(vertical: 12),
                       decoration: BoxDecoration(
-                        color: selected ? _brown : Colors.white,
+                        color: selected ? _darkBrown : Colors.transparent,
                         borderRadius: BorderRadius.circular(14),
+                        border: Border.all(color: _darkBrown, width: selected ? 0 : 1),
                       ),
                       alignment: Alignment.center,
                       child: Text(labels[i],
                           style: TextStyle(
-                              fontSize: 13, fontWeight: FontWeight.w700, color: selected ? Colors.white : _mutedBrown)),
+                              fontSize: 14, fontWeight: FontWeight.w800, color: selected ? Colors.white : _darkBrown)),
                     ),
                   ),
                 );
               }),
             ),
           ),
-          Expanded(child: _buildBody()),
+          if (_section == 0)
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 8, 20, 8),
+              child: Row(
+                children: List.generate(_statuses.length, (i) {
+                  const labels = ['รอตรวจสอบ', 'อนุมัติแล้ว', 'ปฏิเสธ'];
+                  final selected = i == _tab;
+                  return Expanded(
+                    child: GestureDetector(
+                      onTap: () {
+                        setState(() => _tab = i);
+                        _load();
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.symmetric(horizontal: 4),
+                        padding: const EdgeInsets.symmetric(vertical: 10),
+                        decoration: BoxDecoration(
+                          color: selected ? _brown : Colors.white,
+                          borderRadius: BorderRadius.circular(14),
+                        ),
+                        alignment: Alignment.center,
+                        child: Text(labels[i],
+                            style: TextStyle(
+                                fontSize: 13, fontWeight: FontWeight.w700, color: selected ? Colors.white : _mutedBrown)),
+                      ),
+                    ),
+                  );
+                }),
+              ),
+            ),
+          Expanded(child: _section == 0 ? _buildBody() : _buildTechniciansBody()),
         ],
+      ),
+    );
+  }
+
+  Widget _buildTechniciansBody() {
+    if (_technicianError != null) {
+      return Center(child: Text(_technicianError!, style: const TextStyle(color: _mutedBrown)));
+    }
+    if (_technicians == null) {
+      return const Center(child: CircularProgressIndicator(color: _brown));
+    }
+    if (_technicians!.isEmpty) {
+      return Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text('ยังไม่มีบัญชีช่าง', style: TextStyle(color: _mutedBrown)),
+            const SizedBox(height: 12),
+            ElevatedButton.icon(
+              onPressed: _addTechnician,
+              icon: const Icon(Icons.person_add_alt_1_rounded),
+              label: const Text('เพิ่มบัญชีช่าง'),
+              style: ElevatedButton.styleFrom(backgroundColor: _brown, foregroundColor: Colors.white),
+            ),
+          ],
+        ),
+      );
+    }
+    return RefreshIndicator(
+      onRefresh: _loadTechnicians,
+      child: ListView.builder(
+        padding: const EdgeInsets.fromLTRB(20, 4, 20, 24),
+        itemCount: _technicians!.length,
+        itemBuilder: (ctx, i) {
+          final tech = _technicians![i];
+          return Container(
+            margin: const EdgeInsets.only(bottom: 12),
+            padding: const EdgeInsets.all(14),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(16),
+              boxShadow: [BoxShadow(color: _brown.withValues(alpha: 0.05), blurRadius: 8, offset: const Offset(0, 3))],
+            ),
+            child: Row(
+              children: [
+                Container(
+                  width: 44, height: 44,
+                  decoration: BoxDecoration(color: _brown.withValues(alpha: 0.08), shape: BoxShape.circle),
+                  child: const Icon(Icons.engineering_rounded, color: _brown, size: 22),
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(tech['name'] as String, style: const TextStyle(fontSize: 14, fontWeight: FontWeight.w700, color: _darkBrown)),
+                      const SizedBox(height: 2),
+                      Text(tech['email'] as String, style: const TextStyle(fontSize: 12.5, color: _mutedBrown)),
+                    ],
+                  ),
+                ),
+                TextButton(
+                  onPressed: () async {
+                    try {
+                      await context.read<AdminUserRepository>().updateUserRole(tech['id'] as String, 'customer');
+                      await _loadTechnicians();
+                    } catch (e) {
+                      _showError('ลบสิทธิ์ช่างไม่สำเร็จ: $e');
+                    }
+                  },
+                  child: const Text('ลบสิทธิ์ช่าง', style: TextStyle(color: _red)),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
