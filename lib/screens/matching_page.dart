@@ -69,9 +69,19 @@ class _MatchingPageState extends State<MatchingPage> {
     FocusScope.of(context).unfocus();
 
     try {
-      final result = await fetchMatch(text);
+      // ดึงผล local + job_id ทันที (fast)
+      final initial = await fetchMatch(text);
+      final jobId = initial.jobId;
 
-      final matchedHotels = _resolveHotels(result.matches);
+      MatchApiResult finalResult = initial;
+
+      // ถ้ามี job_id = AI กำลังทำงาน → poll จนเสร็จ (AI เป็นหลัก)
+      if (jobId != null && initial.isFallback) {
+        final enriched = await pollMatchResult(jobId);
+        if (enriched != null) finalResult = enriched;
+      }
+
+      final matchedHotels = _resolveHotels(finalResult.matches);
 
       if (matchedHotels.isEmpty) {
         _showFallbackResult(
@@ -82,7 +92,7 @@ class _MatchingPageState extends State<MatchingPage> {
       }
 
       final matchReasons = {
-        for (final m in result.matches) m.hotelName: m.reason,
+        for (final m in finalResult.matches) m.hotelName: m.reason,
       };
 
       if (!mounted) return;
@@ -91,20 +101,14 @@ class _MatchingPageState extends State<MatchingPage> {
         MaterialPageRoute(
           builder: (_) => MatchResultPage(
             inputText: text,
-            aiSummary: result.summary,
+            aiSummary: finalResult.summary,
             matchedHotels: matchedHotels,
             matchReasons: matchReasons,
-            isFallback: result.isFallback,
-            fallbackNotice: result.fallbackNotice,
+            isFallback: finalResult.isFallback,
+            fallbackNotice: finalResult.fallbackNotice,
           ),
         ),
       );
-
-      // If backend queued Gemini enrichment, poll in background and update result
-      final jobId = result.jobId;
-      if (jobId != null && result.isFallback) {
-        _pollEnrichment(jobId, text);
-      }
     } catch (_) {
       _showFallbackResult(
         text,
@@ -134,41 +138,6 @@ class _MatchingPageState extends State<MatchingPage> {
       return dA.compareTo(dB);
     });
     return resolved;
-  }
-
-  Future<void> _pollEnrichment(String jobId, String text) async {
-    final enriched = await pollMatchResult(jobId);
-    if (enriched == null || !mounted) return;
-    final matchedHotels = _resolveHotels(enriched.matches);
-    if (matchedHotels.isEmpty || !mounted) return;
-    final matchReasons = {for (final m in enriched.matches) m.hotelName: m.reason};
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: const Text('AI วิเคราะห์ผลเสร็จแล้ว กดดูผลที่ละเอียดขึ้น'),
-        backgroundColor: _brown,
-        action: SnackBarAction(
-          label: 'ดูผล',
-          textColor: Colors.white,
-          onPressed: () {
-            if (!mounted) return;
-            Navigator.push(
-              context,
-              MaterialPageRoute(
-                builder: (_) => MatchResultPage(
-                  inputText: text,
-                  aiSummary: enriched.summary,
-                  matchedHotels: matchedHotels,
-                  matchReasons: matchReasons,
-                  isFallback: false,
-                  fallbackNotice: null,
-                ),
-              ),
-            );
-          },
-        ),
-        duration: const Duration(seconds: 8),
-      ),
-    );
   }
 
   void _showFallbackResult(String text, {required String notice}) {
