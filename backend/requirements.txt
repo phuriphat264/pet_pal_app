@@ -18,3 +18,4 @@ websockets==14.1
 httpx==0.28.1
 google-auth==2.54.0
 livekit-api==1.1.1
+redis[asyncio]==5.2.1

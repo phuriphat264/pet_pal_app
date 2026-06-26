@@ -1,14 +1,10 @@
-// HTTP client for the PetPal AI Smart Match backend (FastAPI, see /backend).
-// Performs the semantic-matching request and throws on any failure
-// (connection error, timeout, bad response) so callers can apply a
-// client-side local fallback (see matching_page.dart).
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:http/http.dart' as http;
 
-// Android emulator routes 10.0.2.2 → host machine; other platforms use loopback.
 String get _platformDefaultHost =>
     Platform.isAndroid ? '10.0.2.2' : '127.0.0.1';
 
@@ -17,7 +13,6 @@ String get _defaultBaseUrl => 'http://$_platformDefaultHost:8001';
 String get matchApiBaseUrl {
   if (!dotenv.isInitialized) return _defaultBaseUrl;
   final configured = dotenv.env['API_BASE_URL'];
-  // Only override if explicitly set to something other than the placeholder.
   if (configured == null || configured.isEmpty || configured == 'http://127.0.0.1:8000') {
     return _defaultBaseUrl;
   }
@@ -43,12 +38,14 @@ class MatchApiResult {
   final List<MatchApiItem> matches;
   final bool isFallback;
   final String? fallbackNotice;
+  final String? jobId;
 
   const MatchApiResult({
     required this.summary,
     required this.matches,
     required this.isFallback,
     this.fallbackNotice,
+    this.jobId,
   });
 
   factory MatchApiResult.fromJson(Map<String, dynamic> json) {
@@ -60,12 +57,11 @@ class MatchApiResult {
       matches: matchList,
       isFallback: json['isFallback'] == true,
       fallbackNotice: json['fallbackNotice']?.toString(),
+      jobId: json['job_id']?.toString(),
     );
   }
 }
 
-/// Calls `POST /api/match` on the AI Smart Match backend.
-/// Throws on connection failure, timeout, or a non-200/unparseable response.
 Future<MatchApiResult> fetchMatch(String text, {http.Client? client}) async {
   final httpClient = client ?? http.Client();
   try {
@@ -75,15 +71,52 @@ Future<MatchApiResult> fetchMatch(String text, {http.Client? client}) async {
           headers: {'Content-Type': 'application/json'},
           body: jsonEncode({'text': text}),
         )
-        .timeout(const Duration(seconds: 50));
+        .timeout(const Duration(seconds: 15));
 
     if (response.statusCode != 200) {
-      throw http.ClientException('Unexpected status code: ${response.statusCode}');
+      throw http.ClientException('Unexpected status: ${response.statusCode}');
     }
-
-    final decoded = jsonDecode(response.body) as Map<String, dynamic>;
-    return MatchApiResult.fromJson(decoded);
+    return MatchApiResult.fromJson(jsonDecode(response.body) as Map<String, dynamic>);
   } finally {
     if (client == null) httpClient.close();
+  }
+}
+
+/// Polls the job status endpoint every 2s until ready/fallback or timeout.
+/// Returns enriched result if ready, null if fallback/error.
+Future<MatchApiResult?> pollMatchResult(
+  String jobId, {
+  Duration pollInterval = const Duration(seconds: 2),
+  Duration timeout = const Duration(seconds: 45),
+  void Function(String status)? onStatus,
+}) async {
+  final deadline = DateTime.now().add(timeout);
+  final client = http.Client();
+  try {
+    while (DateTime.now().isBefore(deadline)) {
+      await Future.delayed(pollInterval);
+      try {
+        final response = await client
+            .get(Uri.parse('$matchApiBaseUrl/api/match/status/$jobId'))
+            .timeout(const Duration(seconds: 10));
+
+        if (response.statusCode == 404) return null;
+        if (response.statusCode != 200) continue;
+
+        final body = jsonDecode(response.body) as Map<String, dynamic>;
+        final status = body['status']?.toString();
+        onStatus?.call(status ?? '');
+
+        if (status == 'ready' && body['result'] != null) {
+          return MatchApiResult.fromJson(body['result'] as Map<String, dynamic>);
+        }
+        if (status == 'fallback') return null;
+      } catch (_) {
+        continue;
+      }
+    }
+    return null;
+  } finally {
+    client.close();
   }
 }

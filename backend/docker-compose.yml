@@ -59,6 +59,19 @@ services:
         keys:
           ${LIVEKIT_API_KEY:-devkey}: ${LIVEKIT_API_SECRET:-dev-livekit-secret-change-me-min-32-bytes}
 
+  redis:
+    image: redis:7-alpine
+    container_name: petpal-redis
+    restart: unless-stopped
+    command: redis-server --maxmemory 128mb --maxmemory-policy allkeys-lru
+    volumes:
+      - petpal-redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
   backend:
     build: .
     image: petpal-api
@@ -71,6 +84,8 @@ services:
         condition: service_healthy
       livekit:
         condition: service_started
+      redis:
+        condition: service_healthy
     ports:
       - "8001:8000"
     env_file:
@@ -81,7 +96,9 @@ services:
       S3_PUBLIC_ENDPOINT_URL: ${S3_PUBLIC_ENDPOINT_URL:-http://localhost:9000}
       LIVEKIT_URL: ws://livekit:7880
       LIVEKIT_PUBLIC_URL: ${LIVEKIT_PUBLIC_URL:-ws://localhost:7880}
+      REDIS_URL: redis://redis:6379
 
 volumes:
   petpal-postgres-data:
   petpal-minio-data:
+  petpal-redis-data:

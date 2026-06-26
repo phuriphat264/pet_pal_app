@@ -1,3 +1,5 @@
+from enum import Enum
+
 from pydantic import BaseModel, Field
 
 
@@ -15,3 +17,15 @@ class MatchResponse(BaseModel):
     matches: list[MatchItem]
     isFallback: bool
     fallbackNotice: str | None = None
+    job_id: str | None = None
+
+
+class JobStatus(str, Enum):
+    processing = "processing"
+    ready = "ready"
+    fallback = "fallback"
+
+
+class MatchStatusResponse(BaseModel):
+    status: JobStatus
+    result: MatchResponse | None = None

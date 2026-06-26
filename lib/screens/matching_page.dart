@@ -71,25 +71,8 @@ class _MatchingPageState extends State<MatchingPage> {
     try {
       final result = await fetchMatch(text);
 
-      final matchedHotels = <Map<String, dynamic>>[];
-      final matchReasons = <String, String>{};
+      final matchedHotels = _resolveHotels(result.matches);
 
-      for (final m in result.matches) {
-        try {
-          final hotel = (_hotels ?? const <Map<String, dynamic>>[]).firstWhere(
-            (h) {
-              final hName = h['name']?.toString() ?? '';
-              return hName.contains(m.hotelName) || m.hotelName.contains(hName);
-            },
-          );
-          final name = hotel['name']?.toString() ?? '';
-          matchedHotels.add(hotel);
-          matchReasons[name] = m.reason;
-        } catch (_) {}
-      }
-
-      // The backend's hotel names didn't resolve to anything locally ->
-      // fall back to the local semantic matcher instead of an empty result.
       if (matchedHotels.isEmpty) {
         _showFallbackResult(
           text,
@@ -98,30 +81,31 @@ class _MatchingPageState extends State<MatchingPage> {
         return;
       }
 
-      matchedHotels.sort((a, b) {
-        final dA = double.tryParse(a['distance'].toString().replaceAll(' กม.', '')) ?? 99.0;
-        final dB = double.tryParse(b['distance'].toString().replaceAll(' กม.', '')) ?? 99.0;
-        return dA.compareTo(dB);
-      });
+      final matchReasons = {
+        for (final m in result.matches) m.hotelName: m.reason,
+      };
 
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (_) => MatchResultPage(
-              inputText: text,
-              aiSummary: result.summary,
-              matchedHotels: matchedHotels,
-              matchReasons: matchReasons,
-              isFallback: result.isFallback,
-              fallbackNotice: result.fallbackNotice,
-            ),
+      if (!mounted) return;
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => MatchResultPage(
+            inputText: text,
+            aiSummary: result.summary,
+            matchedHotels: matchedHotels,
+            matchReasons: matchReasons,
+            isFallback: result.isFallback,
+            fallbackNotice: result.fallbackNotice,
           ),
-        );
+        ),
+      );
+
+      // If backend queued Gemini enrichment, poll in background and update result
+      final jobId = result.jobId;
+      if (jobId != null && result.isFallback) {
+        _pollEnrichment(jobId, text);
       }
     } catch (_) {
-      // Backend unreachable, timed out, or returned an unexpected response ->
-      // fall back to the local semantic matcher so the demo never gets stuck.
       _showFallbackResult(
         text,
         notice: '⚠️ ไม่สามารถเชื่อมต่อเซิร์ฟเวอร์ AI ได้ ระบบจึงจับคู่จากนิสัยที่คุณอธิบายด้วยฐานข้อมูลพื้นฐานให้ก่อน',
@@ -129,6 +113,62 @@ class _MatchingPageState extends State<MatchingPage> {
     } finally {
       if (mounted) setState(() => _isAiLoading = false);
     }
+  }
+
+  List<Map<String, dynamic>> _resolveHotels(List<MatchApiItem> matches) {
+    final resolved = <Map<String, dynamic>>[];
+    for (final m in matches) {
+      try {
+        final hotel = (_hotels ?? const <Map<String, dynamic>>[]).firstWhere(
+          (h) {
+            final hName = h['name']?.toString() ?? '';
+            return hName.contains(m.hotelName) || m.hotelName.contains(hName);
+          },
+        );
+        resolved.add(hotel);
+      } catch (_) {}
+    }
+    resolved.sort((a, b) {
+      final dA = double.tryParse(a['distance'].toString().replaceAll(' กม.', '')) ?? 99.0;
+      final dB = double.tryParse(b['distance'].toString().replaceAll(' กม.', '')) ?? 99.0;
+      return dA.compareTo(dB);
+    });
+    return resolved;
+  }
+
+  Future<void> _pollEnrichment(String jobId, String text) async {
+    final enriched = await pollMatchResult(jobId);
+    if (enriched == null || !mounted) return;
+    final matchedHotels = _resolveHotels(enriched.matches);
+    if (matchedHotels.isEmpty || !mounted) return;
+    final matchReasons = {for (final m in enriched.matches) m.hotelName: m.reason};
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('AI วิเคราะห์ผลเสร็จแล้ว กดดูผลที่ละเอียดขึ้น'),
+        backgroundColor: _brown,
+        action: SnackBarAction(
+          label: 'ดูผล',
+          textColor: Colors.white,
+          onPressed: () {
+            if (!mounted) return;
+            Navigator.push(
+              context,
+              MaterialPageRoute(
+                builder: (_) => MatchResultPage(
+                  inputText: text,
+                  aiSummary: enriched.summary,
+                  matchedHotels: matchedHotels,
+                  matchReasons: matchReasons,
+                  isFallback: false,
+                  fallbackNotice: null,
+                ),
+              ),
+            );
+          },
+        ),
+        duration: const Duration(seconds: 8),
+      ),
+    );
   }
 
   void _showFallbackResult(String text, {required String notice}) {
