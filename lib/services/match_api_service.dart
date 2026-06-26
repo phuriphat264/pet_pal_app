@@ -87,7 +87,7 @@ Future<MatchApiResult> fetchMatch(String text, {http.Client? client}) async {
 Future<MatchApiResult?> pollMatchResult(
   String jobId, {
   Duration pollInterval = const Duration(seconds: 2),
-  Duration timeout = const Duration(seconds: 45),
+  Duration timeout = const Duration(seconds: 20),
   void Function(String status)? onStatus,
 }) async {
   final deadline = DateTime.now().add(timeout);
