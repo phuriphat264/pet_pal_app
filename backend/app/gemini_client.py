@@ -8,7 +8,7 @@ import re
 
 import google.generativeai as genai
 
-MODEL_NAME = "gemini-1.5-flash"
+MODEL_NAME = "gemini-2.0-flash"
 REQUEST_TIMEOUT_SECONDS = 30
 
 
