@@ -152,6 +152,7 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
         return;
       }
       final googleSignIn = GoogleSignIn(scopes: const ['email'], serverClientId: serverClientId);
+      await googleSignIn.signOut();
       final account = await googleSignIn.signIn();
       if (account == null) return; // user cancelled the picker
       final googleAuth = await account.authentication;
@@ -167,7 +168,8 @@ class _LoginPageState extends State<LoginPage> with TickerProviderStateMixin {
     } on AuthException catch (e) {
       if (!mounted) return;
       _showError(e.message);
-    } catch (_) {
+    } catch (e, st) {
+      debugPrint('GOOGLE_SIGN_IN_ERROR: $e\n$st');
       if (!mounted) return;
       _showError('เข้าสู่ระบบด้วย Google ไม่สำเร็จ');
     } finally {

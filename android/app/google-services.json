@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "675488361181",
+    "project_id": "petpal-500417",
+    "storage_bucket": ""
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:675488361181:android:petpal",
+        "android_client_info": {
+          "package_name": "com.yourname.pet_pal_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "675488361181-b2r12mrccvsf2gdf3td63d2041pi4f9e.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.yourname.pet_pal_app",
+            "certificate_hash": "bc32432e51133108683ce2e8637bbe977939eba4"
+          }
+        },
+        {
+          "client_id": "675488361181-u92abj8qnttjjjc75u2rlumoapahgisc.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBmrNbeNzKIwn_dZCEW_nUGOL48W3M4iO0"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "675488361181-u92abj8qnttjjjc75u2rlumoapahgisc.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
