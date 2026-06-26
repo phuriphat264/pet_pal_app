@@ -1,5 +1,6 @@
 import asyncio
 import json
+import logging
 import os
 import uuid
 
@@ -8,6 +9,8 @@ from dotenv import load_dotenv
 from fastapi import Depends, FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.ext.asyncio import AsyncSession
+
+logger = logging.getLogger(__name__)
 
 from .api import admin, auth, bookings, cameras, chat, hotels, notifications, partners, pets, users
 from .cache import TTLCache
@@ -78,7 +81,8 @@ async def _gemini_background(job_id: str, text: str, hotels_list: list, cache_ke
             payload = json.dumps({"status": "ready", **enriched, "isFallback": False, "fallbackNotice": None})
         else:
             payload = json.dumps({"status": "fallback"})
-    except Exception:
+    except Exception as e:
+        logger.error("Gemini enrichment failed: %s", e)
         payload = json.dumps({"status": "fallback"})
 
     if _redis:
