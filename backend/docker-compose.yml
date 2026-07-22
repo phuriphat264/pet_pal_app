@@ -1,3 +1,5 @@
+name: petpal
+
 services:
   postgres:
     image: pgvector/pgvector:pg16
@@ -72,7 +74,7 @@ services:
       timeout: 3s
       retries: 10
 
-  backend:
+  petpal-backend:
     build: .
     image: petpal-api
     container_name: petpal-api
@@ -99,6 +101,17 @@ services:
       REDIS_URL: redis://redis:6379
 
 volumes:
+  # Pinned to the volumes this project already had before it got an
+  # explicit `name:` (it used to default to "backend", same as
+  # car-damage-detection's compose project — that collision is what
+  # started this). Keeps the real data attached under the new "petpal"
+  # project name instead of starting fresh empty volumes.
   petpal-postgres-data:
+    external: true
+    name: backend_petpal-postgres-data
   petpal-minio-data:
+    external: true
+    name: backend_petpal-minio-data
   petpal-redis-data:
+    external: true
+    name: backend_petpal-redis-data

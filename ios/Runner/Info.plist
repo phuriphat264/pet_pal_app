@@ -4,6 +4,12 @@
 <dict>
 	<key>CADisableMinimumFrameDurationOnPhone</key>
 	<true/>
+	<!-- flutter_vlc_player's native PlatformView can't establish its method
+	     channel under Impeller (see lib/screens/live_cam_page.dart comment) --
+	     disable Impeller so the real RTSP camera view renders, not just the
+	     bundled demo-footage fallback. -->
+	<key>FLTEnableImpeller</key>
+	<false/>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>

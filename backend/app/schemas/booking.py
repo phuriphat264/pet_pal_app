@@ -3,7 +3,7 @@ from datetime import date
 
 from pydantic import BaseModel, ConfigDict, Field
 
-from ..models.booking import BookingStatus
+from ..models.booking import BookingPaymentStatus, BookingStatus
 
 
 class BookingCreate(BaseModel):
@@ -35,6 +35,7 @@ class BookingResponse(BaseModel):
     payment_method: str | None
     matching_prompt: str | None
     status: BookingStatus
+    payment_status: BookingPaymentStatus
 
 
 class HotelBookingResponse(BookingResponse):

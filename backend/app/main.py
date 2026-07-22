@@ -12,7 +12,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 logger = logging.getLogger(__name__)
 
-from .api import admin, auth, bookings, cameras, chat, hotels, notifications, partners, pets, users
+from .api import admin, auth, bookings, cameras, chat, hotels, notifications, partners, payments, pets, users
 from .cache import TTLCache
 from .db.session import get_db
 from .match_service import local_match_result, run_gemini_enrichment, vector_search_hotels
@@ -52,6 +52,7 @@ app.include_router(cameras.router)
 app.include_router(cameras.stream_router)
 app.include_router(chat.router)
 app.include_router(notifications.router)
+app.include_router(payments.router)
 
 
 @app.on_event("startup")

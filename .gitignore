@@ -46,6 +46,7 @@ app.*.map.json
 
 .env
 backend/.env
+.mcp.json
 
 # Python backend
 backend/__pycache__/

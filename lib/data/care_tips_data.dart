@@ -1,7 +1,7 @@
 // Pet care tip articles shown on the home page. Static editorial content
 // (not user data), so it lives as a plain Dart list rather than a backend
 // model -- there's no CRUD need for this.
-import 'package:flutter/material.dart';
+import '../widgets/care_tip_illustration.dart';
 
 class CareTipSection {
   final String heading;
@@ -10,16 +10,21 @@ class CareTipSection {
 }
 
 class CareTip {
-  final IconData icon;
+  final CareTipIllustrationType illustration;
   final String title;
   final String summary;
   final List<CareTipSection> sections;
-  const CareTip({required this.icon, required this.title, required this.summary, required this.sections});
+  const CareTip({
+    required this.illustration,
+    required this.title,
+    required this.summary,
+    required this.sections,
+  });
 }
 
 final List<CareTip> careTips = [
   CareTip(
-    icon: Icons.restaurant_rounded,
+    illustration: CareTipIllustrationType.food,
     title: 'อาหารที่ดีสำหรับหมา',
     summary: 'อาหารสูตร adult ช่วยบำรุงกระดูกและขนให้แข็งแรง',
     sections: [
@@ -46,7 +51,7 @@ final List<CareTip> careTips = [
     ],
   ),
   CareTip(
-    icon: Icons.water_drop_rounded,
+    illustration: CareTipIllustrationType.water,
     title: 'น้ำสะอาดสำคัญมาก',
     summary: 'น้องหมาควรดื่มน้ำอย่างน้อย 50 มล. ต่อน้ำหนัก 1 กก. ต่อวัน',
     sections: [
@@ -72,7 +77,7 @@ final List<CareTip> careTips = [
     ],
   ),
   CareTip(
-    icon: Icons.directions_walk_rounded,
+    illustration: CareTipIllustrationType.exercise,
     title: 'ออกกำลังกายทุกวัน',
     summary: 'หมาขนาดกลางควรเดินอย่างน้อย 30 นาทีต่อวันเพื่อสุขภาพที่ดี',
     sections: [

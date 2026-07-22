@@ -19,6 +19,7 @@ Map<String, dynamic> cameraFromJson(Map<String, dynamic> json) {
     'status': json['status'] as String,
     'lastCheckedAt': json['last_checked_at'] as String?,
     'lastError': json['last_error'] as String?,
+    'assignedTechnicianId': json['assigned_technician_id'] as String?,
     'notes': json['notes'] as String?,
   };
 }

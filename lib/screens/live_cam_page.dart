@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_vlc_player/flutter_vlc_player.dart';
+import 'package:media_kit/media_kit.dart';
+import 'package:media_kit_video/media_kit_video.dart';
 import 'package:provider/provider.dart';
 import 'package:video_player/video_player.dart';
 
@@ -309,7 +310,8 @@ class _CameraFeedPageState extends State<CameraFeedPage> with TickerProviderStat
 
   late AnimationController _pulseCtrl;
 
-  VlcPlayerController? _vlcController;
+  Player? _mkPlayer;
+  VideoController? _mkController;
   VideoPlayerController? _videoController;
   String? _streamError;
   bool _connecting = true;
@@ -326,10 +328,9 @@ class _CameraFeedPageState extends State<CameraFeedPage> with TickerProviderStat
     if (widget.cameras.isEmpty) {
       // No camera registered for this room yet -- play bundled demo footage
       // so the live-cam UI/UX can be reviewed before real hardware is wired in.
-      // Uses video_player (not flutter_vlc_player) because the VLC plugin's
-      // PlatformView can't establish its method channel under the current
-      // Flutter/Impeller embedding -- video_player handles local asset
-      // playback natively and doesn't need VLC's RTSP-only capabilities here.
+      // Uses video_player for this local asset since it's simpler than
+      // media_kit for a one-off bundled file; media_kit (below) is what
+      // actually handles real RTSP camera streams.
       final controller = VideoPlayerController.asset('assets/videos/demo_cat_cam.mp4');
       await controller.initialize();
       await controller.setLooping(true);
@@ -348,13 +349,17 @@ class _CameraFeedPageState extends State<CameraFeedPage> with TickerProviderStat
     final cameraId = widget.cameras.first['id'] as String;
     try {
       final streamUrl = await context.read<CameraRepository>().fetchStreamUrl(cameraId);
-      _vlcController = VlcPlayerController.network(
-        streamUrl,
-        hwAcc: HwAcc.full,
-        autoPlay: true,
-        options: VlcPlayerOptions(),
-      );
-      if (!mounted) return;
+      // Smaller demuxer cache than the 32MB default -- this is a live feed
+      // over the local network, not a file to seek around in, so a big
+      // buffer only adds latency without buying anything.
+      final player = Player(configuration: const PlayerConfiguration(bufferSize: 4 * 1024 * 1024));
+      await player.open(Media(streamUrl));
+      if (!mounted) {
+        player.dispose();
+        return;
+      }
+      _mkPlayer = player;
+      _mkController = VideoController(player);
       setState(() => _connecting = false);
     } catch (e) {
       if (!mounted) return;
@@ -368,7 +373,7 @@ class _CameraFeedPageState extends State<CameraFeedPage> with TickerProviderStat
   @override
   void dispose() {
     _pulseCtrl.dispose();
-    _vlcController?.dispose();
+    _mkPlayer?.dispose();
     _videoController?.dispose();
     super.dispose();
   }
@@ -438,8 +443,9 @@ class _CameraFeedPageState extends State<CameraFeedPage> with TickerProviderStat
               setState(() {
                 _connecting = true;
                 _streamError = null;
-                _vlcController?.dispose();
-                _vlcController = null;
+                _mkPlayer?.dispose();
+                _mkPlayer = null;
+                _mkController = null;
                 _videoController?.dispose();
                 _videoController = null;
               });
@@ -451,7 +457,7 @@ class _CameraFeedPageState extends State<CameraFeedPage> with TickerProviderStat
     );
   }
 
-  bool get _hasPlayer => _vlcController != null || _videoController != null;
+  bool get _hasPlayer => _mkController != null || _videoController != null;
 
   Widget _buildVideoPlayer() {
     Widget content;
@@ -474,15 +480,14 @@ class _CameraFeedPageState extends State<CameraFeedPage> with TickerProviderStat
         aspectRatio: 16 / 9,
         child: VideoPlayer(_videoController!),
       );
-    } else if (_vlcController == null) {
+    } else if (_mkController == null) {
       content = const Center(
         child: Text('ยังไม่มีกล้องติดตั้งสำหรับห้องนี้', style: TextStyle(color: Colors.white70)),
       );
     } else {
-      content = VlcPlayer(
-        controller: _vlcController!,
+      content = AspectRatio(
         aspectRatio: 16 / 9,
-        placeholder: const Center(child: CircularProgressIndicator(color: Colors.white)),
+        child: Video(controller: _mkController!),
       );
     }
 

@@ -1,0 +1,517 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PetPal — Technical Handoff</title>
+<style>
+  :root {
+    --ink: #1b1f24;
+    --paper: #f5f3ee;
+    --panel: #ffffff;
+    --line: #ddd7c8;
+    --muted: #6b6558;
+    --text: #23262b;
+    --accent: #1f7d78;
+    --accent-soft: #e2f0ee;
+    --good: #2e7d37;
+    --good-soft: #e5f2e3;
+    --warn: #a9660f;
+    --warn-soft: #faecd8;
+    --crit: #ab3324;
+    --crit-soft: #fbe6e1;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+    --sans: -apple-system, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --ink: #eef0f2;
+    --paper: #14171b;
+    --panel: #1b1f24;
+    --line: #313640;
+    --muted: #939aa3;
+    --text: #e7e9ec;
+    --accent: #4fb8b0;
+    --accent-soft: #16302e;
+    --good: #4fa557;
+    --good-soft: #14261a;
+    --warn: #d99a3f;
+    --warn-soft: #302209;
+    --crit: #e2685a;
+    --crit-soft: #34160f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eef0f2;
+      --paper: #14171b;
+      --panel: #1b1f24;
+      --line: #313640;
+      --muted: #939aa3;
+      --text: #e7e9ec;
+      --accent: #4fb8b0;
+      --accent-soft: #16302e;
+      --good: #4fa557;
+      --good-soft: #14261a;
+      --warn: #d99a3f;
+      --warn-soft: #302209;
+      --crit: #e2685a;
+      --crit-soft: #34160f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body { display: flex; min-height: 100vh; }
+
+  /* ---------- Nav rail ---------- */
+  nav.rail {
+    flex: 0 0 220px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 20px;
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+  }
+  nav.rail .brand {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  nav.rail .brand-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.4;
+  }
+  nav.rail a {
+    display: block;
+    font-size: 13.5px;
+    color: var(--text);
+    text-decoration: none;
+    padding: 7px 0;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    margin-left: -10px;
+    opacity: 0.75;
+  }
+  nav.rail a:hover, nav.rail a:focus-visible { opacity: 1; border-left-color: var(--accent); outline: none; }
+  nav.rail .num { font-family: var(--mono); color: var(--muted); font-size: 11px; margin-right: 6px; }
+
+  main {
+    flex: 1;
+    min-width: 0;
+    padding: 48px 56px 100px;
+    max-width: 980px;
+  }
+  header.hero { margin-bottom: 44px; }
+  header.hero .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  header.hero h1 {
+    font-size: 34px;
+    line-height: 1.15;
+    margin: 0 0 12px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  header.hero p.lede {
+    font-size: 15.5px;
+    color: var(--muted);
+    max-width: 62ch;
+    line-height: 1.6;
+    margin: 0 0 18px;
+  }
+  header.hero .meta {
+    display: flex;
+    gap: 18px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+  }
+
+  section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  section h2 {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin: 0 0 6px;
+  }
+  section h3.title {
+    font-size: 22px;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  section p.desc { font-size: 14.5px; line-height: 1.65; color: var(--text); max-width: 68ch; margin: 0 0 16px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+
+  /* ---------- Architecture diagram ---------- */
+  .arch {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    overflow-x: auto;
+  }
+  .arch-row { display: flex; align-items: stretch; gap: 10px; flex-wrap: wrap; }
+  .node {
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 12px 14px;
+    background: var(--paper);
+    min-width: 140px;
+    flex: 1;
+  }
+  .node .label { font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+  .node .name { font-size: 14px; font-weight: 600; margin-bottom: 2px; }
+  .node .sub { font-size: 11.5px; color: var(--muted); font-family: var(--mono); }
+  .node.accent { border-color: var(--accent); background: var(--accent-soft); }
+  .node.gap { border-color: var(--warn); background: var(--warn-soft); border-style: dashed; }
+  .arrow-down { display: flex; justify-content: center; color: var(--muted); font-size: 18px; margin: -2px 0; }
+  .arrow-row { display: flex; justify-content: space-around; color: var(--muted); font-size: 16px; padding: 0 20px; }
+
+  /* ---------- Flow steps ---------- */
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px;
+    margin-top: 2px;
+  }
+  .step .body h4 { margin: 0 0 3px; font-size: 14.5px; }
+  .step .body p { margin: 0; font-size: 13.3px; color: var(--muted); line-height: 1.55; }
+  .step .body code { font-family: var(--mono); font-size: 12px; background: var(--paper); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); }
+  .step.flag .dot { border-color: var(--warn); color: var(--warn); }
+
+  /* ---------- Tables ---------- */
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12.3px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-family: var(--mono);
+    padding: 2px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.crit { background: var(--crit-soft); color: var(--crit); }
+  .chip::before { content: "●"; font-size: 8px; }
+
+  .gapcard {
+    border-left: 3px solid var(--warn);
+    background: var(--warn-soft);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .gapcard.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .gapcard h4 { margin: 0 0 4px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .gapcard p { margin: 0; font-size: 13px; color: var(--text); line-height: 1.55; }
+  .gapcard code { font-family: var(--mono); font-size: 11.8px; }
+
+  footer.pagefoot {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 860px) {
+    body { flex-direction: column; }
+    nav.rail { position: static; height: auto; width: 100%; border-right: none; border-bottom: 1px solid var(--line); }
+    main { padding: 32px 20px 80px; }
+  }
+
+  /* ---------- Print / PDF export ---------- */
+  @media print {
+    @page { size: A4; margin: 14mm 12mm; }
+    html, body { background: #fff; }
+    body { display: block; }
+    nav.rail { display: none; }
+    main { max-width: none; padding: 0; }
+
+    header.hero { break-after: avoid; }
+    section { break-inside: auto; }
+    section h2, section h3.title { break-after: avoid; break-inside: avoid; }
+    section p.desc { break-inside: avoid; }
+
+    /* Keep each diagram / flow-list / card whole -- these are the blocks that were
+       getting sliced across a page boundary. Tables are excluded on purpose: a long
+       table should be free to continue on the next page, but never mid-row. */
+    .panel:not(.tablewrap) { break-inside: avoid; }
+    .arch, .flow, .node, .step, .gapcard { break-inside: avoid; }
+    table { break-inside: auto; }
+    tr, td, th { break-inside: avoid; }
+
+    /* Give each numbered section its own page -- these were the ones losing
+       their opening heading or first card to a page-break in testing. */
+    #infra, #flows, #testing, #gaps { break-before: page; }
+    #overview { break-before: avoid; }
+  }
+</style>
+
+<nav class="rail">
+  <div class="brand">PETPAL // TECH HANDOFF</div>
+  <div class="brand-sub">เอกสารสำหรับทีม Tech Support — Flow, Infra, Test Coverage</div>
+  <a href="#overview"><span class="num">00</span>Overview</a>
+  <a href="#infra"><span class="num">01</span>Infrastructure</a>
+  <a href="#flows"><span class="num">02</span>Key Flows</a>
+  <a href="#testing"><span class="num">03</span>Test Coverage</a>
+  <a href="#gaps"><span class="num">04</span>Known Gaps</a>
+</nav>
+
+<main>
+  <header class="hero" id="overview">
+    <div class="eyebrow">Technical Handoff Document</div>
+    <h1>PetPal — Flow, Infrastructure &amp; Test Coverage</h1>
+    <p class="lede">
+      สรุปสถาปัตยกรรมระบบ, เส้นทางการทำงานหลัก (auth / booking-gated camera / AI match),
+      และสถานะการเทสปัจจุบัน — จัดทำเพื่อให้ทีม Tech Support ที่เข้ามาช่วยดูแลระบบ
+      เห็นภาพรวมทั้งหมดก่อนรับช่วงต่อ
+    </p>
+    <div class="meta">
+      <span>PET-HOTEL BOOKING PLATFORM</span>
+      <span>FASTAPI + FLUTTER + POSTGRES/PGVECTOR</span>
+      <span>UPDATED 2026-07-18</span>
+    </div>
+  </header>
+
+  <!-- ============ 01 INFRASTRUCTURE ============ -->
+  <section id="infra">
+    <h2>01 — Infrastructure</h2>
+    <h3 class="title">สถาปัตยกรรมระบบปัจจุบัน</h3>
+    <p class="desc">
+      Backend รันบน VPS เดียว ผ่าน Docker Compose — nginx เป็นจุดเข้าเดียวที่เปิดสู่อินเทอร์เน็ต (TLS termination + reverse proxy)
+      ส่วนบริการภายใน (DB, cache, storage, SFU) ไม่เปิด port ออกสู่นอก Docker network โดยตรง
+    </p>
+
+    <div class="panel">
+      <div class="arch">
+        <div class="arch-row">
+          <div class="node accent">
+            <div class="label">Client</div>
+            <div class="name">Flutter App</div>
+            <div class="sub">iOS · Android · Desktop</div>
+          </div>
+        </div>
+        <div class="arrow-down">↓ HTTPS / WSS</div>
+        <div class="arch-row">
+          <div class="node accent">
+            <div class="label">Edge</div>
+            <div class="name">nginx</div>
+            <div class="sub">:80 → :443 · Let's Encrypt · rate-limit zone</div>
+          </div>
+        </div>
+        <div class="arrow-down">↓ proxy_pass (internal network)</div>
+        <div class="arch-row">
+          <div class="node">
+            <div class="label">App</div>
+            <div class="name">FastAPI backend</div>
+            <div class="sub">petpal-backend:8000</div>
+          </div>
+        </div>
+        <div class="arrow-row"><span>↓</span><span>↓</span><span>↓</span><span>↓</span></div>
+        <div class="arch-row">
+          <div class="node"><div class="label">DB</div><div class="name">Postgres + pgvector</div><div class="sub">internal only</div></div>
+          <div class="node"><div class="label">Cache/Queue</div><div class="name">Redis</div><div class="sub">match job queue</div></div>
+          <div class="node"><div class="label">Storage</div><div class="name">MinIO (S3)</div><div class="sub">pet photos, docs</div></div>
+          <div class="node"><div class="label">SFU</div><div class="name">LiveKit</div><div class="sub">chat voice/video</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="arch">
+        <p class="desc" style="margin-bottom:14px;"><b>เส้นทางกล้อง (แยกจากด้านบน)</b> — ปัจจุบันยังไม่ผ่าน backend ในการส่งวิดีโอ:</p>
+        <div class="arch-row">
+          <div class="node accent"><div class="label">Client</div><div class="name">Flutter App</div></div>
+          <span class="arrow-down" style="align-self:center;">→ RTSP (LAN IP + credentials ตรง)</span>
+          <div class="node gap"><div class="label">⚠ ไม่ผ่าน backend</div><div class="name">กล้อง (Tapo)</div><div class="sub">ต้องอยู่ WiFi เดียวกับโรงแรม</div></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="tablewrap panel">
+      <table>
+        <tr><th>Service</th><th>บทบาท</th><th class="mono">Exposure</th><th>หมายเหตุ</th></tr>
+        <tr><td>nginx</td><td>TLS + reverse proxy + rate limit</td><td class="mono">:80, :443 public</td><td>จุดเข้าเดียวจากอินเทอร์เน็ต</td></tr>
+        <tr><td>petpal-backend</td><td>FastAPI (business logic ทั้งหมด)</td><td class="mono">internal only</td><td>proxy ผ่าน nginx เท่านั้น</td></tr>
+        <tr><td>postgres (pgvector)</td><td>ข้อมูลหลัก + vector search สำหรับ AI match</td><td class="mono">internal only (prod)</td><td>เปิด :5433 เฉพาะ dev compose</td></tr>
+        <tr><td>redis</td><td>job queue ผลลัพธ์ AI match (async)</td><td class="mono">internal only</td><td>maxmemory 128mb, allkeys-lru</td></tr>
+        <tr><td>minio</td><td>เก็บไฟล์ (รูปสัตว์เลี้ยง, เอกสาร)</td><td class="mono">internal, proxy ผ่าน /minio/</td><td>console :9001 เข้าผ่าน SSH tunnel เท่านั้น</td></tr>
+        <tr><td>livekit</td><td>SFU สำหรับวิดีโอ/วอยซ์คอลในแชท</td><td class="mono">:7880/:7881 + UDP 50000-50019</td><td>media flow ตรงถึง client ไม่ผ่าน nginx</td></tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 02 KEY FLOWS ============ -->
+  <section id="flows">
+    <h2>02 — Key Flows</h2>
+    <h3 class="title">เส้นทางการทำงานหลัก 3 เส้นทาง</h3>
+
+    <div class="panel">
+      <p class="desc" style="margin-bottom:14px;"><b>A. Authentication</b> — รองรับ email/password และ social login</p>
+      <div class="flow">
+        <div class="step"><div class="dot">1</div><div class="body"><h4>Client ส่ง credential</h4><p>Email+password ตรง หรือ ID token จาก Google / access token จาก Facebook</p></div></div>
+        <div class="step"><div class="dot">2</div><div class="body"><h4>Backend ตรวจสอบ</h4><p>Google: verify ผ่าน <code>google.oauth2.id_token</code> เทียบ audience กับ <code>GOOGLE_CLIENT_ID</code> · Facebook: cross-check <code>debug_token</code> กับ app ID ของเราเอง (กัน token ของแอปอื่นมาสวมรอย)</p></div></div>
+        <div class="step"><div class="dot">3</div><div class="body"><h4>ออก JWT</h4><p>Access token อายุ 30 นาที + refresh token อายุ 14 วัน</p></div></div>
+        <div class="step flag"><div class="dot">!</div><div class="body"><h4>Rate limit ที่ <code>/auth</code></h4><p>จำกัด 10 คำขอ/60 วิ ต่อ IP กัน brute-force — เก็บ state ใน memory เครื่องเดียว (ดูหัวข้อ 04)</p></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="desc" style="margin-bottom:14px;"><b>B. Booking-gated Camera Access</b> — ลูกค้าดูกล้องได้เฉพาะโรงแรมที่จองอยู่จริง</p>
+      <div class="flow">
+        <div class="step"><div class="dot">1</div><div class="body"><h4>Client ขอ <code>GET /cameras/{id}/stream</code></h4><p>ส่ง JWT มาด้วยตามปกติ</p></div></div>
+        <div class="step"><div class="dot">2</div><div class="body"><h4>ตรวจสิทธิ์ตาม role</h4><p>Admin/Technician ผ่านทันที · Customer ต้องมี booking ที่ <code>hotel_id</code> เดียวกับกล้อง และสถานะไม่ใช่ <code>cancelled</code></p></div></div>
+        <div class="step"><div class="dot">3</div><div class="body"><h4>ถอดรหัสรหัสผ่านกล้อง</h4><p>Fernet-encrypted password ที่เก็บใน DB ถูก decrypt ฝั่ง server</p></div></div>
+        <div class="step flag"><div class="dot">!</div><div class="body"><h4>ส่ง URL กลับไปยัง client</h4><p><code>rtsp://user:pass@ip:port/path</code> — <b>credential หลุดไปถึง client ตรงๆ</b> ยังไม่ผ่าน proxy/token แบบ short-lived (ดูหัวข้อ 04)</p></div></div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="desc" style="margin-bottom:14px;"><b>C. AI Smart Match</b> — ค้นหาโรงแรมด้วยข้อความอิสระ + AI enrichment แบบ async</p>
+      <div class="flow">
+        <div class="step"><div class="dot">1</div><div class="body"><h4>Vector search ทันที</h4><p>แปลงข้อความเป็น embedding (multilingual, รองรับไทย) ค้นด้วย pgvector ได้ผลลัพธ์กลับทันที</p></div></div>
+        <div class="step"><div class="dot">2</div><div class="body"><h4>ส่งผลลัพธ์ local ก่อน</h4><p>ตอบ client ทันทีพร้อม <code>isFallback: true</code> — ไม่ต้องรอ AI</p></div></div>
+        <div class="step"><div class="dot">3</div><div class="body"><h4>Enrich ด้วย Gemini แบบ background</h4><p>Async task จำกัด concurrency (semaphore 3), timeout 8 วิ, เขียนผลลง Redis (<code>match_job:&lt;id&gt;</code>, TTL 5 นาที)</p></div></div>
+        <div class="step"><div class="dot">4</div><div class="body"><h4>Client poll ผลลัพธ์</h4><p><code>GET /api/match/status/{job_id}</code> จนกว่าจะ <code>ready</code> หรือ fallback ต่อ</p></div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 03 TESTING ============ -->
+  <section id="testing">
+    <h2>03 — Test Coverage</h2>
+    <h3 class="title">สถานะการเทสปัจจุบัน</h3>
+    <p class="desc">รันด้วย <code style="font-family:var(--mono)">pytest</code> (backend) และ <code style="font-family:var(--mono)">flutter test</code> (client) — ยังเป็น manual run, ไม่มี CI</p>
+
+    <div class="tablewrap panel">
+      <table>
+        <tr><th>ชั้น</th><th class="mono">Framework</th><th class="num">ไฟล์</th><th>ครอบคลุม</th><th>สถานะ</th></tr>
+        <tr>
+          <td>Unit — backend</td><td class="mono">pytest</td><td class="num">~14</td>
+          <td>camera crypto, rate limiter, cache, oauth verify, queue worker</td>
+          <td><span class="chip good">มีอยู่</span></td>
+        </tr>
+        <tr>
+          <td>Integration — API</td><td class="mono">pytest + httpx</td><td class="num">6</td>
+          <td>API endpoints คุยกับ DB จริง (test_api, test_camera_probe, test_match_service ฯลฯ)</td>
+          <td><span class="chip good">มีอยู่</span></td>
+        </tr>
+        <tr>
+          <td>Widget — client</td><td class="mono">flutter_test</td><td class="num">2</td>
+          <td>widget_test, match_api_service_test</td>
+          <td><span class="chip good">มีอยู่</span></td>
+        </tr>
+        <tr>
+          <td>Flow — client</td><td class="mono">flutter_test</td><td class="num">2</td>
+          <td>hotel_partner_flow_test, semantic_match_test</td>
+          <td><span class="chip good">มีอยู่</span></td>
+        </tr>
+        <tr>
+          <td>CI automation</td><td class="mono">GitHub Actions</td><td class="num">0</td>
+          <td>รันเทสอัตโนมัติตอน push/PR</td>
+          <td><span class="chip warn">ยังไม่มี</span></td>
+        </tr>
+        <tr>
+          <td>Coverage %</td><td class="mono">pytest-cov</td><td class="num">—</td>
+          <td>ตัวเลข coverage วัดจริง</td>
+          <td><span class="chip warn">ยังไม่มี</span></td>
+        </tr>
+        <tr>
+          <td>Load / Performance</td><td class="mono">—</td><td class="num">—</td>
+          <td>concurrent camera view / video call</td>
+          <td><span class="chip warn">ยังไม่ต้องทำตอนนี้</span></td>
+        </tr>
+        <tr>
+          <td>Manual QA — real hardware</td><td class="mono">—</td><td class="num">—</td>
+          <td>ทดสอบกับกล้องจริง, อุปกรณ์จริง (จับบั๊ก flutter_vlc_player ได้จากตรงนี้)</td>
+          <td><span class="chip good">ทำแล้ว ต่อเนื่อง</span></td>
+        </tr>
+      </table>
+    </div>
+  </section>
+
+  <!-- ============ 04 GAPS ============ -->
+  <section id="gaps">
+    <h2>04 — Known Gaps</h2>
+    <h3 class="title">สิ่งที่ทีม Tech Support ควรรู้ก่อนรับช่วงต่อ</h3>
+    <p class="desc">แจ้งตรงๆ ไว้ก่อน เพื่อให้ทีมที่มาซัพพอร์ตวางแผนช่วยแก้ต่อได้ถูกจุด ไม่ใช่ต้องมาไล่เจอเอง</p>
+
+    <div class="gapcard crit">
+      <h4>🔴 Gemini model deprecated</h4>
+      <p><code>backend/app/gemini_client.py:11</code> ตั้งค่า <code>MODEL_NAME = "gemini-2.0-flash"</code>
+      ซึ่งถูกยกเลิกไปแล้วตั้งแต่ 1 มิ.ย. 2026 — ฟีเจอร์ AI Smart Match enrichment น่าจะเรียก API แล้ว fail อยู่ตอนนี้
+      ต้องเปลี่ยนเป็น <code>gemini-2.5-flash-lite</code> (ราคาเท่าเดิม)</p>
+    </div>
+
+    <div class="gapcard">
+      <h4>🟠 RTSP credential หลุดถึง client</h4>
+      <p><code>_build_stream_url</code> ใน <code>cameras.py</code> ส่ง <code>rtsp://user:pass@ip:port</code> ตรงให้แอป —
+      ยังไม่มี edge-server proxy หรือ short-lived token ตามสถาปัตยกรรมเป้าหมาย</p>
+    </div>
+
+    <div class="gapcard">
+      <h4>🟠 กล้องดูได้เฉพาะใน WiFi โรงแรม</h4>
+      <p>RTSP URL เป็น LAN IP — ลูกค้าที่ไม่ได้อยู่ในโรงแรมเชื่อมต่อไม่ได้เลย ต้องมี edge/Mini Hub ต่อโรงแรมถึงจะแก้ได้จริง
+      (ไม่ใช่แค่เพิ่ม bandwidth)</p>
+    </div>
+
+    <div class="gapcard">
+      <h4>🟠 ไม่มี CI</h4>
+      <p>เทสที่มีอยู่ (~24 ไฟล์รวมสองฝั่ง) ไม่ได้รันอัตโนมัติเลยตอน push/PR — ต้องรัน <code>pytest</code> /
+      <code>flutter test</code> มือทุกครั้ง</p>
+    </div>
+
+    <div class="gapcard">
+      <h4>🟡 Rate limiter เป็น in-memory เดี่ยว</h4>
+      <p><code>core/rate_limit.py</code> เก็บ state ในหน่วยความจำเครื่องเดียว — ใช้ได้ตราบใดที่ backend มี instance เดียว
+      ถ้าจะ scale แนวนอนต้องย้ายไป Redis ก่อน (Redis มีอยู่แล้วในระบบ)</p>
+    </div>
+
+    <footer class="pagefoot">PetPal Technical Handoff · เตรียมไว้สำหรับพูดคุยกับทีม Tech Support · ปรับปรุงล่าสุด 2026-07-18</footer>
+  </section>
+</main>

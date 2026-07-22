@@ -5,6 +5,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from ..core.config import get_settings
 from ..core.deps import get_current_user, require_technician
 from ..db.session import get_db
 from ..models.booking import Booking, BookingStatus
@@ -69,6 +70,8 @@ async def create_camera(
     payload: CameraCreate, user: User = Depends(require_technician), db: AsyncSession = Depends(get_db)
 ) -> Camera:
     data = payload.model_dump(exclude={"password"})
+    if not data.get("username"):
+        data["username"] = get_settings().camera_default_username
     camera = Camera(
         **data,
         encrypted_password=encrypt_camera_password(payload.password) if payload.password else None,

@@ -16,6 +16,13 @@ class BookingStatus(str, enum.Enum):
     cancelled = "cancelled"
 
 
+class BookingPaymentStatus(str, enum.Enum):
+    unpaid = "unpaid"
+    pending = "pending"
+    paid = "paid"
+    failed = "failed"
+
+
 class Booking(UUIDPkMixin, TimestampMixin, Base):
     __tablename__ = "bookings"
 
@@ -32,8 +39,17 @@ class Booking(UUIDPkMixin, TimestampMixin, Base):
     status: Mapped[BookingStatus] = mapped_column(
         Enum(BookingStatus, name="booking_status"), default=BookingStatus.pending, nullable=False
     )
+    # Mirrors the latest Payment's status so hotel/admin dashboards can read
+    # paid-state without a join -- updated wherever Payment.status changes
+    # (payment creation response, refund, and the Omise webhook handler).
+    payment_status: Mapped[BookingPaymentStatus] = mapped_column(
+        Enum(BookingPaymentStatus, name="booking_payment_status"),
+        default=BookingPaymentStatus.unpaid,
+        nullable=False,
+    )
 
     customer = relationship("User", back_populates="bookings")
     hotel = relationship("Hotel", back_populates="bookings")
     room = relationship("HotelRoom", back_populates="bookings")
     pet = relationship("Pet", back_populates="bookings")
+    payments = relationship("Payment", back_populates="booking", cascade="all, delete-orphan")

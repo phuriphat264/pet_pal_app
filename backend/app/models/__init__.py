@@ -4,6 +4,7 @@ from .chat import ChatMessage, ChatThread
 from .hotel import Hotel, HotelImage, HotelRoom
 from .notification import Notification
 from .partner import PartnerProfile
+from .payment import Payment
 from .pet import Pet, PetMedicalHistory
 from .user import User
 
@@ -17,6 +18,7 @@ __all__ = [
     "HotelRoom",
     "Notification",
     "PartnerProfile",
+    "Payment",
     "Pet",
     "PetMedicalHistory",
     "User",

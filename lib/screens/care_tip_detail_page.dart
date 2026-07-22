@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../data/care_tips_data.dart';
+import '../widgets/care_tip_illustration.dart';
 
 class CareTipDetailPage extends StatelessWidget {
   final CareTip tip;
@@ -58,9 +59,10 @@ class CareTipDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Container(
-            width: 64, height: 64,
-            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(18)),
-            child: Icon(tip.icon, color: Colors.white, size: 32),
+            width: 88, height: 88,
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(color: Colors.white.withValues(alpha: 0.15), borderRadius: BorderRadius.circular(20)),
+            child: CareTipIllustration(type: tip.illustration, size: 68),
           ),
           const SizedBox(height: 16),
           Text(tip.title, style: const TextStyle(fontSize: 22, fontWeight: FontWeight.w800, color: Colors.white)),

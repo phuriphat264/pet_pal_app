@@ -1,0 +1,345 @@
+{"kind":"deck","id":"pr/qdhwcs","name":"Deck"}
+{"kind":"layout","layoutId":"3cef5fc8-8853-4485-85e4-752632a06de3","name":"Master","type":"master"}
+{"kind":"layout","layoutId":"a5067785-2d1a-40fd-89d0-a5dd3a0d51e9","name":"Title Slide","type":"title"}
+{"kind":"slide","id":"sl/p2ng1m","slide":1,"title":"PETPAL • DECISION DECK","textShapes":6}
+{"kind":"textbox","id":"sh/7itc3edk","slide":1,"name":"kicker","text":"PETPAL • DECISION DECK","textPreview":"PETPAL • DECISION DECK","textChars":22,"textLines":1,"bbox":[42,36,700,26]}
+{"kind":"textbox","id":"sh/s32dwju5","slide":1,"name":"cover-title","text":"อัปเดตต้นทุน ระบบชำระเงิน\nและทางเลือกกล้อง","textPreview":"อัปเดตต้นทุน ระบบชำระเงิน | และทางเลือกกล้อง","textChars":42,"textLines":2,"bbox":[42,150,920,190]}
+{"kind":"textbox","id":"sh/t4bu5ovq","slide":1,"name":"cover-sub","text":"สรุปจากโค้ดจริง + เอกสารธุรกิจ + ราคาอ้างอิง ณ 22 ก.ค. 2026","textPreview":"สรุปจากโค้ดจริง + เอกสารธุรกิจ + ราคาอ้างอิง ณ 22 ก.ค. 2026","textChars":59,"textLines":1,"bbox":[42,375,920,52]}
+{"kind":"shape","id":"sh/id0vq9c3","slide":1,"name":"cover-block","bbox":[1000,0,280,720]}
+{"kind":"textbox","id":"sh/je9czedo","slide":1,"name":"cover-mark","text":"PAY\nCAM\nCOST","textPreview":"PAY | CAM | COST","textChars":12,"textLines":3,"bbox":[1040,150,200,300]}
+{"kind":"textbox","id":"sh/kfidsju9","slide":1,"name":"cover-date","text":"สำหรับเจ้าของโครงการและทีมธุรกิจ","textPreview":"สำหรับเจ้าของโครงการและทีมธุรกิจ","textChars":32,"textLines":1,"bbox":[42,626,700,32]}
+{"kind":"shape","id":"sh/5gru1ovu","slide":1,"name":"source","bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/a9gbmpc7","slide":1,"name":"page","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/p2ng1m","slide":1,"text":""}
+{"kind":"slide","id":"sl/jfzwni","slide":2,"title":"PETPAL • BUSINESS UPDATE","textShapes":13}
+{"kind":"textbox","id":"sh/8zixwvid","slide":2,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/7y9w3qhs","slide":2,"name":"title","text":"ข้อสรุป: เปิด Omise ได้ แต่ควรลงทุนกล้องแบบเป็นเฟส","textPreview":"ข้อสรุป: เปิด Omise ได้ แต่ควรลงทุนกล้องแบบเป็นเฟส","textChars":50,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/mx0vul0n","slide":2,"name":"sum1","bbox":[42,168,374,430]}
+{"kind":"shape","id":"sh/lw7e1gz2","slide":2,"name":"sum1-accent","bbox":[42,168,8,430]}
+{"kind":"textbox","id":"sh/kvyd8vih","slide":2,"name":"sum1-title","text":"Payment พร้อมระดับ MVP","textPreview":"Payment พร้อมระดับ MVP","textChars":22,"textLines":1,"bbox":[68,190,328,36]}
+{"kind":"textbox","id":"sh/zupwzqhw","slide":2,"name":"sum1-stat","text":"1.7655% / 3.9055%","textPreview":"1.7655% / 3.9055%","textChars":17,"textLines":1,"bbox":[68,234,328,74]}
+{"kind":"textbox","id":"sh/ytgv6l0b","slide":2,"name":"sum1-body","text":"โค้ดรองรับบัตร, PromptPay, ตรวจสถานะ, webhook และคืนเงินแล้ว แต่ควรเพิ่ม idempotency, reconciliation และ monitoring ก่อนรับเงินจริง","textPreview":"โค้ดรองรับบัตร, PromptPay, ตรวจสถานะ, webhook และคืนเงินแล้ว แต่ควรเพิ่ม idempotency, reconciliation และ monitoring ก่อนรับเงินจริง","textChars":131,"textLines":1,"bbox":[68,316,328,262]}
+{"kind":"shape","id":"sh/xs7exgzq","slide":2,"name":"sum2","bbox":[453,168,374,430]}
+{"kind":"shape","id":"sh/cryd4bi5","slide":2,"name":"sum2-accent","bbox":[453,168,8,430]}
+{"kind":"textbox","id":"sh/qp8vu10v","slide":2,"name":"sum2-title","text":"ต้นทุนคงที่ยังควบคุมได้","textPreview":"ต้นทุนคงที่ยังควบคุมได้","textChars":23,"textLines":1,"bbox":[479,190,328,36]}
+{"kind":"textbox","id":"sh/bahc3610","slide":2,"name":"sum2-stat","text":"~11,100 บาท/ปี","textPreview":"~11,100 บาท/ปี","textChars":14,"textLines":1,"bbox":[479,234,328,74]}
+{"kind":"textbox","id":"sh/cbqdwril","slide":2,"name":"sum2-body","text":"Infrastructure ปีแรกในเอกสาร ~11,100 บาท ไม่รวม maintenance, gateway ตามยอดขาย, กล้อง/Mini Hub และค่าโอนเงินออก","textPreview":"Infrastructure ปีแรกในเอกสาร ~11,100 บาท ไม่รวม maintenance, gateway ตามยอดขาย, กล้อง/Mini Hub และค่าโอนเงินออก","textChars":111,"textLines":1,"bbox":[479,316,328,262]}
+{"kind":"shape","id":"sh/dcju5wj6","slide":2,"name":"sum3","bbox":[864,168,374,430]}
+{"kind":"shape","id":"sh/2l8bqh0j","slide":2,"name":"sum3-accent","bbox":[864,168,8,430]}
+{"kind":"textbox","id":"sh/3mhczm14","slide":2,"name":"sum3-title","text":"แนะนำ Mini Hub แบบ phased","textPreview":"แนะนำ Mini Hub แบบ phased","textChars":25,"textLines":1,"bbox":[890,190,328,36]}
+{"kind":"textbox","id":"sh/4nqtsrip","slide":2,"name":"sum3-stat","text":"เริ่ม Pilot 1–3 โรงแรม","textPreview":"เริ่ม Pilot 1–3 โรงแรม","textChars":22,"textLines":1,"bbox":[890,234,328,74]}
+{"kind":"textbox","id":"sh/pozu1wja","slide":2,"name":"sum3-body","text":"กล้อง RTSP รุ่นใหม่อย่างเดียวไม่ทำให้ดูกล้องนอกโรงแรมได้ Mini Hub แก้เส้นทางเครือข่ายและควบคุม privacy ได้ดีกว่า","textPreview":"กล้อง RTSP รุ่นใหม่อย่างเดียวไม่ทำให้ดูกล้องนอกโรงแรมได้ Mini Hub แก้เส้นทางเครือข่ายและควบคุม privacy ได้ดีกว่า","textChars":112,"textLines":1,"bbox":[890,316,328,262]}
+{"kind":"textbox","id":"sh/uhobmh0n","slide":2,"name":"source","text":"ที่มา: PetPal_Cost_Report.pdf, PetPal_Tech_Handoff.pdf และโค้ดในโปรเจกต์","textPreview":"ที่มา: PetPal_Cost_Report.pdf, PetPal_Tech_Handoff.pdf และโค้ดในโปรเจกต์","textChars":72,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/fixcvm18","slide":2,"name":"page","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/jfzwni","slide":2,"text":""}
+{"kind":"slide","id":"sl/9f6jai","slide":3,"title":"PETPAL • BUSINESS UPDATE","textShapes":10}
+{"kind":"textbox","id":"sh/hkjm54vu","slide":3,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/uhsnu9wj","slide":3,"name":"title","text":"วันนี้ระบบทำอะไรได้จริง — และยังติดตรงไหน","textPreview":"วันนี้ระบบทำอะไรได้จริง — และยังติดตรงไหน","textChars":41,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/vi143ed4","slide":3,"name":"pay","bbox":[42,170,360,410]}
+{"kind":"shape","id":"sh/4nu50jel","slide":3,"name":"pay-accent","bbox":[42,170,8,410]}
+{"kind":"textbox","id":"sh/58369ov6","slide":3,"name":"pay-title","text":"การจองและชำระเงิน","textPreview":"การจองและชำระเงิน","textChars":17,"textLines":1,"bbox":[68,192,314,36]}
+{"kind":"textbox","id":"sh/ilsny9wf","slide":3,"name":"pay-body","text":"สร้าง charge จากยอดจองเป็นสตางค์ รองรับ card token และ PromptPay QR บันทึกผลในฐานข้อมูล และ refund จากหน้า admin","textPreview":"สร้าง charge จากยอดจองเป็นสตางค์ รองรับ card token และ PromptPay QR บันทึกผลในฐานข้อมูล และ refund จากหน้า admin","textChars":112,"textLines":1,"bbox":[68,238,314,322]}
+{"kind":"shape","id":"sh/3m147ed0","slide":3,"name":"cam","bbox":[460,170,360,410]}
+{"kind":"shape","id":"sh/sbu54jux","slide":3,"name":"cam-accent","bbox":[460,170,8,410]}
+{"kind":"textbox","id":"sh/dc36dov2","slide":3,"name":"cam-title","text":"การลงทะเบียนกล้อง","textPreview":"การลงทะเบียนกล้อง","textChars":17,"textLines":1,"bbox":[486,192,314,36]}
+{"kind":"textbox","id":"sh/x8vq1kf2","slide":3,"name":"cam-body","text":"ช่างเพิ่มกล้อง RTSP/HTTP/ONVIF, เก็บรหัสผ่านแบบเข้ารหัส และลูกค้าดูได้เมื่อมี booking ของโรงแรมนั้น","textPreview":"ช่างเพิ่มกล้อง RTSP/HTTP/ONVIF, เก็บรหัสผ่านแบบเข้ารหัส และลูกค้าดูได้เมื่อมี booking ของโรงแรมนั้น","textChars":99,"textLines":1,"bbox":[486,238,314,322]}
+{"kind":"shape","id":"sh/c7m9sfeh","slide":3,"name":"gap","bbox":[878,170,360,410]}
+{"kind":"shape","id":"sh/b6d8zaxc","slide":3,"name":"gap-accent","bbox":[878,170,8,410]}
+{"kind":"textbox","id":"sh/a54rqpwr","slide":3,"name":"gap-title","text":"ช่องว่างก่อน Production","textPreview":"ช่องว่างก่อน Production","textChars":23,"textLines":1,"bbox":[904,192,314,36]}
+{"kind":"textbox","id":"sh/lwva54fe","slide":3,"name":"gap-body","text":"URL กล้องยังมี credential และเป็น LAN IP; remote viewing ยังไม่เกิดจริง ขณะที่ payment ยังไม่มี idempotency/reconciliation workflow","textPreview":"URL กล้องยังมี credential และเป็น LAN IP; remote viewing ยังไม่เกิดจริง ขณะที่ payment ยังไม่มี idempotency/reconciliation workflow","textChars":131,"textLines":1,"bbox":[904,238,314,322]}
+{"kind":"textbox","id":"sh/kvm9wzet","slide":3,"name":"source","text":"หลักฐานโค้ด: backend/app/api/payments.py, services/omise_client.py, api/cameras.py","textPreview":"หลักฐานโค้ด: backend/app/api/payments.py, services/omise_client.py, api/cameras.py","textChars":82,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/zuds3ux8","slide":3,"name":"page","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/9f6jai","slide":3,"text":""}
+{"kind":"slide","id":"sl/rwxznn","slide":4,"title":"PETPAL • BUSINESS UPDATE","textShapes":14}
+{"kind":"textbox","id":"sh/pwja1wbi","slide":4,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/2t8rqhcr","slide":4,"name":"title","text":"Omise ไม่มีค่ารายเดือน แต่หักตามยอดชำระสำเร็จ","textPreview":"Omise ไม่มีค่ารายเดือน แต่หักตามยอดชำระสำเร็จ","textChars":45,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/nuh8zmtc","slide":4,"name":"pp","bbox":[42,180,365,330]}
+{"kind":"shape","id":"sh/0rq9o7ul","slide":4,"name":"pp-accent","bbox":[42,180,8,330]}
+{"kind":"textbox","id":"sh/1szqxcb6","slide":4,"name":"pp-title","text":"PromptPay","textPreview":"PromptPay","textChars":9,"textLines":1,"bbox":[68,202,319,36]}
+{"kind":"textbox","id":"sh/ep8rmhcv","slide":4,"name":"pp-stat","text":"ต้นทุนจริง 1.7655%","textPreview":"ต้นทุนจริง 1.7655%","textChars":18,"textLines":1,"bbox":[68,246,319,74]}
+{"kind":"textbox","id":"sh/fqh8v2tg","slide":4,"name":"pp-body","text":"ค่าธรรมเนียม 1.65% + VAT 7% ของค่าธรรมเนียม","textPreview":"ค่าธรรมเนียม 1.65% + VAT 7% ของค่าธรรมเนียม","textChars":43,"textLines":1,"bbox":[68,328,319,162]}
+{"kind":"shape","id":"sh/knu90ba5","slide":4,"name":"cc","bbox":[457,180,365,330]}
+{"kind":"shape","id":"sh/lo3a9gbq","slide":4,"name":"cc-accent","bbox":[457,180,8,330]}
+{"kind":"textbox","id":"sh/x0bepcnu","slide":4,"name":"cc-title","text":"บัตรเครดิต/เดบิต","textPreview":"บัตรเครดิต/เดบิต","textChars":16,"textLines":1,"bbox":[483,202,319,36]}
+{"kind":"textbox","id":"sh/wz2xw769","slide":4,"name":"cc-stat","text":"ต้นทุนจริง 3.9055%","textPreview":"ต้นทุนจริง 3.9055%","textChars":18,"textLines":1,"bbox":[483,246,319,74]}
+{"kind":"textbox","id":"sh/vytwn25o","slide":4,"name":"cc-body","text":"ค่าธรรมเนียม 3.65% + VAT 7% ของค่าธรรมเนียม","textPreview":"ค่าธรรมเนียม 3.65% + VAT 7% ของค่าธรรมเนียม","textChars":43,"textLines":1,"bbox":[483,328,319,162]}
+{"kind":"shape","id":"sh/axkfuxoj","slide":4,"name":"wd","bbox":[872,180,366,330]}
+{"kind":"shape","id":"sh/9wrelcny","slide":4,"name":"wd-accent","bbox":[872,180,8,330]}
+{"kind":"textbox","id":"sh/8bixs76d","slide":4,"name":"wd-title","text":"โอนเข้าบัญชีธนาคาร","textPreview":"โอนเข้าบัญชีธนาคาร","textChars":18,"textLines":1,"bbox":[898,202,320,36]}
+{"kind":"textbox","id":"sh/na9wj25s","slide":4,"name":"wd-stat","text":"ควรรวมรอบโอน","textPreview":"ควรรวมรอบโอน","textChars":12,"textLines":1,"bbox":[898,246,320,74]}
+{"kind":"textbox","id":"sh/m90vqxo7","slide":4,"name":"wd-body","text":"Omise pricing page ระบุ 20 บาท/ครั้ง เมื่อยอดโอนไม่เกิน 2 ล้านบาท","textPreview":"Omise pricing page ระบุ 20 บาท/ครั้ง เมื่อยอดโอนไม่เกิน 2 ล้านบาท","textChars":65,"textLines":1,"bbox":[898,328,320,162]}
+{"kind":"textbox","id":"sh/tsvexwn2","slide":4,"name":"note","text":"ไม่มี setup fee / monthly fee / minimum usage — ค่าใช้จ่ายเกิดเมื่อมีธุรกรรมสำเร็จ","textPreview":"ไม่มี setup fee / monthly fee / minimum usage — ค่าใช้จ่ายเกิดเมื่อมีธุรกรรมสำเร็จ","textChars":82,"textLines":1,"bbox":[42,548,1196,44]}
+{"kind":"textbox","id":"sh/s7mx4r6h","slide":4,"name":"source","text":"อ้างอิง: omise.co/en/pricing/thailand และ docs.omise.co (ตรวจ 22 ก.ค. 2026)","textPreview":"อ้างอิง: omise.co/en/pricing/thailand และ docs.omise.co (ตรวจ 22 ก.ค. 2026)","textChars":75,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/cnepgzy5","slide":4,"name":"page","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/rwxznn","slide":4,"text":""}
+{"kind":"slide","id":"sl/hq6ctb","slide":5,"title":"PETPAL • BUSINESS UPDATE","textShapes":22}
+{"kind":"textbox","id":"sh/cfe18vy9","slide":5,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/rel0fqho","slide":5,"name":"title","text":"ทุกยอดจอง 2,000 บาท: PromptPay ประหยัดกว่าบัตร ~42.80 บาท","textPreview":"ทุกยอดจอง 2,000 บาท: PromptPay ประหยัดกว่าบัตร ~42.80 บาท","textChars":57,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/qdcj65gj","slide":5,"name":"row-0","bbox":[42,180,1196,70]}
+{"kind":"textbox","id":"sh/1kn2lkz6","slide":5,"name":"cell-0-0","text":"ช่องทาง","textPreview":"ช่องทาง","textChars":7,"textLines":1,"bbox":[62,198,300,35]}
+{"kind":"textbox","id":"sh/0je1cfyl","slide":5,"name":"cell-0-1","text":"ยอดลูกค้าจ่าย","textPreview":"ยอดลูกค้าจ่าย","textChars":13,"textLines":1,"bbox":[402,198,220,35]}
+{"kind":"textbox","id":"sh/zi50jah0","slide":5,"name":"cell-0-2","text":"ค่าธรรมเนียม+VAT","textPreview":"ค่าธรรมเนียม+VAT","textChars":16,"textLines":1,"bbox":[672,198,220,35]}
+{"kind":"textbox","id":"sh/ehwja5gf","slide":5,"name":"cell-0-3","text":"เงินคงเหลือก่อนค่าโอน","textPreview":"เงินคงเหลือก่อนค่าโอน","textChars":21,"textLines":1,"bbox":[942,198,290,35]}
+{"kind":"shape","id":"sh/9872pkf2","slide":5,"name":"row-1","bbox":[42,264,1196,70]}
+{"kind":"textbox","id":"sh/87y1gfyh","slide":5,"name":"cell-1-0","text":"PromptPay","textPreview":"PromptPay","textChars":9,"textLines":1,"bbox":[62,282,300,35]}
+{"kind":"textbox","id":"sh/u58vy5wr","slide":5,"name":"cell-1-1","text":"2,000.00","textPreview":"2,000.00","textChars":8,"textLines":1,"bbox":[402,282,220,35]}
+{"kind":"textbox","id":"sh/f6hcraxc","slide":5,"name":"cell-1-2","text":"35.31","textPreview":"35.31","textChars":5,"textLines":1,"bbox":[672,282,220,35]}
+{"kind":"textbox","id":"sh/g7qd0fex","slide":5,"name":"cell-1-3","text":"1,964.69","textPreview":"1,964.69","textChars":8,"textLines":1,"bbox":[942,282,290,35]}
+{"kind":"shape","id":"sh/h8zutkf2","slide":5,"name":"row-2","bbox":[42,348,1196,70]}
+{"kind":"textbox","id":"sh/298v25wn","slide":5,"name":"cell-2-0","text":"บัตร","textPreview":"บัตร","textChars":4,"textLines":1,"bbox":[62,366,300,35]}
+{"kind":"textbox","id":"sh/3ahcvax8","slide":5,"name":"cell-2-1","text":"2,000.00","textPreview":"2,000.00","textChars":8,"textLines":1,"bbox":[402,366,220,35]}
+{"kind":"textbox","id":"sh/4bqd4fet","slide":5,"name":"cell-2-2","text":"78.11","textPreview":"78.11","textChars":5,"textLines":1,"bbox":[672,366,220,35]}
+{"kind":"textbox","id":"sh/pcjuxkfe","slide":5,"name":"cell-2-3","text":"1,921.89","textPreview":"1,921.89","textChars":8,"textLines":1,"bbox":[942,366,290,35]}
+{"kind":"shape","id":"sh/idobqlgj","slide":5,"name":"row-3","bbox":[42,432,1196,70]}
+{"kind":"textbox","id":"sh/jexcjqx4","slide":5,"name":"cell-3-0","text":"ส่วนต่าง","textPreview":"ส่วนต่าง","textChars":8,"textLines":1,"bbox":[62,450,300,35]}
+{"kind":"textbox","id":"sh/nitsrmdw","slide":5,"name":"cell-3-1","text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[402,450,220,35]}
+{"kind":"textbox","id":"sh/mhkrihwb","slide":5,"name":"cell-3-2","text":"42.80","textPreview":"42.80","textChars":5,"textLines":1,"bbox":[672,450,220,35]}
+{"kind":"textbox","id":"sh/9kbatwv2","slide":5,"name":"cell-3-3","text":"—","textPreview":"—","textChars":1,"textLines":1,"bbox":[942,450,290,35]}
+{"kind":"textbox","id":"sh/8j29kreh","slide":5,"name":"formula","text":"สูตร: ค่าธรรมเนียมรวม = ยอดขาย × rate × 1.07","textPreview":"สูตร: ค่าธรรมเนียมรวม = ยอดขาย × rate × 1.07","textChars":44,"textLines":1,"bbox":[42,548,1196,40]}
+{"kind":"textbox","id":"sh/zet8n2dk","slide":5,"name":"policy","text":"นโยบายแนะนำ: absorb fee ไว้ใน GP และทำ PromptPay เป็นตัวเลือกหลัก แต่ไม่บังคับลูกค้า","textPreview":"นโยบายแนะนำ: absorb fee ไว้ใน GP และทำ PromptPay เป็นตัวเลือกหลัก แต่ไม่บังคับลูกค้า","textChars":84,"textLines":1,"bbox":[42,600,1196,44]}
+{"kind":"textbox","id":"sh/yd0rexwz","slide":5,"name":"source","text":"คำนวณจากอัตรามาตรฐาน Omise ประเทศไทย; ยังไม่รวมค่าถอน/โอนเข้าธนาคาร","textPreview":"คำนวณจากอัตรามาตรฐาน Omise ประเทศไทย; ยังไม่รวมค่าถอน/โอนเข้าธนาคาร","textChars":67,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/lgbqpcvq","slide":5,"name":"page","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/hq6ctb","slide":5,"text":""}
+{"kind":"slide","id":"sl/gp5z3k","slide":6,"title":"PETPAL • BUSINESS UPDATE","textShapes":15}
+{"kind":"textbox","id":"sh/cfe5o3at","slide":6,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/be5ofy98","slide":6,"name":"title","text":"เมื่อยอดจองโต ค่า Gateway จะเป็นต้นทุนผันแปรหลัก","textPreview":"เมื่อยอดจองโต ค่า Gateway จะเป็นต้นทุนผันแปรหลัก","textChars":48,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/qdwnmtsn","slide":6,"name":"chart-axis","bbox":[90,558,640,2]}
+{"kind":"shape","id":"sh/pc3md8ri","slide":6,"name":"bar-0","bbox":[150,524,92,34]}
+{"kind":"textbox","id":"sh/obu5k3ax","slide":6,"name":"bar-val-0","text":"2,408 บาท","textPreview":"2,408 บาท","textChars":9,"textLines":1,"bbox":[125,486,142,32]}
+{"kind":"textbox","id":"sh/3al4by9c","slide":6,"name":"bar-lab-0","text":"50 จอง","textPreview":"50 จอง","textChars":6,"textLines":1,"bbox":[125,574,142,30]}
+{"kind":"shape","id":"sh/29cnitsr","slide":6,"name":"bar-1","bbox":[340,393,92,165]}
+{"kind":"textbox","id":"sh/1o3m9ob6","slide":6,"name":"bar-val-1","text":"12,038 บาท","textPreview":"12,038 บาท","textChars":10,"textLines":1,"bbox":[315,355,142,32]}
+{"kind":"textbox","id":"sh/gnu5gjal","slide":6,"name":"bar-lab-1","text":"250 จอง","textPreview":"250 จอง","textChars":7,"textLines":1,"bbox":[315,574,142,30]}
+{"kind":"shape","id":"sh/qh43ap03","slide":6,"name":"bar-2","bbox":[530,198,92,360]}
+{"kind":"textbox","id":"sh/bid43uho","slide":6,"name":"bar-val-2","text":"48,150 บาท","textPreview":"48,150 บาท","textChars":10,"textLines":1,"bbox":[505,160,142,32]}
+{"kind":"textbox","id":"sh/cjmlczi9","slide":6,"name":"bar-lab-2","text":"1,000 จอง","textPreview":"1,000 จอง","textChars":9,"textLines":1,"bbox":[505,574,142,30]}
+{"kind":"textbox","id":"sh/dkvm54zu","slide":6,"name":"chart-label","text":"ค่าธรรมเนียม Omise / เดือน","textPreview":"ค่าธรรมเนียม Omise / เดือน","textChars":26,"textLines":1,"bbox":[90,170,620,32]}
+{"kind":"shape","id":"sh/2dk36p07","slide":6,"name":"assume","bbox":[820,188,418,188]}
+{"kind":"shape","id":"sh/3et4zuhs","slide":6,"name":"assume-accent","bbox":[820,188,8,188]}
+{"kind":"textbox","id":"sh/ofml8zid","slide":6,"name":"assume-title","text":"สมมติฐาน","textPreview":"สมมติฐาน","textChars":8,"textLines":1,"bbox":[846,210,372,36]}
+{"kind":"textbox","id":"sh/pgvm1kzi","slide":6,"name":"assume-body","text":"ยอดจองเฉลี่ย 2,000 บาท\nPromptPay 70% / บัตร 30%\nค่าธรรมเนียมเฉลี่ย 2.4075%","textPreview":"ยอดจองเฉลี่ย 2,000 บาท | PromptPay 70% / บัตร 30% | ค่าธรรมเนียมเฉลี่ย 2.4075%","textChars":74,"textLines":3,"bbox":[846,256,372,100]}
+{"kind":"shape","id":"sh/epk3250v","slide":6,"name":"meaning","bbox":[820,406,418,194]}
+{"kind":"shape","id":"sh/fqt4vahg","slide":6,"name":"meaning-accent","bbox":[820,406,8,194]}
+{"kind":"textbox","id":"sh/ji5snmtw","slide":6,"name":"meaning-title","text":"ความหมาย","textPreview":"ความหมาย","textChars":8,"textLines":1,"bbox":[846,428,372,36]}
+{"kind":"textbox","id":"sh/ihwrehcr","slide":6,"name":"meaning-body","text":"ทุกยอดขาย 100,000 บาท ควรสำรอง gateway ราว 2,408 บาท และจัดรอบโอนเพื่อลดค่าธรรมเนียมธนาคาร","textPreview":"ทุกยอดขาย 100,000 บาท ควรสำรอง gateway ราว 2,408 บาท และจัดรอบโอนเพื่อลดค่าธรรมเนียมธนาคาร","textChars":90,"textLines":1,"bbox":[846,474,372,106]}
+{"kind":"textbox","id":"sh/5k7apcb2","slide":6,"name":"source","text":"แบบจำลองของ PetPal; อัตรา gateway จาก Omise pricing ณ 22 ก.ค. 2026","textPreview":"แบบจำลองของ PetPal; อัตรา gateway จาก Omise pricing ณ 22 ก.ค. 2026","textChars":66,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/kjy9gruh","slide":6,"name":"page","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/gp5z3k","slide":6,"text":""}
+{"kind":"slide","id":"sl/186oes","slide":7,"title":"PETPAL • BUSINESS UPDATE","textShapes":16}
+{"kind":"textbox","id":"sh/wjyx4ju9","slide":7,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/vipgveto","slide":7,"name":"title","text":"งบที่ต้องเห็นเป็น 4 กระเป๋า ไม่ควรรวมเป็นก้อนเดียว","textPreview":"งบที่ต้องเห็นเป็น 4 กระเป๋า ไม่ควรรวมเป็นก้อนเดียว","textChars":50,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/uhwf29c3","slide":7,"name":"costrow-0","bbox":[42,160,1196,94]}
+{"kind":"textbox","id":"sh/5o7y18bq","slide":7,"name":"c1-0","text":"1  เปิดระบบ","textPreview":"1  เปิดระบบ","textChars":11,"textLines":1,"bbox":[62,182,250,42]}
+{"kind":"textbox","id":"sh/4nyx83u5","slide":7,"name":"c2-0","text":"VPS 6,600/ปี + Apple ~3,600/ปี + Google Play ~900 ครั้งเดียว","textPreview":"VPS 6,600/ปี + Apple ~3,600/ปี + Google Play ~900 ครั้งเดียว","textChars":60,"textLines":1,"bbox":[332,178,650,54]}
+{"kind":"textbox","id":"sh/3mpgzytk","slide":7,"name":"c3-0","text":"~11,100 ปีแรก","textPreview":"~11,100 ปีแรก","textChars":13,"textLines":1,"bbox":[995,180,220,50]}
+{"kind":"shape","id":"sh/ilgf6tcz","slide":7,"name":"costrow-1","bbox":[42,273,1196,94]}
+{"kind":"textbox","id":"sh/dcry58bm","slide":7,"name":"c1-1","text":"2  ดูแลระบบ","textPreview":"2  ดูแลระบบ","textChars":11,"textLines":1,"bbox":[62,295,250,42]}
+{"kind":"textbox","id":"sh/sbihc3u1","slide":7,"name":"c2-1","text":"Monitoring, security, bug fix, dependency และ provider changes","textPreview":"Monitoring, security, bug fix, dependency และ provider changes","textChars":62,"textLines":1,"bbox":[332,291,650,54]}
+{"kind":"textbox","id":"sh/m5cf69wb","slide":7,"name":"c3-1","text":"2,000–8,000+/เดือน","textPreview":"2,000–8,000+/เดือน","textChars":18,"textLines":1,"bbox":[995,293,220,50]}
+{"kind":"shape","id":"sh/n6lgzexw","slide":7,"name":"costrow-2","bbox":[42,386,1196,94]}
+{"kind":"textbox","id":"sh/8rux8jeh","slide":7,"name":"c1-2","text":"3  ตามยอดขาย","textPreview":"3  ตามยอดขาย","textChars":12,"textLines":1,"bbox":[62,408,250,42]}
+{"kind":"textbox","id":"sh/9s3y1of2","slide":7,"name":"c2-2","text":"Omise 1.7655–3.9055% + ค่าโอนเข้าธนาคาร","textPreview":"Omise 1.7655–3.9055% + ค่าโอนเข้าธนาคาร","textChars":39,"textLines":1,"bbox":[332,404,650,54]}
+{"kind":"textbox","id":"sh/utcfa9w7","slide":7,"name":"c3-2","text":"ผันแปร","textPreview":"ผันแปร","textChars":6,"textLines":1,"bbox":[995,406,220,50]}
+{"kind":"shape","id":"sh/vu5g3exs","slide":7,"name":"costrow-3","bbox":[42,499,1196,94]}
+{"kind":"textbox","id":"sh/wvexcjed","slide":7,"name":"c1-3","text":"4  ต่อโรงแรม","textPreview":"4  ต่อโรงแรม","textChars":12,"textLines":1,"bbox":[62,521,250,42]}
+{"kind":"textbox","id":"sh/hwny5ofy","slide":7,"name":"c2-3","text":"กล้อง 700–1,000/ตัว; Mini Hub 1,500–3,000/โรงแรม","textPreview":"กล้อง 700–1,000/ตัว; Mini Hub 1,500–3,000/โรงแรม","textChars":48,"textLines":1,"bbox":[332,517,650,54]}
+{"kind":"textbox","id":"sh/qxsfypg3","slide":7,"name":"c3-3","text":"ตาม rollout","textPreview":"ตาม rollout","textChars":11,"textLines":1,"bbox":[995,519,220,50]}
+{"kind":"textbox","id":"sh/by1wruxo","slide":7,"name":"source","text":"ตัวเลขจาก PetPal_Cost_Report.pdf; ราคา VPS และอุปกรณ์ต้องยืนยันใบเสนอราคาก่อนซื้อ","textPreview":"ตัวเลขจาก PetPal_Cost_Report.pdf; ราคา VPS และอุปกรณ์ต้องยืนยันใบเสนอราคาก่อนซื้อ","textChars":81,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/f2xczqdg","slide":7,"name":"page","text":"07","textPreview":"07","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/186oes","slide":7,"text":""}
+{"kind":"slide","id":"sl/s09zwb","slide":8,"title":"PETPAL • BUSINESS UPDATE","textShapes":22}
+{"kind":"textbox","id":"sh/ds3q5sfa","slide":8,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/q5c7udgj","slide":8,"name":"title","text":"ก่อนเปิดรับเงินจริง ควรปิด 6 ช่องว่างของ Payment","textPreview":"ก่อนเปิดรับเงินจริง ควรปิด 6 ช่องว่างของ Payment","textChars":48,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/b6l83ix4","slide":8,"name":"ready-0","bbox":[42,162,570,132]}
+{"kind":"textbox","id":"sh/43aps3yd","slide":8,"name":"num-0","text":"01","textPreview":"01","textChars":2,"textLines":1,"bbox":[64,180,60,38]}
+{"kind":"textbox","id":"sh/p43q18fy","slide":8,"name":"rt-0","text":"Idempotency","textPreview":"Idempotency","textChars":11,"textLines":1,"bbox":[136,178,430,34]}
+{"kind":"textbox","id":"sh/21s7qtgn","slide":8,"name":"rb-0","text":"กันกดจ่ายซ้ำ / retry แล้วเกิด charge ซ้ำ","textPreview":"กันกดจ่ายซ้ำ / retry แล้วเกิด charge ซ้ำ","textChars":40,"textLines":1,"bbox":[136,220,430,54]}
+{"kind":"shape","id":"sh/3218zyx8","slide":8,"name":"ready-1","bbox":[650,162,570,132]}
+{"kind":"textbox","id":"sh/gzapo3yh","slide":8,"name":"num-1","text":"02","textPreview":"02","textChars":2,"textLines":1,"bbox":[672,180,60,38]}
+{"kind":"textbox","id":"sh/h0j6x8f2","slide":8,"name":"rt-1","text":"Reconciliation","textPreview":"Reconciliation","textChars":14,"textLines":1,"bbox":[744,178,430,34]}
+{"kind":"textbox","id":"sh/hozq10b6","slide":8,"name":"rb-1","text":"เทียบ booking ↔ payment ↔ settlement ทุกวัน","textPreview":"เทียบ booking ↔ payment ↔ settlement ทุกวัน","textChars":43,"textLines":1,"bbox":[744,220,430,54]}
+{"kind":"shape","id":"sh/g3qp8ful","slide":8,"name":"ready-2","bbox":[42,320,570,132]}
+{"kind":"textbox","id":"sh/v2hozat0","slide":8,"name":"num-2","text":"03","textPreview":"03","textChars":2,"textLines":1,"bbox":[64,338,60,38]}
+{"kind":"textbox","id":"sh/u18765cf","slide":8,"name":"rt-2","text":"Refund policy","textPreview":"Refund policy","textChars":13,"textLines":1,"bbox":[136,336,430,34]}
+{"kind":"textbox","id":"sh/t0z6x0ba","slide":8,"name":"rb-2","text":"กำหนด partial/full refund, SLA และผู้อนุมัติ","textPreview":"กำหนด partial/full refund, SLA และผู้อนุมัติ","textChars":44,"textLines":1,"bbox":[136,378,430,54]}
+{"kind":"shape","id":"sh/8z6p4vup","slide":8,"name":"ready-3","bbox":[650,320,570,132]}
+{"kind":"textbox","id":"sh/7yxovqt4","slide":8,"name":"num-3","text":"04","textPreview":"04","textChars":2,"textLines":1,"bbox":[672,338,60,38]}
+{"kind":"textbox","id":"sh/6xo72lcj","slide":8,"name":"rt-3","text":"Monitoring","textPreview":"Monitoring","textChars":10,"textLines":1,"bbox":[744,336,430,34]}
+{"kind":"textbox","id":"sh/lwf6tgvy","slide":8,"name":"rb-3","text":"แจ้งเตือน webhook ล้มเหลว, pending นาน, mismatch","textPreview":"แจ้งเตือน webhook ล้มเหลว, pending นาน, mismatch","textChars":48,"textLines":1,"bbox":[744,378,430,54]}
+{"kind":"shape","id":"sh/kv6p0vud","slide":8,"name":"ready-4","bbox":[42,478,570,132]}
+{"kind":"textbox","id":"sh/cfapgv29","slide":8,"name":"num-4","text":"05","textPreview":"05","textChars":2,"textLines":1,"bbox":[64,496,60,38]}
+{"kind":"textbox","id":"sh/xgjq903u","slide":8,"name":"rt-4","text":"Security","textPreview":"Security","textChars":8,"textLines":1,"bbox":[136,494,430,34]}
+{"kind":"textbox","id":"sh/ad87elk3","slide":8,"name":"rb-4","text":"เก็บ key ใน secret manager, rotate key, จำกัด raw_response","textPreview":"เก็บ key ใน secret manager, rotate key, จำกัด raw_response","textChars":58,"textLines":1,"bbox":[136,536,430,54]}
+{"kind":"shape","id":"sh/be187qlo","slide":8,"name":"ready-5","bbox":[650,478,570,132]}
+{"kind":"textbox","id":"sh/obqpcb2d","slide":8,"name":"num-5","text":"06","textPreview":"06","textChars":2,"textLines":1,"bbox":[672,496,60,38]}
+{"kind":"textbox","id":"sh/pcz65g3y","slide":8,"name":"rt-5","text":"Accounting","textPreview":"Accounting","textChars":10,"textLines":1,"bbox":[744,494,430,34]}
+{"kind":"textbox","id":"sh/2987alk7","slide":8,"name":"rb-5","text":"แยก GP, gateway fee, VAT fee และเงินโรงแรมให้ชัด","textPreview":"แยก GP, gateway fee, VAT fee และเงินโรงแรมให้ชัด","textChars":48,"textLines":1,"bbox":[744,536,430,54]}
+{"kind":"textbox","id":"sh/naho36ls","slide":8,"name":"source","text":"ข้อสังเกตจากการ review โค้ด ณ 22 ก.ค. 2026","textPreview":"ข้อสังเกตจากการ review โค้ด ณ 22 ก.ค. 2026","textChars":42,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/87upof2h","slide":8,"name":"page","text":"08","textPreview":"08","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/s09zwb","slide":8,"text":""}
+{"kind":"slide","id":"sl/jyfx0g","slide":9,"title":"PETPAL • BUSINESS UPDATE","textShapes":17}
+{"kind":"textbox","id":"sh/wju9wrip","slide":9,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/bil83m1k","slide":9,"name":"title","text":"ปัญหากล้องไม่ใช่ ‘ภาพชัดไหม’ แต่คือ ‘ดูจากข้างนอกได้อย่างปลอดภัยไหม’","textPreview":"ปัญหากล้องไม่ใช่ ‘ภาพชัดไหม’ แต่คือ ‘ดูจากข้างนอกได้อย่างปลอดภัยไหม’","textChars":68,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/ahcruh0z","slide":9,"name":"flow-bg","bbox":[42,180,1196,230]}
+{"kind":"shape","id":"sh/9w3q1cje","slide":9,"name":"node-0","bbox":[70,235,220,120]}
+{"kind":"textbox","id":"sh/ova9s7it","slide":9,"name":"node-t-0","text":"กล้อง RTSP\nในโรงแรม","textPreview":"กล้อง RTSP | ในโรงแรม","textChars":19,"textLines":2,"bbox":[86,264,188,64]}
+{"kind":"textbox","id":"sh/nu18z218","slide":9,"name":"arrow-0","text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[302,270,50,50]}
+{"kind":"shape","id":"sh/mtsrqx0n","slide":9,"name":"node-1","bbox":[365,235,220,120]}
+{"kind":"textbox","id":"sh/tcnadwji","slide":9,"name":"node-t-1","text":"LAN IP\nเข้าถึงได้เฉพาะวงใน","textPreview":"LAN IP | เข้าถึงได้เฉพาะวงใน","textChars":26,"textLines":2,"bbox":[381,264,188,64]}
+{"kind":"textbox","id":"sh/8re94bix","slide":9,"name":"arrow-1","text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[597,270,50,50]}
+{"kind":"shape","id":"sh/eh8bal83","slide":9,"name":"node-2","bbox":[660,235,220,120]}
+{"kind":"textbox","id":"sh/fi1sjqpo","slide":9,"name":"node-t-2","text":"Backend ตรวจสิทธิ์\nแล้วส่ง URL","textPreview":"Backend ตรวจสิทธิ์ | แล้วส่ง URL","textChars":30,"textLines":2,"bbox":[676,264,188,64]}
+{"kind":"textbox","id":"sh/0jatcvq9","slide":9,"name":"arrow-2","text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[892,270,50,50]}
+{"kind":"shape","id":"sh/1kjul07u","slide":9,"name":"node-3","bbox":[955,235,220,120]}
+{"kind":"textbox","id":"sh/qd8b6l87","slide":9,"name":"node-t-3","text":"มือถือข้างนอก\nเชื่อมต่อไม่ได้","textPreview":"มือถือข้างนอก | เชื่อมต่อไม่ได้","textChars":29,"textLines":2,"bbox":[971,264,188,64]}
+{"kind":"textbox","id":"sh/rehsfqps","slide":9,"name":"bullet-0","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,454,24,32]}
+{"kind":"textbox","id":"sh/sfqt8bqd","slide":9,"name":"bullet-text-0","text":"การซื้อกล้อง RTSP รุ่นใหม่ยังคงได้ LAN IP แบบเดิม จึงไม่แก้ remote viewing","textPreview":"การซื้อกล้อง RTSP รุ่นใหม่ยังคงได้ LAN IP แบบเดิม จึงไม่แก้ remote viewing","textChars":74,"textLines":1,"bbox":[72,454,1166,51]}
+{"kind":"textbox","id":"sh/dgzahg7y","slide":9,"name":"bullet-1","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,509,24,32]}
+{"kind":"textbox","id":"sh/a9cbi58b","slide":9,"name":"bullet-text-1","text":"การเปิด port กล้องออกอินเทอร์เน็ตตรง ๆ เพิ่มความเสี่ยงด้านความปลอดภัย","textPreview":"การเปิด port กล้องออกอินเทอร์เน็ตตรง ๆ เพิ่มความเสี่ยงด้านความปลอดภัย","textChars":69,"textLines":1,"bbox":[72,509,1166,51]}
+{"kind":"textbox","id":"sh/balcrapw","slide":9,"name":"bullet-2","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,564,24,32]}
+{"kind":"textbox","id":"sh/nitgni1c","slide":9,"name":"bullet-text-2","text":"โค้ดปัจจุบันส่ง credential ใน RTSP URL ถึง client — ต้อง redesign ก่อน production","textPreview":"โค้ดปัจจุบันส่ง credential ใน RTSP URL ถึง client — ต้อง redesign ก่อน production","textChars":81,"textLines":1,"bbox":[72,564,1166,51]}
+{"kind":"textbox","id":"sh/mhkzudkr","slide":9,"name":"source","text":"ที่มา: PetPal_Tech_Handoff.pdf และ backend/app/api/cameras.py","textPreview":"ที่มา: PetPal_Tech_Handoff.pdf และ backend/app/api/cameras.py","textChars":61,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/9kbip8j2","slide":9,"name":"page","text":"09","textPreview":"09","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/jyfx0g","slide":9,"text":""}
+{"kind":"slide","id":"sl/sk3q7f","slide":10,"title":"PETPAL • BUSINESS UPDATE","textShapes":28}
+{"kind":"textbox","id":"sh/re543itc","slide":10,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/sfe5w3ah","slide":10,"name":"title","text":"กล้อง Cloud เร็วกว่าในระยะสั้น; Mini Hub คุมต้นทุนและข้อมูลได้ดีกว่า","textPreview":"กล้อง Cloud เร็วกว่าในระยะสั้น; Mini Hub คุมต้นทุนและข้อมูลได้ดีกว่า","textChars":68,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"textbox","id":"sh/tgnm58b2","slide":10,"name":"h-0","text":"เกณฑ์","textPreview":"เกณฑ์","textChars":5,"textLines":1,"bbox":[42,158,280,42]}
+{"kind":"textbox","id":"sh/ipcn6tsf","slide":10,"name":"h-1","text":"กล้อง Cloud / API ใหม่","textPreview":"กล้อง Cloud / API ใหม่","textChars":22,"textLines":1,"bbox":[350,158,420,42]}
+{"kind":"textbox","id":"sh/jql4zyt0","slide":10,"name":"h-2","text":"กล้องเดิม + Mini Hub","textPreview":"กล้องเดิม + Mini Hub","textChars":20,"textLines":1,"bbox":[800,158,438,42]}
+{"kind":"shape","id":"sh/4bu583al","slide":10,"name":"head-bg","bbox":[42,146,1196,60]}
+{"kind":"textbox","id":"sh/5c3m18b6","slide":10,"name":"hh-0","text":"เกณฑ์","textPreview":"เกณฑ์","textChars":5,"textLines":1,"bbox":[62,162,260,32]}
+{"kind":"textbox","id":"sh/uls32tsj","slide":10,"name":"hh-1","text":"กล้อง Cloud / API ใหม่","textPreview":"กล้อง Cloud / API ใหม่","textChars":22,"textLines":1,"bbox":[370,162,400,32]}
+{"kind":"textbox","id":"sh/vml4vyt4","slide":10,"name":"hh-2","text":"กล้องเดิม + Mini Hub","textPreview":"กล้องเดิม + Mini Hub","textChars":20,"textLines":1,"bbox":[820,162,398,32]}
+{"kind":"shape","id":"sh/nedgzi50","slide":10,"name":"cmp-0","bbox":[42,214,1196,58]}
+{"kind":"textbox","id":"sh/2d4f6d4f","slide":10,"name":"a-0","text":"เริ่มใช้งาน","textPreview":"เริ่มใช้งาน","textChars":11,"textLines":1,"bbox":[62,229,270,30]}
+{"kind":"textbox","id":"sh/pgvy1sn6","slide":10,"name":"b-0","text":"เร็วกว่า หาก vendor API พร้อม","textPreview":"เร็วกว่า หาก vendor API พร้อม","textChars":29,"textLines":1,"bbox":[370,226,400,38]}
+{"kind":"textbox","id":"sh/ofmh8nml","slide":10,"name":"c-0","text":"ต้องพัฒนาและติดตั้ง edge software","textPreview":"ต้องพัฒนาและติดตั้ง edge software","textChars":33,"textLines":1,"bbox":[820,226,398,38]}
+{"kind":"shape","id":"sh/bidg325w","slide":10,"name":"cmp-1","bbox":[42,282,1196,58]}
+{"kind":"textbox","id":"sh/ah4zax4r","slide":10,"name":"a-1","text":"ต้นทุน","textPreview":"ต้นทุน","textChars":6,"textLines":1,"bbox":[62,297,270,30]}
+{"kind":"textbox","id":"sh/xkfy5cn2","slide":10,"name":"b-1","text":"รายปีต่อกล้อง + data quota","textPreview":"รายปีต่อกล้อง + data quota","textChars":26,"textLines":1,"bbox":[370,294,400,38]}
+{"kind":"textbox","id":"sh/cj6hc7mh","slide":10,"name":"c-1","text":"ครั้งเดียวต่อโรงแรม + ดูแล hub","textPreview":"ครั้งเดียวต่อโรงแรม + ดูแล hub","textChars":30,"textLines":1,"bbox":[820,294,398,38]}
+{"kind":"shape","id":"sh/rmtgry5s","slide":10,"name":"cmp-2","bbox":[42,350,1196,58]}
+{"kind":"textbox","id":"sh/qlkfyt47","slide":10,"name":"a-2","text":"Privacy","textPreview":"Privacy","textChars":7,"textLines":1,"bbox":[62,365,270,30]}
+{"kind":"textbox","id":"sh/udsrm5s7","slide":10,"name":"b-2","text":"วิดีโอผ่าน cloud ของ vendor","textPreview":"วิดีโอผ่าน cloud ของ vendor","textChars":27,"textLines":1,"bbox":[370,362,400,38]}
+{"kind":"textbox","id":"sh/ve1svats","slide":10,"name":"c-2","text":"ข้อมูลอยู่ในเครือข่ายโรงแรมมากกว่า","textPreview":"ข้อมูลอยู่ในเครือข่ายโรงแรมมากกว่า","textChars":34,"textLines":1,"bbox":[820,362,398,38]}
+{"kind":"shape","id":"sh/gfatofad","slide":10,"name":"cmp-3","bbox":[42,418,1196,58]}
+{"kind":"textbox","id":"sh/hg3axkbi","slide":10,"name":"a-3","text":"Vendor lock-in","textPreview":"Vendor lock-in","textChars":14,"textLines":1,"bbox":[62,433,270,30]}
+{"kind":"textbox","id":"sh/6psrilsv","slide":10,"name":"b-3","text":"สูง","textPreview":"สูง","textChars":3,"textLines":1,"bbox":[370,430,400,38]}
+{"kind":"textbox","id":"sh/7q1srqtg","slide":10,"name":"c-3","text":"ต่ำกว่า / เปลี่ยนกล้อง RTSP ได้","textPreview":"ต่ำกว่า / เปลี่ยนกล้อง RTSP ได้","textChars":31,"textLines":1,"bbox":[820,430,398,38]}
+{"kind":"shape","id":"sh/8ra9kva1","slide":10,"name":"cmp-4","bbox":[42,486,1196,58]}
+{"kind":"textbox","id":"sh/tsjat0bm","slide":10,"name":"a-4","text":"Scale","textPreview":"Scale","textChars":5,"textLines":1,"bbox":[62,501,270,30]}
+{"kind":"textbox","id":"sh/yl8relsz","slide":10,"name":"b-4","text":"VPS PetPal แทบไม่แบกวิดีโอ","textPreview":"VPS PetPal แทบไม่แบกวิดีโอ","textChars":26,"textLines":1,"bbox":[370,498,400,38]}
+{"kind":"textbox","id":"sh/jmhsnqtk","slide":10,"name":"c-4","text":"กระจายโหลด; ยังต้องมี TURN fallback","textPreview":"กระจายโหลด; ยังต้องมี TURN fallback","textChars":35,"textLines":1,"bbox":[820,498,398,38]}
+{"kind":"shape","id":"sh/1g7utov2","slide":10,"name":"cmp-5","bbox":[42,554,1196,58]}
+{"kind":"textbox","id":"sh/0fydkjuh","slide":10,"name":"a-5","text":"เหมาะกับ","textPreview":"เหมาะกับ","textChars":8,"textLines":1,"bbox":[62,569,270,30]}
+{"kind":"textbox","id":"sh/ze5credw","slide":10,"name":"b-5","text":"Pilot เร่งด่วนที่ยอมรับ recurring fee","textPreview":"Pilot เร่งด่วนที่ยอมรับ recurring fee","textChars":37,"textLines":1,"bbox":[370,566,400,38]}
+{"kind":"textbox","id":"sh/edwvy9cb","slide":10,"name":"c-5","text":"แผนหลักระยะยาวหลายกล้อง/โรงแรม","textPreview":"แผนหลักระยะยาวหลายกล้อง/โรงแรม","textChars":30,"textLines":1,"bbox":[820,566,398,38]}
+{"kind":"textbox","id":"sh/dcnup4vq","slide":10,"name":"source","text":"กล้อง Cloud อ้างอิงการสำรวจใน PetPal_Cost_Report.pdf; ต้องขอราคา/quota vendor ก่อนตัดสินใจ","textPreview":"กล้อง Cloud อ้างอิงการสำรวจใน PetPal_Cost_Report.pdf; ต้องขอราคา/quota vendor ก่อนตัดสินใจ","textChars":90,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/cbedwjul","slide":10,"name":"page","text":"10","textPreview":"10","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/sk3q7f","slide":10,"text":""}
+{"kind":"slide","id":"sl/wtptkn","slide":11,"title":"PETPAL • BUSINESS UPDATE","textShapes":11}
+{"kind":"textbox","id":"sh/4byx0re9","slide":11,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/3apw7mxo","slide":11,"name":"title","text":"คำแนะนำ: ใช้ Mini Hub เป็นสถาปัตยกรรมหลัก แต่ไม่ซื้อรวดเดียวทุกโรงแรม","textPreview":"คำแนะนำ: ใช้ Mini Hub เป็นสถาปัตยกรรมหลัก แต่ไม่ซื้อรวดเดียวทุกโรงแรม","textChars":69,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/29gfyhw3","slide":11,"name":"why1","bbox":[42,180,374,350]}
+{"kind":"shape","id":"sh/dgredwfq","slide":11,"name":"why1-accent","bbox":[42,180,8,350]}
+{"kind":"textbox","id":"sh/cfix4re5","slide":11,"name":"why1-title","text":"เหตุผล 1 — ใช้ของเดิมได้","textPreview":"เหตุผล 1 — ใช้ของเดิมได้","textChars":24,"textLines":1,"bbox":[68,202,328,36]}
+{"kind":"textbox","id":"sh/re9wbmxk","slide":11,"name":"why1-body","text":"คงกล้อง Tapo/RTSP ที่มีอยู่ ลดการทิ้งอุปกรณ์ และรองรับกล้องหลายยี่ห้อในอนาคต","textPreview":"คงกล้อง Tapo/RTSP ที่มีอยู่ ลดการทิ้งอุปกรณ์ และรองรับกล้องหลายยี่ห้อในอนาคต","textChars":76,"textLines":1,"bbox":[68,248,328,262]}
+{"kind":"shape","id":"sh/qd0f21wz","slide":11,"name":"why2","bbox":[453,180,374,350]}
+{"kind":"shape","id":"sh/14byhgfm","slide":11,"name":"why2-accent","bbox":[453,180,8,350]}
+{"kind":"textbox","id":"sh/0jix8beh","slide":11,"name":"why2-title","text":"เหตุผล 2 — ต้นทุนไม่โตต่อกล้อง","textPreview":"เหตุผล 2 — ต้นทุนไม่โตต่อกล้อง","textChars":30,"textLines":1,"bbox":[479,202,328,36]}
+{"kind":"textbox","id":"sh/exwfi1w7","slide":11,"name":"why2-body","text":"Hub 1 เครื่องต่อโรงแรมรองรับหลายกล้อง ขณะที่ Cloud API มักคิดรายปีต่อกล้องและตาม traffic","textPreview":"Hub 1 เครื่องต่อโรงแรมรองรับหลายกล้อง ขณะที่ Cloud API มักคิดรายปีต่อกล้องและตาม traffic","textChars":88,"textLines":1,"bbox":[479,248,328,262]}
+{"kind":"shape","id":"sh/fy5gr6xc","slide":11,"name":"why3","bbox":[864,180,374,350]}
+{"kind":"shape","id":"sh/gzehkbex","slide":11,"name":"why3-accent","bbox":[864,180,8,350]}
+{"kind":"textbox","id":"sh/10nytgfi","slide":11,"name":"why3-title","text":"เหตุผล 3 — Privacy ดีกว่า","textPreview":"เหตุผล 3 — Privacy ดีกว่า","textChars":25,"textLines":1,"bbox":[890,202,328,36]}
+{"kind":"textbox","id":"sh/21gzmlw3","slide":11,"name":"why3-body","text":"ลดการส่งวิดีโอผ่าน cloud ของ vendor และไม่ต้องเปิด port กล้องสู่ public internet","textPreview":"ลดการส่งวิดีโอผ่าน cloud ของ vendor และไม่ต้องเปิด port กล้องสู่ public internet","textChars":80,"textLines":1,"bbox":[890,248,328,262]}
+{"kind":"textbox","id":"sh/32pgv6xo","slide":11,"name":"rec","text":"วิธีเดินที่ปลอดภัย: Pilot Mini Hub กับ 1–3 โรงแรม → วัด bitrate/P2P success → ค่อย rollout","textPreview":"วิธีเดินที่ปลอดภัย: Pilot Mini Hub กับ 1–3 โรงแรม → วัด bitrate/P2P success → ค่อย rollout","textChars":90,"textLines":1,"bbox":[42,566,1196,58]}
+{"kind":"textbox","id":"sh/o3yhobe9","slide":11,"name":"source","text":"ข้อเสนอเชิงสถาปัตยกรรมจากเอกสาร + การตรวจ implementation ปัจจุบัน","textPreview":"ข้อเสนอเชิงสถาปัตยกรรมจากเอกสาร + การตรวจ implementation ปัจจุบัน","textChars":65,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/p47yxgfu","slide":11,"name":"page","text":"11","textPreview":"11","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/wtptkn","slide":11,"text":""}
+{"kind":"slide","id":"sl/qn6ap9","slide":12,"title":"PETPAL • BUSINESS UPDATE","textShapes":14}
+{"kind":"textbox","id":"sh/1kv6xsjy","slide":12,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/eh472dkn","slide":12,"name":"title","text":"ตัวอย่าง 3 กล้อง/โรงแรม: Mini Hub เพิ่มเงินลงทุน แต่คืนทุนยังสั้น","textPreview":"ตัวอย่าง 3 กล้อง/โรงแรม: Mini Hub เพิ่มเงินลงทุน แต่คืนทุนยังสั้น","textChars":65,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/zidovi1s","slide":12,"name":"ua","bbox":[42,178,374,360]}
+{"kind":"shape","id":"sh/cf2p032h","slide":12,"name":"ua-accent","bbox":[42,178,8,360]}
+{"kind":"textbox","id":"sh/dgv6t832","slide":12,"name":"ua-title","text":"A • โปรโมชั่นกล้อง","textPreview":"A • โปรโมชั่นกล้อง","textChars":18,"textLines":1,"bbox":[68,200,328,36]}
+{"kind":"textbox","id":"sh/qdk7ydkb","slide":12,"name":"ua-stat","text":"1,360 บาท","textPreview":"1,360 บาท","textChars":9,"textLines":1,"bbox":[68,244,328,74]}
+{"kind":"textbox","id":"sh/retorylw","slide":12,"name":"ua-body","text":"กล้องแรกฟรีให้โรงแรม + อุดหนุนส่วนลด 30% สำหรับอีก 2 ตัว\nต้นทุนแพลตฟอร์ม = 850 + (2 × 255)","textPreview":"กล้องแรกฟรีให้โรงแรม + อุดหนุนส่วนลด 30% สำหรับอีก 2 ตัว | ต้นทุนแพลตฟอร์ม = 850 + (2 × 255)","textChars":90,"textLines":2,"bbox":[68,326,328,192]}
+{"kind":"shape","id":"sh/wb6pc72l","slide":12,"name":"ub","bbox":[453,178,374,360]}
+{"kind":"shape","id":"sh/xcfq5cj6","slide":12,"name":"ub-accent","bbox":[453,178,8,360]}
+{"kind":"textbox","id":"sh/d4fylwvi","slide":12,"name":"ub-title","text":"B • กล้อง + Mini Hub","textPreview":"B • กล้อง + Mini Hub","textChars":20,"textLines":1,"bbox":[479,200,328,36]}
+{"kind":"textbox","id":"sh/s36hsrex","slide":12,"name":"ub-stat","text":"3,360 บาท","textPreview":"3,360 บาท","textChars":9,"textLines":1,"bbox":[479,244,328,74]}
+{"kind":"textbox","id":"sh/r2dgjmdc","slide":12,"name":"ub-body","text":"ลงทุนแบบ A แล้วเพิ่ม Mini Hub สมมติ 2,000 บาทต่อโรงแรม","textPreview":"ลงทุนแบบ A แล้วเพิ่ม Mini Hub สมมติ 2,000 บาทต่อโรงแรม","textChars":54,"textLines":1,"bbox":[479,326,328,192]}
+{"kind":"shape","id":"sh/q14zqhwr","slide":12,"name":"rev","bbox":[864,178,374,360]}
+{"kind":"shape","id":"sh/50vyhwf6","slide":12,"name":"rev-accent","bbox":[864,178,8,360]}
+{"kind":"textbox","id":"sh/4zmhorel","slide":12,"name":"rev-title","text":"รายได้สมมติ/เดือน","textPreview":"รายได้สมมติ/เดือน","textChars":17,"textLines":1,"bbox":[890,200,328,36]}
+{"kind":"textbox","id":"sh/3ydgfmxg","slide":12,"name":"rev-stat","text":"828 บาท/เดือน","textPreview":"828 บาท/เดือน","textChars":13,"textLines":1,"bbox":[890,244,328,74]}
+{"kind":"textbox","id":"sh/ix4zmhwv","slide":12,"name":"rev-body","text":"Package 249 + ช่าง 129 + GP attributable 450\n(ยอดจอง 15,000 × GP 30% × attribution 10%)","textPreview":"Package 249 + ช่าง 129 + GP attributable 450 | (ยอดจอง 15,000 × GP 30% × attribution 10%)","textChars":87,"textLines":2,"bbox":[890,326,328,192]}
+{"kind":"textbox","id":"sh/pwzitgvq","slide":12,"name":"be","text":"จุดคุ้มทุนประมาณ: A = 1.6 เดือน • B = 4.1 เดือน","textPreview":"จุดคุ้มทุนประมาณ: A = 1.6 เดือน • B = 4.1 เดือน","textChars":47,"textLines":1,"bbox":[42,570,1196,54]}
+{"kind":"textbox","id":"sh/ovqh0be5","slide":12,"name":"source","text":"แก้ความคลาดเคลื่อนใน calculator เดิม: ส่วนลด 30% หมายถึง platform subsidize 30%, ไม่ใช่ 70%","textPreview":"แก้ความคลาดเคลื่อนใน calculator เดิม: ส่วนลด 30% หมายถึง platform subsidize 30%, ไม่ใช่ 70%","textChars":91,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/8bytcjqd","slide":12,"name":"page","text":"12","textPreview":"12","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/qn6ap9","slide":12,"text":""}
+{"kind":"slide","id":"sl/hdjuyd","slide":13,"title":"PETPAL • BUSINESS UPDATE","textShapes":15}
+{"kind":"textbox","id":"sh/mxwva1k3","slide":13,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/90ne5g3u","slide":13,"name":"title","text":"แผน 90 วัน: พิสูจน์ธุรกรรมและกล้อง ก่อนขยาย","textPreview":"แผน 90 วัน: พิสูจน์ธุรกรรมและกล้อง ก่อนขยาย","textChars":43,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/8zedcb29","slide":13,"name":"phase-0","bbox":[42,205,374,350]}
+{"kind":"textbox","id":"sh/v25w76lk","slide":13,"name":"date-0","text":"0–30 วัน","textPreview":"0–30 วัน","textChars":8,"textLines":1,"bbox":[66,230,326,34]}
+{"kind":"textbox","id":"sh/u1wve1kf","slide":13,"name":"pt-0","text":"Payment hardening","textPreview":"Payment hardening","textChars":17,"textLines":1,"bbox":[66,286,326,64]}
+{"kind":"textbox","id":"sh/ho7e9g3q","slide":13,"name":"pb-0","text":"เพิ่ม idempotency, reconciliation, alert, refund rule และทดลอง settlement จริงยอดต่ำ","textPreview":"เพิ่ม idempotency, reconciliation, alert, refund rule และทดลอง settlement จริงยอดต่ำ","textChars":84,"textLines":1,"bbox":[66,376,326,124]}
+{"kind":"textbox","id":"sh/wnedgb25","slide":13,"name":"pa-0","text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[416,340,37,50]}
+{"kind":"shape","id":"sh/b6lcvmlg","slide":13,"name":"phase-1","bbox":[453,205,374,350]}
+{"kind":"textbox","id":"sh/a5cv2hkv","slide":13,"name":"date-1","text":"31–60 วัน","textPreview":"31–60 วัน","textChars":9,"textLines":1,"bbox":[477,230,326,34]}
+{"kind":"textbox","id":"sh/8zux83ih","slide":13,"name":"pt-1","text":"Mini Hub pilot","textPreview":"Mini Hub pilot","textChars":14,"textLines":1,"bbox":[477,286,326,64]}
+{"kind":"textbox","id":"sh/9k3e18zm","slide":13,"name":"pb-1","text":"ติดตั้ง 1–3 โรงแรม วัด bitrate, uptime, P2P success, TURN fallback และเวลาหน้างาน","textPreview":"ติดตั้ง 1–3 โรงแรม วัด bitrate, uptime, P2P success, TURN fallback และเวลาหน้างาน","textChars":81,"textLines":1,"bbox":[477,376,326,124]}
+{"kind":"textbox","id":"sh/mxsf6d0b","slide":13,"name":"pa-1","text":"→","textPreview":"→","textChars":1,"textLines":1,"bbox":[827,340,37,50]}
+{"kind":"shape","id":"sh/nylwzyhw","slide":13,"name":"phase-2","bbox":[864,205,374,350]}
+{"kind":"textbox","id":"sh/wnuxcnid","slide":13,"name":"date-2","text":"61–90 วัน","textPreview":"61–90 วัน","textChars":9,"textLines":1,"bbox":[888,230,326,34]}
+{"kind":"textbox","id":"sh/ho3e5szy","slide":13,"name":"pt-2","text":"Commercial rollout","textPreview":"Commercial rollout","textChars":18,"textLines":1,"bbox":[888,286,326,64]}
+{"kind":"textbox","id":"sh/ulcfad07","slide":13,"name":"pb-2","text":"ล็อกราคา package/ช่าง, SOP ติดตั้ง, privacy notice, support SLA และเกณฑ์ซื้อเพิ่ม","textPreview":"ล็อกราคา package/ช่าง, SOP ติดตั้ง, privacy notice, support SLA และเกณฑ์ซื้อเพิ่ม","textChars":81,"textLines":1,"bbox":[888,376,326,124]}
+{"kind":"textbox","id":"sh/vmlw3ihs","slide":13,"name":"source","text":"เกณฑ์ผ่าน pilot ควรกำหนดเป็นตัวเลขก่อนเริ่ม เช่น uptime, latency, fallback rate และจำนวน ticket","textPreview":"เกณฑ์ผ่าน pilot ควรกำหนดเป็นตัวเลขก่อนเริ่ม เช่น uptime, latency, fallback rate และจำนวน ticket","textChars":95,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/crax0ji9","slide":13,"name":"page","text":"13","textPreview":"13","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/hdjuyd","slide":13,"text":""}
+{"kind":"slide","id":"sl/nj1zq5","slide":14,"title":"PETPAL • BUSINESS UPDATE","textShapes":15}
+{"kind":"textbox","id":"sh/hsz6x4zm","slide":14,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/upo72p0b","slide":14,"name":"title","text":"สิ่งที่ต้องอนุมัติ เพื่อให้ทีมเดินต่อได้โดยไม่เกิดงบบาน","textPreview":"สิ่งที่ต้องอนุมัติ เพื่อให้ทีมเดินต่อได้โดยไม่เกิดงบบาน","textChars":55,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"shape","id":"sh/vqxovuhw","slide":14,"name":"decision-0","bbox":[42,164,570,128]}
+{"kind":"textbox","id":"sh/8n6p0fi5","slide":14,"name":"check-0","text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[62,198,50,50]}
+{"kind":"textbox","id":"sh/9of6tkzq","slide":14,"name":"decision-t-0","text":"อนุมัติ Omise แบบ absorb fee และตั้ง PromptPay เป็นค่าเริ่มต้น","textPreview":"อนุมัติ Omise แบบ absorb fee และตั้ง PromptPay เป็นค่าเริ่มต้น","textChars":62,"textLines":1,"bbox":[130,189,448,76]}
+{"kind":"shape","id":"sh/mlo7yp0z","slide":14,"name":"decision-1","bbox":[650,164,570,128]}
+{"kind":"textbox","id":"sh/7mxorahk","slide":14,"name":"check-1","text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[670,198,50,50]}
+{"kind":"textbox","id":"sh/sjapcji9","slide":14,"name":"decision-t-1","text":"อนุมัติงบ payment hardening + accounting workflow ก่อน live","textPreview":"อนุมัติงบ payment hardening + accounting workflow ก่อน live","textChars":59,"textLines":1,"bbox":[738,189,448,76]}
+{"kind":"shape","id":"sh/dkjq5ozu","slide":14,"name":"decision-2","bbox":[42,318,570,128]}
+{"kind":"textbox","id":"sh/t83mdsra","slide":14,"name":"check-2","text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[62,352,50,50]}
+{"kind":"textbox","id":"sh/s7ul4nap","slide":14,"name":"decision-t-2","text":"อนุมัติ Mini Hub pilot 1–3 โรงแรม งบอุปกรณ์ 1,500–3,000 บาท/แห่ง","textPreview":"อนุมัติ Mini Hub pilot 1–3 โรงแรม งบอุปกรณ์ 1,500–3,000 บาท/แห่ง","textChars":64,"textLines":1,"bbox":[130,343,448,76]}
+{"kind":"shape","id":"sh/76l4bi9k","slide":14,"name":"decision-3","bbox":[650,318,570,128]}
+{"kind":"textbox","id":"sh/65s32dsz","slide":14,"name":"check-3","text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[670,352,50,50]}
+{"kind":"textbox","id":"sh/54jm9sre","slide":14,"name":"decision-t-3","text":"กำหนด Package 199–299 และช่าง 100–150 บาท/เดือน/โรงแรม","textPreview":"กำหนด Package 199–299 และช่าง 100–150 บาท/เดือน/โรงแรม","textChars":54,"textLines":1,"bbox":[738,343,448,76]}
+{"kind":"shape","id":"sh/k3al0nat","slide":14,"name":"decision-4","bbox":[42,472,570,128]}
+{"kind":"textbox","id":"sh/j2147i98","slide":14,"name":"check-4","text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[62,506,50,50]}
+{"kind":"textbox","id":"sh/i1s3ydsn","slide":14,"name":"decision-t-4","text":"ขอใบเสนอราคา VPS, กล้อง, Hub และ Cloud-camera API เพื่อแทนตัวเลขประมาณการ","textPreview":"ขอใบเสนอราคา VPS, กล้อง, Hub และ Cloud-camera API เพื่อแทนตัวเลขประมาณการ","textChars":73,"textLines":1,"bbox":[130,497,448,76]}
+{"kind":"shape","id":"sh/p0nmlcri","slide":14,"name":"decision-5","bbox":[650,472,570,128]}
+{"kind":"textbox","id":"sh/4zelc7ax","slide":14,"name":"check-5","text":"✓","textPreview":"✓","textChars":1,"textLines":1,"bbox":[670,506,50,50]}
+{"kind":"textbox","id":"sh/o3m58by9","slide":14,"name":"decision-t-5","text":"กำหนดผู้รับผิดชอบ maintenance และ SLA หลังส่งมอบ","textPreview":"กำหนดผู้รับผิดชอบ maintenance และ SLA หลังส่งมอบ","textChars":48,"textLines":1,"bbox":[738,497,448,76]}
+{"kind":"shape","id":"sh/p4v6hgzu","slide":14,"name":"source","bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/214n6l03","slide":14,"name":"page","text":"14","textPreview":"14","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/nj1zq5","slide":14,"text":""}
+{"kind":"slide","id":"sl/gk653s","slide":15,"title":"PETPAL • BUSINESS UPDATE","textShapes":17}
+{"kind":"textbox","id":"sh/9ozq1kfu","slide":15,"name":"kicker","text":"PETPAL • BUSINESS UPDATE","textPreview":"PETPAL • BUSINESS UPDATE","textChars":24,"textLines":1,"bbox":[42,24,800,26]}
+{"kind":"textbox","id":"sh/m18rqpwj","slide":15,"name":"title","text":"แหล่งข้อมูลและข้อจำกัดของตัวเลข","textPreview":"แหล่งข้อมูลและข้อจำกัดของตัวเลข","textChars":31,"textLines":1,"bbox":[42,58,1160,74]}
+{"kind":"textbox","id":"sh/7mh8zax4","slide":15,"name":"bullet-0","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,160,24,32]}
+{"kind":"textbox","id":"sh/kz6pofed","slide":15,"name":"bullet-text-0","text":"เอกสารภายใน: docs/business/PetPal_Cost_Report.pdf และ PetPal_Tech_Handoff.pdf (อัปเดต 22 ก.ค. 2026)","textPreview":"เอกสารภายใน: docs/business/PetPal_Cost_Report.pdf และ PetPal_Tech_Handoff.pdf (อัปเดต 22 ก.ค. 2026)","textChars":99,"textLines":1,"bbox":[72,160,1166,68]}
+{"kind":"textbox","id":"sh/l0zqxkfy","slide":15,"name":"bullet-1","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,232,24,32]}
+{"kind":"textbox","id":"sh/yxo7m5w7","slide":15,"name":"bullet-text-1","text":"โค้ด: backend/app/api/payments.py, services/omise_client.py, api/cameras.py, core/config.py และ docker-compose.prod.yml","textPreview":"โค้ด: backend/app/api/payments.py, services/omise_client.py, api/cameras.py, core/config.py และ docker-compose.prod.yml","textChars":119,"textLines":1,"bbox":[72,232,1166,68]}
+{"kind":"textbox","id":"sh/zyx8vaxs","slide":15,"name":"bullet-2","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,304,24,32]}
+{"kind":"textbox","id":"sh/4va90zex","slide":15,"name":"bullet-text-2","text":"Omise Thailand Pricing: https://www.omise.co/en/pricing/thailand และ Omise Docs: https://docs.omise.co/th/how-much-does-omise-cost/thailand","textPreview":"Omise Thailand Pricing: https://www.omise.co/en/pricing/thailand และ Omise Docs: https://docs.omise.co/th/how-much-does-omise-cost/thailand","textChars":139,"textLines":1,"bbox":[72,304,1166,68]}
+{"kind":"textbox","id":"sh/5wjq94v2","slide":15,"name":"bullet-3","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,376,24,32]}
+{"kind":"textbox","id":"sh/hkjqd8nq","slide":15,"name":"bullet-text-3","text":"Apple Developer Program: 99 USD/ปี — https://developer.apple.com/support/compare-memberships/","textPreview":"Apple Developer Program: 99 USD/ปี — https://developer.apple.com/support/compare-memberships/","textChars":93,"textLines":1,"bbox":[72,376,1166,68]}
+{"kind":"textbox","id":"sh/wjap4365","slide":15,"name":"bullet-4","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,448,24,32]}
+{"kind":"textbox","id":"sh/vih8by5k","slide":15,"name":"bullet-text-4","text":"Google Play Console: 25 USD ครั้งเดียว — https://support.google.com/googleplay/android-developer/answer/6112435","textPreview":"Google Play Console: 25 USD ครั้งเดียว — https://support.google.com/googleplay/android-developer/answer/6112435","textChars":111,"textLines":1,"bbox":[72,448,1166,68]}
+{"kind":"textbox","id":"sh/uh872doz","slide":15,"name":"bullet-5","text":"•","textPreview":"•","textChars":1,"textLines":1,"bbox":[42,520,24,32]}
+{"kind":"textbox","id":"sh/9gzq98ne","slide":15,"name":"bullet-text-5","text":"ตัวเลข VPS, กล้อง, Mini Hub, Cloud camera quota, bitrate และ conversion เป็นประมาณการ ต้องยืนยันด้วยใบเสนอราคาและ pilot","textPreview":"ตัวเลข VPS, กล้อง, Mini Hub, Cloud camera quota, bitrate และ conversion เป็นประมาณการ ต้องยืนยันด้วยใบเสนอราคาและ pilot","textChars":119,"textLines":1,"bbox":[72,520,1166,68]}
+{"kind":"shape","id":"sh/8fqp036t","slide":15,"name":"warning","bbox":[42,596,1196,58]}
+{"kind":"textbox","id":"sh/7eh87y58","slide":15,"name":"warning-t","text":"ข้อควรระวัง: ข้อมูลราคาอาจเปลี่ยนได้ และคำแนะนำภาษี/บัญชีควรยืนยันกับนักบัญชีก่อน Production","textPreview":"ข้อควรระวัง: ข้อมูลราคาอาจเปลี่ยนได้ และคำแนะนำภาษี/บัญชีควรยืนยันกับนักบัญชีก่อน Production","textChars":92,"textLines":1,"bbox":[62,612,1156,30]}
+{"kind":"textbox","id":"sh/md87yto3","slide":15,"name":"source","text":"จัดทำ 22 ก.ค. 2026 • Asia/Bangkok","textPreview":"จัดทำ 22 ก.ค. 2026 • Asia/Bangkok","textChars":33,"textLines":1,"bbox":[42,676,1080,18]}
+{"kind":"textbox","id":"sh/tc3qlsni","slide":15,"name":"page","text":"15","textPreview":"15","textChars":2,"textLines":1,"bbox":[1180,672,56,20]}
+{"kind":"notes","id":"nt/gk653s","slide":15,"text":""}

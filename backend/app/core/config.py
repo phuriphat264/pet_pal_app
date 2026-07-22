@@ -46,6 +46,11 @@ class Settings(BaseSettings):
 
     # Camera credential encryption (Fernet key, 32 url-safe base64 bytes)
     camera_secret_key: str = "dev-camera-key-change-me-32-bytes-min!!"
+    # Pre-filled in the technician's "add camera" form so every camera's RTSP
+    # account uses the same username by convention -- only the password
+    # varies per camera. Cuts down on typo-driven 401s from technicians
+    # retyping a username per camera.
+    camera_default_username: str = "petpal"
 
     # LiveKit (self-hosted, voice/video calls in chat). livekit_url is the
     # backend-internal address (the docker-compose service name); livekit_public_url
@@ -66,6 +71,12 @@ class Settings(BaseSettings):
     # Embedding model (fastembed-supported, 384-dim, multilingual incl. Thai)
     embedding_model_name: str = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
     embedding_dim: int = 384
+
+    # Omise (Opn Payments) -- payment gateway. Use pkey_test_/skey_test_ keys
+    # from the Omise dashboard while developing; swap to pkey_live_/skey_live_
+    # only once ready to take real money.
+    omise_public_key: str = ""
+    omise_secret_key: str = ""
 
     # Seed admin
     seed_admin_email: str = "admin@petpal.app"

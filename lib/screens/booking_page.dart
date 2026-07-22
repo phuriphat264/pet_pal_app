@@ -1,6 +1,9 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import '../services/booking_repository.dart';
+import '../services/payment_repository.dart';
 import '../services/pet_repository.dart';
 
 class BookingPage extends StatefulWidget {
@@ -482,8 +485,9 @@ class _BookingPageState extends State<BookingPage> {
     }
 
     setState(() => _submitting = true);
+    Map<String, dynamic> booking;
     try {
-      await context.read<BookingRepository>().createBooking(
+      booking = await context.read<BookingRepository>().createBooking(
             hotelId: hotelId,
             roomId: widget.roomId,
             petId: _firstPet?['id'] as String?,
@@ -503,6 +507,76 @@ class _BookingPageState extends State<BookingPage> {
     if (!mounted) return;
     setState(() => _submitting = false);
 
+    final bookingId = booking['id'] as String;
+    if (_paymentMethod == 'Credit Card') {
+      await _payWithCard(bookingId);
+    } else {
+      await _payWithPromptPay(bookingId);
+    }
+  }
+
+  Future<void> _payWithCard(String bookingId) async {
+    final token = await showModalBottomSheet<String>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(24))),
+      builder: (_) => const _CardPaymentSheet(),
+    );
+    if (token == null || !mounted) return;
+
+    setState(() => _submitting = true);
+    try {
+      final payment = await context
+          .read<PaymentRepository>()
+          .createPayment(bookingId: bookingId, method: 'card', cardToken: token);
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      if (payment['status'] == 'successful') {
+        _showSuccessDialog();
+      } else {
+        _showFailureDialog(payment['failure_message'] as String? ?? 'การชำระเงินไม่สำเร็จ ลองใหม่อีกครั้ง');
+      }
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      _showFailureDialog('$e');
+    }
+  }
+
+  Future<void> _payWithPromptPay(String bookingId) async {
+    setState(() => _submitting = true);
+    Map<String, dynamic> payment;
+    try {
+      payment = await context.read<PaymentRepository>().createPayment(bookingId: bookingId, method: 'promptpay');
+    } catch (e) {
+      if (!mounted) return;
+      setState(() => _submitting = false);
+      _showFailureDialog('$e');
+      return;
+    }
+    if (!mounted) return;
+    setState(() => _submitting = false);
+
+    final qrUrl = payment['qr_image_url'] as String?;
+    if (qrUrl == null) {
+      _showFailureDialog('ไม่พบ QR code สำหรับชำระเงิน ลองใหม่อีกครั้ง');
+      return;
+    }
+
+    final success = await showDialog<bool>(
+      context: context,
+      barrierDismissible: false,
+      builder: (_) => _PromptPayQrDialog(qrUrl: qrUrl, bookingId: bookingId),
+    );
+    if (success == true) {
+      _showSuccessDialog();
+    } else if (success == false) {
+      _showFailureDialog('การชำระเงินไม่สำเร็จหรือหมดเวลา ลองใหม่อีกครั้ง');
+    }
+  }
+
+  void _showSuccessDialog() {
     showDialog(
       context: context,
       barrierDismissible: false,
@@ -545,6 +619,253 @@ class _BookingPageState extends State<BookingPage> {
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  void _showFailureDialog(String message) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: Colors.white,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 20),
+            Container(
+              width: 80, height: 80,
+              decoration: const BoxDecoration(color: Color(0xFFFDECEA), shape: BoxShape.circle),
+              child: const Icon(Icons.error_rounded, color: Color(0xFFC0392B), size: 48),
+            ),
+            const SizedBox(height: 24),
+            const Text('ชำระเงินไม่สำเร็จ',
+                style: TextStyle(fontSize: 22, fontWeight: FontWeight.w700, color: _darkBrown)),
+            const SizedBox(height: 8),
+            Text(message, textAlign: TextAlign.center, style: const TextStyle(fontSize: 14, color: _mutedBrown)),
+            const SizedBox(height: 28),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () => Navigator.pop(ctx),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: _brown,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+                ),
+                child: const Text('ปิด', style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _CardPaymentSheet extends StatefulWidget {
+  const _CardPaymentSheet();
+
+  @override
+  State<_CardPaymentSheet> createState() => _CardPaymentSheetState();
+}
+
+class _CardPaymentSheetState extends State<_CardPaymentSheet> {
+  static const Color _brown = Color(0xFF5C3D2E);
+  static const Color _darkBrown = Color(0xFF3D2316);
+
+  final _numberCtrl = TextEditingController();
+  final _nameCtrl = TextEditingController();
+  final _expCtrl = TextEditingController();
+  final _cvvCtrl = TextEditingController();
+  bool _submitting = false;
+  String? _error;
+
+  @override
+  void dispose() {
+    _numberCtrl.dispose();
+    _nameCtrl.dispose();
+    _expCtrl.dispose();
+    _cvvCtrl.dispose();
+    super.dispose();
+  }
+
+  Future<void> _submit() async {
+    final expParts = _expCtrl.text.split('/');
+    final month = expParts.length == 2 ? int.tryParse(expParts[0].trim()) : null;
+    final yearPart = expParts.length == 2 ? int.tryParse(expParts[1].trim()) : null;
+    if (month == null || yearPart == null) {
+      setState(() => _error = 'กรอกวันหมดอายุให้ถูกต้อง (MM/YY)');
+      return;
+    }
+
+    setState(() {
+      _submitting = true;
+      _error = null;
+    });
+    try {
+      final token = await context.read<PaymentRepository>().createCardToken(
+            cardNumber: _numberCtrl.text,
+            name: _nameCtrl.text,
+            expMonth: month,
+            expYear: yearPart < 100 ? 2000 + yearPart : yearPart,
+            securityCode: _cvvCtrl.text,
+          );
+      if (!mounted) return;
+      Navigator.pop(context, token);
+    } catch (e) {
+      if (!mounted) return;
+      setState(() {
+        _submitting = false;
+        _error = 'ข้อมูลบัตรไม่ถูกต้อง: $e';
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.only(left: 20, right: 20, top: 24, bottom: MediaQuery.of(context).viewInsets.bottom + 24),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Text('ชำระด้วยบัตรเครดิต/เดบิต',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700, color: _darkBrown)),
+          const SizedBox(height: 16),
+          TextField(
+            controller: _numberCtrl,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'หมายเลขบัตร'),
+          ),
+          const SizedBox(height: 12),
+          TextField(controller: _nameCtrl, decoration: const InputDecoration(labelText: 'ชื่อบนบัตร')),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Expanded(
+                child: TextField(
+                  controller: _expCtrl,
+                  decoration: const InputDecoration(labelText: 'MM/YY'),
+                ),
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: TextField(
+                  controller: _cvvCtrl,
+                  keyboardType: TextInputType.number,
+                  obscureText: true,
+                  decoration: const InputDecoration(labelText: 'CVV'),
+                ),
+              ),
+            ],
+          ),
+          if (_error != null) ...[
+            const SizedBox(height: 8),
+            Text(_error!, style: const TextStyle(color: Colors.redAccent, fontSize: 13)),
+          ],
+          const SizedBox(height: 20),
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: _submitting ? null : _submit,
+              style: ElevatedButton.styleFrom(
+                backgroundColor: _brown,
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+              ),
+              child: _submitting
+                  ? const SizedBox(
+                      width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('ยืนยันชำระเงิน',
+                      style: TextStyle(color: Colors.white, fontSize: 16, fontWeight: FontWeight.w600)),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PromptPayQrDialog extends StatefulWidget {
+  final String qrUrl;
+  final String bookingId;
+  const _PromptPayQrDialog({required this.qrUrl, required this.bookingId});
+
+  @override
+  State<_PromptPayQrDialog> createState() => _PromptPayQrDialogState();
+}
+
+class _PromptPayQrDialogState extends State<_PromptPayQrDialog> {
+  static const Color _darkBrown = Color(0xFF3D2316);
+  static const Color _mutedBrown = Color(0xFF9E7A60);
+
+  Timer? _pollTimer;
+  int _elapsedSeconds = 0;
+  static const int _timeoutSeconds = 300;
+
+  @override
+  void initState() {
+    super.initState();
+    _pollTimer = Timer.periodic(const Duration(seconds: 3), (_) => _poll());
+  }
+
+  @override
+  void dispose() {
+    _pollTimer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _poll() async {
+    _elapsedSeconds += 3;
+    if (_elapsedSeconds >= _timeoutSeconds) {
+      _pollTimer?.cancel();
+      if (mounted) Navigator.pop(context, false);
+      return;
+    }
+    try {
+      final payment = await context.read<PaymentRepository>().fetchLatestPayment(widget.bookingId);
+      final status = payment['status'] as String?;
+      if (status == 'successful') {
+        _pollTimer?.cancel();
+        if (mounted) Navigator.pop(context, true);
+      } else if (status == 'failed' || status == 'expired') {
+        _pollTimer?.cancel();
+        if (mounted) Navigator.pop(context, false);
+      }
+    } catch (_) {
+      // Transient network hiccup while polling -- keep trying until timeout.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AlertDialog(
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+      content: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          const Text('สแกน QR เพื่อชำระผ่าน PromptPay',
+              style: TextStyle(fontSize: 17, fontWeight: FontWeight.w700, color: _darkBrown)),
+          const SizedBox(height: 16),
+          Image.network(widget.qrUrl, width: 220, height: 220),
+          const SizedBox(height: 16),
+          const Text('รอการชำระเงิน...', style: TextStyle(fontSize: 13, color: _mutedBrown)),
+          const SizedBox(height: 4),
+          const SizedBox(
+            width: 20, height: 20,
+            child: CircularProgressIndicator(strokeWidth: 2),
+          ),
+          const SizedBox(height: 16),
+          TextButton(
+            onPressed: () {
+              _pollTimer?.cancel();
+              Navigator.pop(context, null);
+            },
+            child: const Text('ยกเลิก'),
+          ),
+        ],
       ),
     );
   }

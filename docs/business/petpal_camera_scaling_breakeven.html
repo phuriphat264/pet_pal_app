@@ -1,0 +1,612 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<title>PetPal — กล้องใหม่, Scale Server และจุดคุ้มทุน</title>
+<style>
+  :root {
+    --bg: #f9f6f1;
+    --surface: #fffdfa;
+    --surface-2: #f4eee3;
+    --ink: #241c14;
+    --ink-2: #6b6258;
+    --ink-3: #948a7c;
+    --accent: #5b3a24;
+    --accent-warm: #b5502e;
+    --border: rgba(36,28,20,0.12);
+    --border-strong: rgba(36,28,20,0.20);
+    --grid: #e5ddd0;
+    --series-a: #2a78d6;
+    --series-b: #eb6834;
+    --good: #0ca30c;
+    --tag-hotel-bg: #fbe9d9; --tag-hotel-fg: #8a4e14;
+    --tag-dev-bg: #e6eefb; --tag-dev-fg: #29508a;
+    --tag-client-bg: #e4efe1; --tag-client-fg: #2f6b2a;
+    --callout-bg: #fdf1ea; --callout-border: #b5502e;
+    --callout-good-bg: #eef6ec; --callout-good-border: #2f6b2a;
+    --callout-note-bg: #eef2f6; --callout-note-border: #7a8ca3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg: #1b1611;
+      --surface: #241d16;
+      --surface-2: #2c241a;
+      --ink: #f3ece0;
+      --ink-2: #c9bfae;
+      --ink-3: #8f8576;
+      --accent: #e0c9a6;
+      --accent-warm: #e08a5e;
+      --border: rgba(243,236,224,0.12);
+      --border-strong: rgba(243,236,224,0.22);
+      --grid: #392f22;
+      --series-a: #3987e5;
+      --series-b: #d95926;
+      --good: #2fca2f;
+      --tag-hotel-bg: #3a2c19; --tag-hotel-fg: #e3b06b;
+      --tag-dev-bg: #1c2a3d; --tag-dev-fg: #8fb4ee;
+      --tag-client-bg: #1e2e1c; --tag-client-fg: #8fce85;
+      --callout-bg: #2e1f17; --callout-border: #e08a5e;
+      --callout-good-bg: #1c2a1a; --callout-good-border: #5ea855;
+      --callout-note-bg: #1c232c; --callout-note-border: #7c93ac;
+    }
+  }
+  :root[data-theme="dark"] {
+    --bg: #1b1611; --surface: #241d16; --surface-2: #2c241a;
+    --ink: #f3ece0; --ink-2: #c9bfae; --ink-3: #8f8576;
+    --accent: #e0c9a6; --accent-warm: #e08a5e;
+    --border: rgba(243,236,224,0.12); --border-strong: rgba(243,236,224,0.22);
+    --grid: #392f22; --series-a: #3987e5; --series-b: #d95926; --good: #2fca2f;
+    --tag-hotel-bg: #3a2c19; --tag-hotel-fg: #e3b06b;
+    --tag-dev-bg: #1c2a3d; --tag-dev-fg: #8fb4ee;
+    --tag-client-bg: #1e2e1c; --tag-client-fg: #8fce85;
+    --callout-bg: #2e1f17; --callout-border: #e08a5e;
+    --callout-good-bg: #1c2a1a; --callout-good-border: #5ea855;
+    --callout-note-bg: #1c232c; --callout-note-border: #7c93ac;
+  }
+  :root[data-theme="light"] {
+    --bg: #f9f6f1; --surface: #fffdfa; --surface-2: #f4eee3;
+    --ink: #241c14; --ink-2: #6b6258; --ink-3: #948a7c;
+    --accent: #5b3a24; --accent-warm: #b5502e;
+    --border: rgba(36,28,20,0.12); --border-strong: rgba(36,28,20,0.20);
+    --grid: #e5ddd0; --series-a: #2a78d6; --series-b: #eb6834; --good: #0ca30c;
+  }
+
+  * { box-sizing: border-box; }
+  html, body { background: var(--bg); }
+  body {
+    font-family: "Sukhumvit Set", "Leelawadee UI", "Noto Sans Thai", "Thonburi",
+                 -apple-system, "Segoe UI", Roboto, sans-serif;
+    color: var(--ink);
+    line-height: 1.6;
+    font-size: 15px;
+    max-width: 880px;
+    margin: 0 auto;
+    padding: 40px 20px 80px;
+  }
+  h1 { font-size: 26px; margin: 0 0 4px; color: var(--accent); letter-spacing: -0.01em; }
+  .subtitle { color: var(--accent-warm); font-size: 14.5px; margin-bottom: 6px; font-weight: 600; }
+  .meta { font-size: 12.5px; color: var(--ink-3); margin-bottom: 28px; }
+  h2 {
+    font-size: 18px; margin: 40px 0 12px; color: var(--accent);
+    border-bottom: 2px solid var(--border-strong); padding-bottom: 8px;
+  }
+  h3 { font-size: 14.5px; margin: 20px 0 8px; color: var(--accent-warm); }
+  p { margin: 8px 0; color: var(--ink); }
+  p.lede { color: var(--ink-2); }
+  a { color: var(--series-a); }
+  ul, ol { margin: 8px 0; padding-left: 22px; }
+  li { margin: 4px 0; }
+  .small { font-size: 12px; color: var(--ink-3); }
+  strong { color: var(--ink); }
+
+  table { width: 100%; border-collapse: collapse; margin: 10px 0 16px; font-size: 13px; }
+  th, td { border: 1px solid var(--border); padding: 7px 10px; text-align: left; vertical-align: top; }
+  th { background: var(--surface-2); color: var(--accent); font-weight: 700; }
+  tr:nth-child(even) td { background: color-mix(in srgb, var(--surface-2) 40%, transparent); }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+
+  .tag { display: inline-block; font-size: 10.5px; padding: 1px 8px; border-radius: 10px; font-weight: 700; }
+  .tag-hotel { background: var(--tag-hotel-bg); color: var(--tag-hotel-fg); }
+  .tag-dev { background: var(--tag-dev-bg); color: var(--tag-dev-fg); }
+  .tag-client { background: var(--tag-client-bg); color: var(--tag-client-fg); }
+
+  .callout {
+    border-left: 4px solid var(--callout-border);
+    background: var(--callout-bg);
+    padding: 14px 16px;
+    margin: 14px 0;
+    border-radius: 0 8px 8px 0;
+    font-size: 13.5px;
+  }
+  .callout.good { border-left-color: var(--callout-good-border); background: var(--callout-good-bg); }
+  .callout.note { border-left-color: var(--callout-note-border); background: var(--callout-note-bg); }
+  .callout h4 { margin: 0 0 8px; font-size: 14px; color: var(--ink); }
+  .callout ul { margin: 6px 0 0; }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 22px;
+    margin: 16px 0;
+  }
+
+  .stat-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin: 14px 0; }
+  .stat-tile {
+    background: var(--surface-2); border: 1px solid var(--border); border-radius: 10px;
+    padding: 14px 16px;
+  }
+  .stat-tile .stat-label { font-size: 11.5px; color: var(--ink-3); text-transform: uppercase; letter-spacing: 0.03em; margin-bottom: 6px; }
+  .stat-tile .stat-value { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; }
+  .stat-tile .stat-sub { font-size: 12px; color: var(--ink-2); margin-top: 2px; }
+  .stat-tile.series-a .stat-value { color: var(--series-a); }
+  .stat-tile.series-b .stat-value { color: var(--series-b); }
+  .swatch { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 6px; vertical-align: middle; }
+  .swatch.a { background: var(--series-a); }
+  .swatch.b { background: var(--series-b); }
+
+  .inputs-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr)); gap: 12px 18px; margin: 14px 0; }
+  .input-field label { display: block; font-size: 12px; color: var(--ink-2); margin-bottom: 4px; }
+  .input-field .input-wrap { position: relative; }
+  .input-field input {
+    width: 100%; padding: 8px 40px 8px 10px; border: 1px solid var(--border-strong);
+    border-radius: 8px; background: var(--surface); color: var(--ink); font-size: 14px;
+    font-variant-numeric: tabular-nums;
+  }
+  .input-field input:focus { outline: 2px solid var(--series-a); outline-offset: 1px; }
+  .input-field .unit { position: absolute; right: 10px; top: 50%; transform: translateY(-50%); font-size: 12px; color: var(--ink-3); pointer-events: none; }
+  .input-field .hint { font-size: 11px; color: var(--ink-3); margin-top: 3px; }
+
+  .btn {
+    display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; font-weight: 600;
+    padding: 7px 14px; border-radius: 8px; border: 1px solid var(--border-strong);
+    background: var(--surface); color: var(--ink-2); cursor: pointer;
+  }
+  .btn:hover { color: var(--ink); border-color: var(--accent-warm); }
+
+  .chart-wrap { margin: 14px 0 6px; }
+  svg.chart { width: 100%; height: auto; display: block; overflow: visible; }
+  .axis-label { font-size: 10.5px; fill: var(--ink-3); }
+  .tick-label { font-size: 10px; fill: var(--ink-3); }
+  .legend-row { display: flex; gap: 18px; flex-wrap: wrap; font-size: 12.5px; color: var(--ink-2); margin-top: 4px; }
+  .legend-row .item { display: flex; align-items: center; }
+
+  details.table-toggle { margin: 10px 0 20px; }
+  details.table-toggle summary { cursor: pointer; font-size: 12.5px; color: var(--series-a); font-weight: 600; }
+  .table-scroll { overflow-x: auto; }
+
+  .warning-banner {
+    background: var(--callout-bg); border: 1px solid var(--callout-border); border-radius: 8px;
+    padding: 10px 14px; font-size: 13px; color: var(--accent-warm); margin: 10px 0; display: none;
+  }
+
+  footer.pagefoot { margin-top: 48px; padding-top: 16px; border-top: 1px solid var(--border); font-size: 11.5px; color: var(--ink-3); }
+</style>
+</head>
+<body>
+
+<h1>PetPal — กล้องรุ่นใหม่, แผน Scale Server และจุดคุ้มทุน Subscription ช่าง</h1>
+<div class="subtitle">อัปเดตต่อเนื่องจากเอกสาร "PetPal — เอกสารประเมินโปรเจกต์ &amp; ข้อเสนอแยกค่าใช้จ่าย Infrastructure"</div>
+<div class="meta">จัดทำ 18 กรกฎาคม 2569 (2026-07-18) · สำหรับผู้ว่าจ้าง/เจ้าของโปรเจกต์ — เอกสารนี้เป็นการประมาณการเพื่อวางแผน ไม่ใช่ตัวเลขยืนยันขั้นสุดท้าย</div>
+
+<div class="callout good">
+  <h4>สรุปเร็ว: เปลี่ยนกล้องรุ่นใหม่ มีผลกับ Server ที่เช่าไหม?</h4>
+  <ul>
+    <li><strong>ตัวกล้องเองแทบไม่มีผล</strong> ตราบใดที่ยังใช้ sub-stream ความละเอียดต่ำเหมือนเดิม (~720p, ~1.5 Mbps/สาย) ปัจจุบันแอปฝั่งลูกค้ายังเชื่อมต่อกล้อง<strong>ตรงผ่าน LAN ของโรงแรม</strong> — วิดีโอ<strong>ไม่ได้วิ่งผ่าน VPS ที่เช่าอยู่เลยสักบิตเดียว</strong>ในตอนนี้</li>
+    <li><strong>โดยหลักการแล้ว bandwidth ควรตกอยู่ที่เน็ตของโรงแรม ไม่ใช่ VPS</strong> — ถ้าออกแบบให้ Mini Hub ที่โรงแรมส่งวิดีโอ<strong>ตรง (peer-to-peer)</strong> ไปหามือถือลูกค้าได้สำเร็จ VPS กลางจะไม่แบกวิดีโอเลยจริงๆ</li>
+    <li>แต่มี<strong>ข้อจำกัดทางเทคนิคหนึ่งจุด</strong>ที่ทำให้บาง connection ต้อง "แวะ" ผ่าน VPS: Edge server ที่โรงแรมถูกออกแบบให้ซ่อนอยู่หลัง Tailscale โดยตั้งใจ (ห้ามเปิด port ออก public internet เพื่อความปลอดภัย) แต่มือถือลูกค้าไม่ได้อยู่ใน Tailscale network เดียวกัน จึงต่อตรงเข้า edge server ไม่ได้เสมอไป — WebRTC จะพยายามต่อ P2P ก่อน แล้ว "fallback" ไปใช้ relay กลางเฉพาะตอนต่อตรงไม่สำเร็จ (พบบ่อยเวลาลูกค้าใช้เน็ตมือถือหลัง CGNAT ซึ่งในไทยค่อนข้างเยอะ) จุด relay นั้นแหละที่กลายเป็นภาระของ VPS ได้ ถ้าเรารัน relay อยู่บนเครื่องเดียวกับ backend</li>
+    <li>สรุป: <strong>Mini Server Hub ยังคงเป็นคำตอบที่ถูกต้อง</strong> เพราะลดสัดส่วนวิดีโอที่ต้องพึ่ง VPS ลงมาก (เหลือเฉพาะส่วนที่ P2P ต่อตรงไม่สำเร็จ) แต่ไม่ได้ทำให้เหลือ 0% เป๊ะ — กราฟหัวข้อ 1 ปรับให้สะท้อนสัดส่วนนี้แล้ว แทนที่จะสมมติว่าเป็น 0 บาทเสมอ</li>
+  </ul>
+</div>
+
+<h2>1. ถ้าดูพร้อมกันหลายโรงแรม Server จะเป็นอย่างไร</h2>
+<p class="lede">มี 2 เส้นทางที่วิดีโอจะไหลผ่านได้ เมื่อระบบขยายให้ดูข้ามเครือข่ายได้ (ตามหัวข้อ 4.2–4.3 ในเอกสารเดิม):</p>
+<ul>
+  <li><strong>ไม่มี Mini Hub — ไหลผ่าน VPS กลางทั้งหมด:</strong> bandwidth ขาออกของ VPS ต้องรองรับทุกกล้องทุกโรงแรมที่มีคนดูพร้อมกัน 100% เมื่อจำนวนสายพร้อมกันเพิ่มขึ้น ต้องอัปเกรด VPS เป็นแพ็กเกจที่ใหญ่ขึ้นเป็นขั้นบันได (step) — ต้นทุนและจุดคอขวดอยู่ที่ VPS เครื่องเดียว</li>
+  <li><strong>มี Mini Hub ต่อโรงแรม:</strong> วิดีโอส่วนใหญ่พยายามวิ่ง<strong>ตรง (WebRTC peer-to-peer)</strong> จาก Mini Hub ไปหามือถือลูกค้า — bandwidth ไปตกอยู่ที่อินเทอร์เน็ตของโรงแรมเอง ไม่ผ่าน VPS เลย <em>แต่</em> เมื่อต่อตรงไม่สำเร็จ (ลูกค้าอยู่หลัง NAT/CGNAT เข้มงวด) จะ fallback มาใช้ relay กลาง ซึ่งถ้ารันอยู่บน VPS หลักก็จะกินbandwidthส่วนนั้นเหมือนกัน — เหตุผลคือ edge server ที่โรงแรมถูกซ่อนหลัง Tailscale โดยตั้งใจ (ไม่เปิด port ออก public internet) มือถือลูกค้าที่ไม่ได้อยู่ใน Tailscale network เดียวกันจึงต่อตรงไม่ได้เสมอไป</li>
+</ul>
+
+<div class="card">
+  <h3 style="margin-top:0;">ต้นทุน VPS กลาง เทียบกับจำนวนโรงแรมที่ดูพร้อมกัน (ประมาณการ)</h3>
+  <p class="small" style="margin-top:-4px;">สมมติฐาน: sub-stream ~1.5 Mbps/สาย · VPS ปัจจุบัน (440 บาท/เดือน, 4 vCPU/8GB) รองรับได้จริงราว 10 สายพร้อมกันอย่างสบาย ก่อนต้องอัปเกรดแพ็กเกจ — <strong>ตัวเลขนี้เป็นการประมาณอุตสาหกรรม ยังไม่ได้วัดจริง แนะนำวัด bitrate จริงด้วย ffprobe ก่อนตั้งงบจริง (ทีมมีเครื่องมืออยู่แล้ว)</strong></p>
+
+  <div class="inputs-grid" style="max-width:280px;">
+    <div class="input-field">
+      <label for="in-relayFallbackPct">สัดส่วนที่ P2P ต่อตรงไม่สำเร็จ (ต้อง fallback ผ่าน relay กลาง)</label>
+      <div class="input-wrap"><input type="number" id="in-relayFallbackPct" value="30" min="0" max="100" step="5"><span class="unit">%</span></div>
+      <div class="hint">ยังไม่มีข้อมูลจริง — ค่ากลางที่มักเจอในโปรดักชัน WebRTC ทั่วไปคือ 20–40% ขึ้นกับว่าลูกค้าใช้ WiFi หรือเน็ตมือถือ/CGNAT</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <svg class="chart" id="chart1" viewBox="0 0 640 300" role="img" aria-label="กราฟต้นทุน VPS เทียบกับจำนวนโรงแรมที่ดูพร้อมกัน"></svg>
+  </div>
+  <div class="legend-row">
+    <span class="item"><span class="swatch a"></span>ไม่มี Mini Hub — ผ่าน VPS กลางทั้งหมด</span>
+    <span class="item"><span class="swatch b"></span>มี Mini Hub — เฉพาะส่วนที่ fallback ผ่าน relay กลาง</span>
+  </div>
+  <details class="table-toggle">
+    <summary>ดูข้อมูลเป็นตาราง</summary>
+    <div class="table-scroll">
+      <table>
+        <tr><th>ช่วงจำนวนโรงแรมที่ดูพร้อมกัน</th><th class="num">แพ็กเกจ VPS ที่ต้องใช้</th><th class="num">ค่าใช้จ่าย/เดือน (บาท)</th></tr>
+        <tr><td>0 – 10 สาย</td><td class="num">Tier 1 (4 vCPU/8GB, ปัจจุบัน)</td><td class="num">440</td></tr>
+        <tr><td>11 – 25 สาย</td><td class="num">Tier 2 (อัปเกรด)</td><td class="num">890</td></tr>
+        <tr><td>26 – 60 สาย</td><td class="num">Tier 3 (อัปเกรด)</td><td class="num">1,790</td></tr>
+      </table>
+      <p class="small">แถวของ "มี Mini Hub" ใช้ตารางเดียวกันนี้ แต่นับจำนวนสายเฉพาะส่วนที่ fallback ผ่าน relay กลาง (N × สัดส่วน% ด้านบน) ไม่ใช่ทุกสาย</p>
+    </div>
+  </details>
+  <p class="small">ทางลดภาระ VPS หลักเพิ่มเติม (ถ้าต้องการกันสัดส่วน fallback ไม่ให้กระทบ backend/database เครื่องเดียวกัน): แยก TURN relay ไปรันบนเครื่องเล็กๆ ต่างหาก หรือพิจารณาใช้ Tailscale Funnel ให้ relay พึ่งโครงสร้างของ Tailscale เองแทน (ต้องประเมิน privacy trade-off เพิ่มก่อนใช้จริง)</p>
+</div>
+
+<h2>2. แผน Scale Server ที่เตรียมไว้ล่วงหน้า</h2>
+<p class="lede">แผนนี้ใช้ได้ทั้งสองกรณี — เตรียมไว้เพื่อไม่ต้องตัดสินใจกะทันหันตอนระบบโตจริง:</p>
+<table>
+  <tr><th>เฟส</th><th>เงื่อนไขที่ต้องขยับ</th><th>สิ่งที่ต้องทำ</th></tr>
+  <tr><td><strong>เฟส 0 — ปัจจุบัน</strong></td><td>ยังไม่มีวิดีโอไหลผ่าน VPS (เชื่อมตรงผ่าน LAN)</td><td>ไม่ต้องทำอะไรเพิ่มด้าน bandwidth</td></tr>
+  <tr><td><strong>เฟส 1</strong></td><td>เริ่มมีโรงแรมต้องการให้ลูกค้าดูจากนอกสถานที่</td><td>ติดตั้ง Mini Hub ให้โรงแรมนั้น (แนะนำ) แทนการเปิดผ่าน VPS กลาง</td></tr>
+  <tr><td><strong>เฟส 2</strong></td><td>เลือกไหลผ่าน VPS กลาง และคนดูพร้อมกัน &gt; 10 สาย</td><td>อัปเกรด VPS ตามตารางขั้นบันไดด้านบน</td></tr>
+  <tr><td><strong>เฟส 3</strong></td><td>ต้องเพิ่ม backend มากกว่า 1 เครื่องพร้อมกัน</td><td>ย้าย rate limiter จากหน่วยความจำเครื่องเดียวไป Redis (มี Redis ใช้งานอยู่แล้วสำหรับ AI job queue — ต่อยอดได้ทันที)</td></tr>
+  <tr><td><strong>เฟส 4</strong></td><td>ระบบโต &gt; 50–100 โรงแรมที่ใช้งานจริง</td><td>แยกเครื่อง media relay ออกจาก backend หลัก ไม่ให้ปนกัน</td></tr>
+</table>
+<p class="small">ฐานข้อมูล (Postgres + pgvector) รองรับ scale ระดับ startup ได้อีกนาน ยังไม่ต้องวางแผน replica/cluster ในเฟสนี้ (ตามหัวข้อ 5.1 เอกสารเดิม)</p>
+
+<h2>3. ข้อเสนอราคาใหม่: Subscription สำหรับช่าง/พนักงานดูแลกล้อง</h2>
+<p class="lede">ต่อยอดจากโครงสร้างราคากล้องเดิม (หัวข้อ 3 ในเอกสารเดิม) — เพิ่มรายการใหม่ตามที่หารือ:</p>
+<table>
+  <tr><th>รายการ</th><th>รายละเอียด</th><th>ผู้จ่าย</th></tr>
+  <tr><td>กล้องตัวแรก</td><td>ฟรี — ใช้จูงใจให้โรงแรมสมัครเข้าร่วมระบบ</td><td><span class="tag tag-hotel">แพลตฟอร์มออกให้</span></td></tr>
+  <tr><td>กล้องตัวถัดไป</td><td>ลด 30% จากราคาต้นทุน (~700–1,000 บาท) → โรงแรมจ่ายจริงประมาณ 490–700 บาท/ตัว</td><td><span class="tag tag-hotel">โรงแรม</span></td></tr>
+  <tr><td>Package รายเดือน (เดิม)</td><td>199–299 บาท/เดือน/โรงแรม ครอบคลุมค่า Maintenance ระบบ ไม่จำกัดจำนวนกล้อง</td><td><span class="tag tag-hotel">โรงแรม</span></td></tr>
+  <tr><td><strong>ใหม่: Subscription ช่างเทคนิค</strong></td><td>ค่าบริการเพิ่มเติมสำหรับให้ช่างของแพลตฟอร์มดูแล/ติดตั้ง/ซ่อมกล้องให้โรงแรมโดยเฉพาะ (แยกจาก Package หลัก) เสนอเริ่มต้น <strong>~100–150 บาท/เดือน/โรงแรม</strong></td><td><span class="tag tag-hotel">โรงแรมจ่ายเพิ่ม</span></td></tr>
+</table>
+<div class="callout note">
+  <h4>คำนิยาม "ค่า GP 30%" ที่ใช้ในแบบจำลองหัวข้อ 4</h4>
+  <p style="margin:0;">ตามที่คุยกัน — GP 30% ในที่นี้คือ<strong>ค่าคอมมิชชั่นที่แพลตฟอร์มหักจากค่าเช่าห้องพักสัตว์เลี้ยงรายวัน/รายจอง</strong>ที่โรงแรมได้รับผ่านแอป (คนละเรื่องกับส่วนลด 30% ของราคากล้องด้านบน แค่บังเอิญเป็นตัวเลขเดียวกัน) รายได้ส่วนนี้เป็นแหล่งเงินหลักที่ช่วยคืนทุนค่ากล้อง/Mini Hub ในแบบจำลองด้านล่าง</p>
+</div>
+
+<h2>4. แบบจำลองจุดคุ้มทุน: กล้องใหม่อย่างเดียว เทียบกับ กล้องใหม่ + Mini Server</h2>
+<p class="lede">ปรับตัวเลขสมมติฐานด้านล่างได้ตามข้อมูลจริงที่มี — กราฟและตัวเลขจะอัปเดตทันที ("กล้องใหม่อย่างเดียว" = ยังไม่ลงทุน Mini Hub ต่อโรงแรม, "กล้องใหม่ + Mini Server" = ลงทุน Mini Hub เพิ่มตั้งแต่วันแรกเพื่อกันปัญหา bandwidth ในหัวข้อ 1)</p>
+
+<div class="card">
+  <h3 style="margin-top:0;">สมมติฐาน (ปรับได้)</h3>
+  <div class="inputs-grid">
+    <div class="input-field">
+      <label for="in-cameraCost">ต้นทุนกล้อง/ตัว</label>
+      <div class="input-wrap"><input type="number" id="in-cameraCost" value="850" min="0" step="10"><span class="unit">บาท</span></div>
+    </div>
+    <div class="input-field">
+      <label for="in-camerasPerHotel">จำนวนกล้องเฉลี่ย/โรงแรม</label>
+      <div class="input-wrap"><input type="number" id="in-camerasPerHotel" value="3" min="1" step="1"><span class="unit">ตัว</span></div>
+    </div>
+    <div class="input-field">
+      <label for="in-discountPct">ส่วนลดกล้องตัวถัดไป</label>
+      <div class="input-wrap"><input type="number" id="in-discountPct" value="30" min="0" max="100" step="1"><span class="unit">%</span></div>
+      <div class="hint">ตัวแรกฟรีเสมอ ตัวที่ 2 เป็นต้นไปลดตามนี้</div>
+    </div>
+    <div class="input-field">
+      <label for="in-miniHubCost">ต้นทุน Mini Server/โรงแรม</label>
+      <div class="input-wrap"><input type="number" id="in-miniHubCost" value="2000" min="0" step="100"><span class="unit">บาท</span></div>
+      <div class="hint">ลงทุนครั้งเดียว เฉพาะสถานการณ์ B</div>
+    </div>
+    <div class="input-field">
+      <label for="in-packageFee">Package รายเดือน (เดิม)</label>
+      <div class="input-wrap"><input type="number" id="in-packageFee" value="249" min="0" step="10"><span class="unit">บาท/ด.</span></div>
+    </div>
+    <div class="input-field">
+      <label for="in-techSubFee">Subscription ช่างเทคนิค (ใหม่)</label>
+      <div class="input-wrap"><input type="number" id="in-techSubFee" value="129" min="0" step="10"><span class="unit">บาท/ด.</span></div>
+    </div>
+    <div class="input-field">
+      <label for="in-bookingRev">ยอดจองผ่านแอป/โรงแรม/เดือน</label>
+      <div class="input-wrap"><input type="number" id="in-bookingRev" value="15000" min="0" step="500"><span class="unit">บาท/ด.</span></div>
+      <div class="hint">ยอดค่าเช่าห้องพักรวมที่ไหลผ่านแอป ก่อนหัก GP</div>
+    </div>
+    <div class="input-field">
+      <label for="in-gpPct">ค่า GP ที่แพลตฟอร์มหัก</label>
+      <div class="input-wrap"><input type="number" id="in-gpPct" value="30" min="0" max="100" step="1"><span class="unit">%</span></div>
+    </div>
+    <div class="input-field">
+      <label for="in-attributionPct">สัดส่วนการจองที่มาจากผลของกล้อง</label>
+      <div class="input-wrap"><input type="number" id="in-attributionPct" value="10" min="0" max="100" step="1"><span class="unit">%</span></div>
+      <div class="hint">สมมติฐานระมัดระวัง — กล้องเป็นปัจจัยบวกเสริม ไม่ใช่ตัวขับเคลื่อนหลักของการจอง</div>
+    </div>
+  </div>
+  <button class="btn" id="resetBtn" type="button">↺ รีเซ็ตเป็นค่าเริ่มต้น</button>
+
+  <div class="warning-banner" id="warningBanner">รายได้สุทธิ/เดือนที่คำนวณได้ ≤ 0 บาท ด้วยค่าที่ตั้งไว้ — จะไม่มีวันถึงจุดคุ้มทุน ลองปรับค่า Package / Subscription / ยอดจองใหม่</div>
+
+  <div class="stat-row">
+    <div class="stat-tile series-a">
+      <div class="stat-label"><span class="swatch a"></span>A: กล้องใหม่อย่างเดียว</div>
+      <div class="stat-value" id="stat-breakeven-a">—</div>
+      <div class="stat-sub" id="stat-invest-a">—</div>
+    </div>
+    <div class="stat-tile series-b">
+      <div class="stat-label"><span class="swatch b"></span>B: กล้องใหม่ + Mini Server</div>
+      <div class="stat-value" id="stat-breakeven-b">—</div>
+      <div class="stat-sub" id="stat-invest-b">—</div>
+    </div>
+    <div class="stat-tile">
+      <div class="stat-label">รายได้สุทธิ/โรงแรม/เดือน</div>
+      <div class="stat-value" id="stat-monthly-net">—</div>
+      <div class="stat-sub" id="stat-monthly-breakdown">—</div>
+    </div>
+  </div>
+
+  <div class="chart-wrap">
+    <svg class="chart" id="chart2" viewBox="0 0 640 320" role="img" aria-label="กราฟกระแสเงินสดสะสมเทียบสถานการณ์ A และ B"></svg>
+  </div>
+  <div class="legend-row">
+    <span class="item"><span class="swatch a"></span>A: กล้องใหม่อย่างเดียว</span>
+    <span class="item"><span class="swatch b"></span>B: กล้องใหม่ + Mini Server</span>
+  </div>
+
+  <details class="table-toggle">
+    <summary>ดูข้อมูลเป็นตาราง (กระแสเงินสดสะสมรายเดือน)</summary>
+    <div class="table-scroll">
+      <table id="cashflowTable">
+        <thead><tr><th>เดือนที่</th><th class="num">A: สะสม (บาท)</th><th class="num">B: สะสม (บาท)</th></tr></thead>
+        <tbody></tbody>
+      </table>
+    </div>
+  </details>
+</div>
+
+<div class="callout note">
+  <h4>ทำไม B (มี Mini Server) คืนทุนช้ากว่า แต่ยังแนะนำ?</h4>
+  <p style="margin:0;">เพราะ Mini Server เป็นต้นทุนที่ไม่สร้างรายได้เพิ่มโดยตรง แต่ป้องกันความเสี่ยงเรื่องต้นทุน VPS ที่จะโตแบบขั้นบันไดตามหัวข้อ 1 — ยิ่งจำนวนโรงแรม/คนดูพร้อมกันเพิ่มขึ้น ยิ่งเห็นความคุ้มค่าของ B ชัดขึ้น แม้จุดคุ้มทุนต่อโรงแรม 1 แห่งจะช้ากว่า A ไม่กี่เดือนก็ตาม</p>
+</div>
+
+<footer class="pagefoot">
+  ตัวเลขทั้งหมดในเอกสารนี้เป็นการประมาณการเพื่อวางแผนงบเบื้องต้น ปรับค่าตั้งต้นได้ที่ช่องกรอกด้านบน — ก่อนใช้ตัดสินใจเชิงธุรกิจจริง แนะนำ (1) วัด bitrate จริงของกล้องด้วย ffprobe แทนตัวเลขประมาณอุตสาหกรรม และ (2) เก็บข้อมูลยอดจอง/ค่าเช่าห้องพักจริงจากโรงแรมที่ใช้งานอยู่ แทนค่าสมมติฐาน 15,000 บาท/เดือน/โรงแรม ที่ตั้งไว้เป็นค่าเริ่มต้น
+</footer>
+
+<script>
+(function () {
+  "use strict";
+
+  var css = getComputedStyle(document.documentElement);
+  function cssVar(name) { return css.getPropertyValue(name).trim(); }
+
+  function fmtBaht(n) {
+    var r = Math.round(n);
+    return r.toLocaleString('en-US');
+  }
+  function fmtMonths(n) {
+    if (!isFinite(n)) return "ไม่คุ้มทุน";
+    return n.toFixed(1) + " เดือน";
+  }
+
+  // ---------- Chart 1: VPS step cost vs concurrent-viewing hotels ----------
+  function renderChart1() {
+    var svg = document.getElementById('chart1');
+    var W = 640, H = 300, M = { left: 64, right: 20, top: 16, bottom: 40 };
+    var plotW = W - M.left - M.right, plotH = H - M.top - M.bottom;
+
+    var tiers = [
+      { cap: 10, cost: 440 },
+      { cap: 25, cost: 890 },
+      { cap: 60, cost: 1790 }
+    ];
+    var maxN = 70, maxCost = 1790 * 1.15;
+
+    function xN(n) { return M.left + (n / maxN) * plotW; }
+    function yC(c) { return M.top + plotH - (c / maxCost) * plotH; }
+    function tierCostAt(n) {
+      for (var i = 0; i < tiers.length; i++) { if (n <= tiers[i].cap) return tiers[i].cost; }
+      return tiers[tiers.length - 1].cost;
+    }
+    function staircasePath(scale) {
+      // scale = fraction of N that actually needs this path's server (1.0 for full-VPS, relayFallback for mini-hub fallback)
+      var d = "M " + xN(0) + " " + yC(tierCostAt(0));
+      var lastCost = tierCostAt(0);
+      for (var n = 1; n <= maxN; n++) {
+        var effectiveN = n * scale;
+        var cost = tierCostAt(effectiveN);
+        if (cost !== lastCost) {
+          d += " L " + xN(n) + " " + yC(lastCost) + " L " + xN(n) + " " + yC(cost);
+          lastCost = cost;
+        }
+      }
+      d += " L " + xN(maxN) + " " + yC(lastCost);
+      return d;
+    }
+
+    var relayFallbackPct = parseFloat((document.getElementById('in-relayFallbackPct') || {}).value) || 0;
+    var fallbackScale = relayFallbackPct / 100;
+
+    var seriesA = cssVar('--series-a'), seriesB = cssVar('--series-b');
+    var grid = cssVar('--grid'), muted = cssVar('--ink-3'), ink2 = cssVar('--ink-2');
+
+    var parts = [];
+
+    // gridlines + y ticks
+    [0, 440, 890, 1790].forEach(function (c) {
+      var y = yC(c);
+      parts.push('<line x1="' + M.left + '" y1="' + y + '" x2="' + (W - M.right) + '" y2="' + y + '" stroke="' + grid + '" stroke-width="1"/>');
+      parts.push('<text class="tick-label" x="' + (M.left - 8) + '" y="' + (y + 3) + '" text-anchor="end" fill="' + muted + '">' + fmtBaht(c) + '</text>');
+    });
+    // x ticks
+    [0, 10, 25, 40, 60, 70].forEach(function (n) {
+      var x = xN(n);
+      parts.push('<text class="tick-label" x="' + x + '" y="' + (H - M.bottom + 16) + '" text-anchor="middle" fill="' + muted + '">' + n + '</text>');
+    });
+    parts.push('<line x1="' + M.left + '" y1="' + (M.top + plotH) + '" x2="' + (W - M.right) + '" y2="' + (M.top + plotH) + '" stroke="' + cssVar('--border-strong') + '" stroke-width="1"/>');
+
+    // series B first (mini hub + fallback) so series A draws on top when they overlap near N=0
+    var dB = staircasePath(fallbackScale);
+    parts.push('<path d="' + dB + '" fill="none" stroke="' + seriesB + '" stroke-width="2.5" stroke-linejoin="round" stroke-dasharray="2 5"/>');
+    parts.push('<text class="tick-label" x="' + (W - M.right - 4) + '" y="' + (yC(tierCostAt(maxN * fallbackScale)) - 8) + '" text-anchor="end" fill="' + seriesB + '" font-weight="700">Mini Hub (fallback ' + relayFallbackPct + '%): ' + fmtBaht(tierCostAt(maxN * fallbackScale)) + '฿</text>');
+
+    // series A (no mini hub, 100% through central VPS)
+    var dA = staircasePath(1);
+    parts.push('<path d="' + dA + '" fill="none" stroke="' + seriesA + '" stroke-width="2.5" stroke-linejoin="round"/>');
+
+    // step markers + labels for series A
+    var prevN = 0;
+    tiers.forEach(function (t) {
+      parts.push('<circle cx="' + xN(t.cap) + '" cy="' + yC(t.cost) + '" r="4" fill="' + seriesA + '"><title>ไม่มี Mini Hub — ที่ ' + t.cap + ' สาย: ' + fmtBaht(t.cost) + ' บาท/เดือน</title></circle>');
+      parts.push('<text class="tick-label" x="' + (xN(prevN) + 6) + '" y="' + (yC(t.cost) - 8) + '" fill="' + seriesA + '" font-weight="700">' + fmtBaht(t.cost) + '฿</text>');
+      prevN = t.cap;
+    });
+
+    parts.push('<text class="axis-label" x="' + (M.left + plotW / 2) + '" y="' + (H - 6) + '" text-anchor="middle">จำนวนโรงแรมที่ดูพร้อมกัน (สาย)</text>');
+    parts.push('<text class="axis-label" x="14" y="' + (M.top + plotH / 2) + '" text-anchor="middle" transform="rotate(-90 14 ' + (M.top + plotH / 2) + ')">ค่าใช้จ่าย VPS (บาท/เดือน)</text>');
+
+    svg.innerHTML = parts.join('');
+  }
+
+  // ---------- Chart 2: cumulative cash flow, scenario A vs B ----------
+  function readInputs() {
+    function num(id) { return parseFloat(document.getElementById(id).value) || 0; }
+    return {
+      cameraCost: num('in-cameraCost'),
+      camerasPerHotel: Math.max(1, num('in-camerasPerHotel')),
+      discountPct: num('in-discountPct'),
+      miniHubCost: num('in-miniHubCost'),
+      packageFee: num('in-packageFee'),
+      techSubFee: num('in-techSubFee'),
+      bookingRev: num('in-bookingRev'),
+      gpPct: num('in-gpPct'),
+      attributionPct: num('in-attributionPct')
+    };
+  }
+
+  function compute(v) {
+    var extraCameras = v.camerasPerHotel - 1;
+    var investmentA = v.cameraCost + extraCameras * v.cameraCost * (v.discountPct / 100);
+    var investmentB = investmentA + v.miniHubCost;
+    var gpContribution = v.bookingRev * (v.gpPct / 100) * (v.attributionPct / 100);
+    var monthlyNet = v.packageFee + v.techSubFee + gpContribution;
+    var breakevenA = monthlyNet > 0 ? investmentA / monthlyNet : Infinity;
+    var breakevenB = monthlyNet > 0 ? investmentB / monthlyNet : Infinity;
+    return {
+      investmentA: investmentA, investmentB: investmentB,
+      gpContribution: gpContribution, monthlyNet: monthlyNet,
+      breakevenA: breakevenA, breakevenB: breakevenB
+    };
+  }
+
+  function renderStats(v, r) {
+    document.getElementById('stat-breakeven-a').textContent = fmtMonths(r.breakevenA);
+    document.getElementById('stat-invest-a').textContent = 'ลงทุน ' + fmtBaht(r.investmentA) + ' บาท/โรงแรม';
+    document.getElementById('stat-breakeven-b').textContent = fmtMonths(r.breakevenB);
+    document.getElementById('stat-invest-b').textContent = 'ลงทุน ' + fmtBaht(r.investmentB) + ' บาท/โรงแรม';
+    document.getElementById('stat-monthly-net').textContent = fmtBaht(r.monthlyNet) + ' บาท';
+    document.getElementById('stat-monthly-breakdown').textContent =
+      'Package ' + fmtBaht(v.packageFee) + ' + ช่าง ' + fmtBaht(v.techSubFee) + ' + GP ' + fmtBaht(r.gpContribution);
+    document.getElementById('warningBanner').style.display = r.monthlyNet <= 0 ? 'block' : 'none';
+  }
+
+  function renderChart2(v, r) {
+    var svg = document.getElementById('chart2');
+    var W = 640, H = 320, M = { left: 70, right: 24, top: 20, bottom: 40 };
+    var plotW = W - M.left - M.right, plotH = H - M.top - M.bottom;
+
+    var maxBreak = Math.max(isFinite(r.breakevenA) ? r.breakevenA : 0, isFinite(r.breakevenB) ? r.breakevenB : 0);
+    var domainMonths = Math.max(8, Math.ceil(maxBreak) + 3);
+
+    function cumA(m) { return -r.investmentA + m * r.monthlyNet; }
+    function cumB(m) { return -r.investmentB + m * r.monthlyNet; }
+
+    var yMin = Math.min(-r.investmentB, cumB(0)) * 1.12;
+    var yMax = Math.max(cumA(domainMonths), cumB(domainMonths), 1) * 1.12;
+    if (yMin > -10) yMin = -10;
+
+    function xM(m) { return M.left + (m / domainMonths) * plotW; }
+    function yV(val) { return M.top + plotH - ((val - yMin) / (yMax - yMin)) * plotH; }
+
+    var seriesA = cssVar('--series-a'), seriesB = cssVar('--series-b');
+    var grid = cssVar('--grid'), muted = cssVar('--ink-3'), good = cssVar('--good');
+
+    var parts = [];
+
+    // gridlines (y)
+    var ySteps = 5;
+    for (var i = 0; i <= ySteps; i++) {
+      var val = yMin + (i / ySteps) * (yMax - yMin);
+      var y = yV(val);
+      parts.push('<line x1="' + M.left + '" y1="' + y + '" x2="' + (W - M.right) + '" y2="' + y + '" stroke="' + grid + '" stroke-width="1"/>');
+      parts.push('<text class="tick-label" x="' + (M.left - 8) + '" y="' + (y + 3) + '" text-anchor="end" fill="' + muted + '">' + fmtBaht(val) + '</text>');
+    }
+    // x ticks
+    for (var m = 0; m <= domainMonths; m++) {
+      parts.push('<text class="tick-label" x="' + xM(m) + '" y="' + (H - M.bottom + 16) + '" text-anchor="middle" fill="' + muted + '">' + m + '</text>');
+    }
+    parts.push('<line x1="' + M.left + '" y1="' + (M.top + plotH) + '" x2="' + (W - M.right) + '" y2="' + (M.top + plotH) + '" stroke="' + cssVar('--border-strong') + '" stroke-width="1"/>');
+
+    // zero baseline
+    var yZero = yV(0);
+    parts.push('<line x1="' + M.left + '" y1="' + yZero + '" x2="' + (W - M.right) + '" y2="' + yZero + '" stroke="' + muted + '" stroke-width="1.5" stroke-dasharray="3 4"/>');
+
+    // series lines
+    parts.push('<line x1="' + xM(0) + '" y1="' + yV(cumA(0)) + '" x2="' + xM(domainMonths) + '" y2="' + yV(cumA(domainMonths)) + '" stroke="' + seriesA + '" stroke-width="2.5" stroke-linecap="round"/>');
+    parts.push('<line x1="' + xM(0) + '" y1="' + yV(cumB(0)) + '" x2="' + xM(domainMonths) + '" y2="' + yV(cumB(domainMonths)) + '" stroke="' + seriesB + '" stroke-width="2.5" stroke-linecap="round"/>');
+
+    // monthly markers with tooltip
+    for (var mm = 0; mm <= domainMonths; mm++) {
+      parts.push('<circle cx="' + xM(mm) + '" cy="' + yV(cumA(mm)) + '" r="3" fill="' + seriesA + '"><title>A — เดือนที่ ' + mm + ': ' + fmtBaht(cumA(mm)) + ' บาท</title></circle>');
+      parts.push('<circle cx="' + xM(mm) + '" cy="' + yV(cumB(mm)) + '" r="3" fill="' + seriesB + '"><title>B — เดือนที่ ' + mm + ': ' + fmtBaht(cumB(mm)) + ' บาท</title></circle>');
+    }
+
+    // breakeven markers
+    function breakevenMarker(monthVal, color, labelPrefix, dy) {
+      if (!isFinite(monthVal) || monthVal > domainMonths) return;
+      var x = xM(monthVal);
+      parts.push('<line x1="' + x + '" y1="' + (M.top) + '" x2="' + x + '" y2="' + (M.top + plotH) + '" stroke="' + color + '" stroke-width="1" stroke-dasharray="2 3" opacity="0.6"/>');
+      parts.push('<circle cx="' + x + '" cy="' + yZero + '" r="6" fill="' + cssVar('--surface') + '" stroke="' + good + '" stroke-width="2.5"/>');
+      parts.push('<text class="tick-label" x="' + x + '" y="' + (M.top + dy) + '" text-anchor="middle" fill="' + color + '" font-weight="700">' + labelPrefix + ' ' + monthVal.toFixed(1) + 'ด.</text>');
+    }
+    breakevenMarker(r.breakevenA, seriesA, 'A คุ้มทุน', 12);
+    breakevenMarker(r.breakevenB, seriesB, 'B คุ้มทุน', 28);
+
+    parts.push('<text class="axis-label" x="' + (M.left + plotW / 2) + '" y="' + (H - 6) + '" text-anchor="middle">เดือนที่</text>');
+    parts.push('<text class="axis-label" x="16" y="' + (M.top + plotH / 2) + '" text-anchor="middle" transform="rotate(-90 16 ' + (M.top + plotH / 2) + ')">กระแสเงินสดสะสม (บาท)</text>');
+
+    svg.innerHTML = parts.join('');
+
+    // table
+    var tbody = document.querySelector('#cashflowTable tbody');
+    var rows = [];
+    for (var t = 0; t <= domainMonths; t++) {
+      rows.push('<tr><td>' + t + '</td><td class="num">' + fmtBaht(cumA(t)) + '</td><td class="num">' + fmtBaht(cumB(t)) + '</td></tr>');
+    }
+    tbody.innerHTML = rows.join('');
+  }
+
+  function renderAll() {
+    var v = readInputs();
+    var r = compute(v);
+    renderStats(v, r);
+    renderChart2(v, r);
+    renderChart1();
+  }
+
+  var defaults = {
+    'in-cameraCost': '850', 'in-camerasPerHotel': '3', 'in-discountPct': '30',
+    'in-miniHubCost': '2000', 'in-packageFee': '249', 'in-techSubFee': '129',
+    'in-bookingRev': '15000', 'in-gpPct': '30', 'in-attributionPct': '10',
+    'in-relayFallbackPct': '30'
+  };
+
+  document.querySelectorAll('.inputs-grid input').forEach(function (el) {
+    el.addEventListener('input', renderAll);
+  });
+  document.getElementById('resetBtn').addEventListener('click', function () {
+    Object.keys(defaults).forEach(function (id) { document.getElementById(id).value = defaults[id]; });
+    renderAll();
+  });
+
+  renderChart1();
+  renderAll();
+
+  // Re-render on theme toggle (root data-theme attribute changes) so chart colors stay in sync
+  new MutationObserver(function () { css = getComputedStyle(document.documentElement); renderChart1(); renderAll(); })
+    .observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+})();
+</script>
+
+</body>
+</html>

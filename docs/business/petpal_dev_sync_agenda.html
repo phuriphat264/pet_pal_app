@@ -1,0 +1,582 @@
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PetPal — Dev Sync Agenda</title>
+<style>
+  :root {
+    --ink: #1b1f24;
+    --paper: #f5f3ee;
+    --panel: #ffffff;
+    --line: #ddd7c8;
+    --muted: #6b6558;
+    --text: #23262b;
+    --accent: #1f7d78;
+    --accent-soft: #e2f0ee;
+    --good: #2e7d37;
+    --good-soft: #e5f2e3;
+    --warn: #a9660f;
+    --warn-soft: #faecd8;
+    --crit: #ab3324;
+    --crit-soft: #fbe6e1;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, Menlo, monospace;
+    --sans: -apple-system, "Segoe UI", "Inter", Helvetica, Arial, sans-serif;
+  }
+  :root[data-theme="dark"] {
+    --ink: #eef0f2;
+    --paper: #14171b;
+    --panel: #1b1f24;
+    --line: #313640;
+    --muted: #939aa3;
+    --text: #e7e9ec;
+    --accent: #4fb8b0;
+    --accent-soft: #16302e;
+    --good: #4fa557;
+    --good-soft: #14261a;
+    --warn: #d99a3f;
+    --warn-soft: #302209;
+    --crit: #e2685a;
+    --crit-soft: #34160f;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --ink: #eef0f2;
+      --paper: #14171b;
+      --panel: #1b1f24;
+      --line: #313640;
+      --muted: #939aa3;
+      --text: #e7e9ec;
+      --accent: #4fb8b0;
+      --accent-soft: #16302e;
+      --good: #4fa557;
+      --good-soft: #14261a;
+      --warn: #d99a3f;
+      --warn-soft: #302209;
+      --crit: #e2685a;
+      --crit-soft: #34160f;
+    }
+  }
+
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0; padding: 0;
+    background: var(--paper);
+    color: var(--text);
+    font-family: var(--sans);
+    -webkit-font-smoothing: antialiased;
+  }
+  body { display: flex; min-height: 100vh; }
+
+  nav.rail {
+    flex: 0 0 220px;
+    position: sticky;
+    top: 0;
+    align-self: flex-start;
+    height: 100vh;
+    overflow-y: auto;
+    padding: 28px 20px;
+    border-right: 1px solid var(--line);
+    background: var(--panel);
+  }
+  nav.rail .brand {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 4px;
+  }
+  nav.rail .brand-sub {
+    font-size: 13px;
+    color: var(--muted);
+    margin-bottom: 28px;
+    line-height: 1.4;
+  }
+  nav.rail a {
+    display: block;
+    font-size: 13.5px;
+    color: var(--text);
+    text-decoration: none;
+    padding: 7px 0;
+    border-left: 2px solid transparent;
+    padding-left: 10px;
+    margin-left: -10px;
+    opacity: 0.75;
+  }
+  nav.rail a:hover, nav.rail a:focus-visible { opacity: 1; border-left-color: var(--accent); outline: none; }
+  nav.rail .num { font-family: var(--mono); color: var(--muted); font-size: 11px; margin-right: 6px; }
+
+  main {
+    flex: 1;
+    min-width: 0;
+    padding: 48px 56px 100px;
+    max-width: 980px;
+  }
+  header.hero { margin-bottom: 36px; }
+  header.hero .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--accent);
+    margin-bottom: 10px;
+  }
+  header.hero h1 {
+    font-size: 34px;
+    line-height: 1.15;
+    margin: 0 0 12px;
+    text-wrap: balance;
+    letter-spacing: -0.01em;
+  }
+  header.hero p.lede {
+    font-size: 15.5px;
+    color: var(--muted);
+    max-width: 62ch;
+    line-height: 1.6;
+    margin: 0 0 18px;
+  }
+  header.hero .meta {
+    display: flex;
+    gap: 18px;
+    font-family: var(--mono);
+    font-size: 11.5px;
+    color: var(--muted);
+    border-top: 1px solid var(--line);
+    padding-top: 14px;
+    margin-bottom: 18px;
+  }
+
+  .stats-row { display: flex; gap: 10px; flex-wrap: wrap; }
+  .stat {
+    flex: 1; min-width: 160px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 14px 16px;
+    background: var(--panel);
+  }
+  .stat .n { font-size: 24px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1; margin-bottom: 4px; }
+  .stat .n.crit { color: var(--crit); }
+  .stat .n.warn { color: var(--warn); }
+  .stat .n.accent { color: var(--accent); }
+  .stat .d { font-size: 12px; color: var(--muted); line-height: 1.4; }
+
+  section { margin-bottom: 56px; scroll-margin-top: 24px; }
+  section h2 {
+    font-size: 12px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+    font-family: var(--mono);
+    margin: 0 0 6px;
+  }
+  section h3.title {
+    font-size: 22px;
+    margin: 0 0 18px;
+    text-wrap: balance;
+  }
+  section p.desc { font-size: 14.5px; line-height: 1.65; color: var(--text); max-width: 68ch; margin: 0 0 16px; }
+
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 22px;
+    margin-bottom: 18px;
+  }
+
+  /* ---------- Flow steps ---------- */
+  .flow { display: flex; flex-direction: column; gap: 0; }
+  .step {
+    display: grid;
+    grid-template-columns: 28px 1fr;
+    gap: 14px;
+    padding: 12px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .step:last-child { border-bottom: none; }
+  .step .dot {
+    width: 22px; height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid var(--accent);
+    color: var(--accent);
+    display: flex; align-items: center; justify-content: center;
+    font-family: var(--mono); font-size: 11px;
+    margin-top: 2px;
+  }
+  .step .body h4 { margin: 0 0 3px; font-size: 14.5px; }
+  .step .body p { margin: 0; font-size: 13.3px; color: var(--muted); line-height: 1.55; }
+  .step .body code { font-family: var(--mono); font-size: 12px; background: var(--paper); padding: 1px 5px; border-radius: 4px; border: 1px solid var(--line); }
+  .step.flag .dot { border-color: var(--warn); color: var(--warn); }
+  .step.done .dot { border-color: var(--good); color: var(--good); }
+
+  /* ---------- Tables ---------- */
+  .tablewrap { overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 12px; border-bottom: 1px solid var(--line); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 10.5px; text-transform: uppercase; letter-spacing: 0.05em; color: var(--muted); font-weight: 500; }
+  td.mono, th.mono { font-family: var(--mono); font-size: 12.3px; }
+  td.num, th.num { text-align: right; font-variant-numeric: tabular-nums; font-family: var(--mono); }
+
+  .chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-family: var(--mono);
+    padding: 2px 9px;
+    border-radius: 20px;
+    white-space: nowrap;
+  }
+  .chip.good { background: var(--good-soft); color: var(--good); }
+  .chip.warn { background: var(--warn-soft); color: var(--warn); }
+  .chip.crit { background: var(--crit-soft); color: var(--crit); }
+  .chip::before { content: "●"; font-size: 8px; }
+
+  .gapcard {
+    border-left: 3px solid var(--warn);
+    background: var(--warn-soft);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin-bottom: 10px;
+  }
+  .gapcard.crit { border-left-color: var(--crit); background: var(--crit-soft); }
+  .gapcard h4 { margin: 0 0 4px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .gapcard p { margin: 0; font-size: 13px; color: var(--text); line-height: 1.55; }
+  .gapcard code { font-family: var(--mono); font-size: 11.8px; }
+
+  /* ---------- Decision / recommendation ---------- */
+  .decision {
+    border: 1.5px solid var(--accent);
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 16px 20px;
+    margin-bottom: 18px;
+  }
+  .decision .tag {
+    font-family: var(--mono); font-size: 10.5px; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--accent); margin-bottom: 6px; display: block;
+  }
+  .decision p { margin: 0; font-size: 14px; line-height: 1.6; }
+  .decision b { color: var(--accent); }
+
+  /* ---------- Offer cards (work packages) ---------- */
+  .offers { display: flex; flex-direction: column; gap: 10px; }
+  .offer {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    align-items: start;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 14px 16px;
+    background: var(--panel);
+  }
+  .offer h4 { margin: 0 0 4px; font-size: 14.5px; }
+  .offer p { margin: 0; font-size: 13px; color: var(--muted); line-height: 1.5; }
+
+  /* ---------- Ask prompts ---------- */
+  .ask-list { display: flex; flex-direction: column; gap: 10px; }
+  .ask {
+    display: grid;
+    grid-template-columns: 24px 1fr;
+    gap: 12px;
+    border: 1px solid var(--line);
+    border-left: 3px solid var(--accent);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    background: var(--panel);
+  }
+  .ask .qn { font-family: var(--mono); color: var(--accent); font-size: 13px; }
+  .ask p { margin: 0; font-size: 14px; line-height: 1.55; }
+  .ask p.why { margin-top: 4px; font-size: 12.5px; color: var(--muted); }
+
+  footer.pagefoot {
+    border-top: 1px solid var(--line);
+    padding-top: 18px;
+    font-size: 11.5px;
+    color: var(--muted);
+    font-family: var(--mono);
+  }
+
+  @media (max-width: 860px) {
+    body { flex-direction: column; }
+    nav.rail { position: static; height: auto; width: 100%; border-right: none; border-bottom: 1px solid var(--line); }
+    main { padding: 32px 20px 80px; }
+    .stats-row { flex-direction: column; }
+  }
+
+  /* ---------- Print / PDF export ---------- */
+  @media print {
+    @page { size: A4; margin: 14mm 12mm; }
+    html, body { background: #fff; }
+    body { display: block; }
+    nav.rail { display: none; }
+    main { max-width: none; padding: 0; }
+
+    header.hero { break-after: avoid; }
+    section { break-inside: auto; }
+    section h2, section h3.title { break-after: avoid; break-inside: avoid; }
+    section p.desc { break-inside: avoid; }
+
+    .panel:not(.tablewrap) { break-inside: avoid; }
+    .flow, .step, .gapcard, .decision, .offer, .ask, .stat { break-inside: avoid; }
+    table { break-inside: auto; }
+    tr, td, th { break-inside: avoid; }
+
+    #recent, #urgent, #camera, #infra, #server, #ask { break-before: page; }
+    #overview { break-before: avoid; }
+  }
+</style>
+
+<nav class="rail">
+  <div class="brand">PETPAL // DEV SYNC</div>
+  <div class="brand-sub">อาเจนดาคุยกับทีม Dev รอบถัดไป</div>
+  <a href="#overview"><span class="num">00</span>Overview</a>
+  <a href="#recent"><span class="num">01</span>อัปเดตงาน</a>
+  <a href="#urgent"><span class="num">02</span>ด่วน</a>
+  <a href="#camera"><span class="num">03</span>เรื่องกล้อง</a>
+  <a href="#infra"><span class="num">04</span>Infra &amp; ต้นทุน</a>
+  <a href="#server"><span class="num">05</span>เซิร์ฟเวอร์</a>
+  <a href="#ask"><span class="num">06</span>ถามทีม</a>
+</nav>
+
+<main>
+  <header class="hero" id="overview">
+    <div class="eyebrow">Dev Sync Agenda</div>
+    <h1>คุยกับทีม Dev — กล้อง, Infra, เซิร์ฟเวอร์</h1>
+    <p class="lede">
+      สรุปอัปเดตงานล่าสุด และประเด็นที่ต้องตัดสินใจร่วมกันในรอบคุยถัดไป — เรื่องกล้องที่จะเปลี่ยนหรือไม่เปลี่ยน,
+      ค่า Infra ที่จะแยกให้ผู้ว่าจ้างดูแลเอง, จะเลือกเซิร์ฟเวอร์ตัวไหน และจะชวนเพื่อนรับงานฝั่งกล้องไปทำต่อไหม
+    </p>
+    <div class="meta">
+      <span>PET-HOTEL BOOKING PLATFORM</span>
+      <span>สำหรับพูดคุยกับทีม Dev</span>
+      <span>เตรียม 2026-07-18</span>
+    </div>
+    <div class="stats-row">
+      <div class="stat"><div class="n crit">1</div><div class="d">บั๊ก critical กำลังพังอยู่ตอนนี้ — Gemini model ถูกยกเลิกไปแล้ว</div></div>
+      <div class="stat"><div class="n warn">3</div><div class="d">เรื่องที่ต้องตัดสินใจร่วมกัน — กล้อง, ใครจ่าย Infra, เลือกเซิร์ฟเวอร์</div></div>
+      <div class="stat"><div class="n accent">4</div><div class="d">คำถามที่ต้องถามเพื่อนตรงๆ ในหัวข้อ 06</div></div>
+    </div>
+  </header>
+
+  <!-- ============ 01 RECENT WORK ============ -->
+  <section id="recent">
+    <h2>01 — อัปเดตงาน</h2>
+    <h3 class="title">สิ่งที่ทำไปแล้ว/กำลังทำอยู่ (ยังไม่ commit)</h3>
+    <p class="desc">งานรอบนี้เน้นฝั่งกล้องเป็นหลัก — ทั้งฝั่งลูกค้าที่ดูสตรีม และฝั่งเทคนิเชียน/แอดมินที่จัดการกล้อง</p>
+
+    <div class="panel">
+      <div class="flow">
+        <div class="step done">
+          <div class="dot">✓</div>
+          <div class="body">
+            <h4>สลับ video player: <code>flutter_vlc_player</code> → <code>media_kit</code></h4>
+            <p>แก้บั๊กที่เจอจาก manual QA กับกล้องจริง — VLC plugin คุยกับ Flutter/Impeller ไม่ได้ ทำให้ดูสตรีมไม่ขึ้น (<code>live_cam_page.dart</code>)</p>
+          </div>
+        </div>
+        <div class="step done">
+          <div class="dot">✓</div>
+          <div class="body">
+            <h4>รื้อหน้าเทคนิเชียนจัดการกล้อง</h4>
+            <p><code>technician_camera_page.dart</code> ปรับใหญ่ ~300 บรรทัด — เพิ่ม flow เพิ่ม/แก้กล้องให้ครบขึ้น</p>
+          </div>
+        </div>
+        <div class="step done">
+          <div class="dot">✓</div>
+          <div class="body">
+            <h4>Admin dashboard เพิ่มสถานะกล้อง</h4>
+            <p>แท็บใหม่ดูสถานะกล้องทุกตัว (ออนไลน์/ออฟไลน์/มีปัญหา/ยังไม่ทดสอบ) พร้อมปุ่มทดสอบเชื่อมต่อ</p>
+          </div>
+        </div>
+        <div class="step done">
+          <div class="dot">✓</div>
+          <div class="body">
+            <h4>Username กล้องเริ่มต้นตาม convention</h4>
+            <p>ตั้ง <code>petpal</code> เป็นค่าเริ่มต้นในฟอร์มเพิ่มกล้อง กันเทคนิเชียนพิมพ์ผิดจนเชื่อมต่อไม่ได้</p>
+          </div>
+        </div>
+        <div class="step done">
+          <div class="dot">✓</div>
+          <div class="body">
+            <h4>แก้ Docker Compose project ชนกัน</h4>
+            <p>ตั้งชื่อ compose project เป็น <code>petpal</code> ชัดเจน (เดิมชนกับโปรเจกต์อื่นที่ใช้ชื่อ default เดียวกัน) + pin volume เดิมกันข้อมูลหาย</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 02 URGENT ============ -->
+  <section id="urgent">
+    <h2>02 — ด่วน</h2>
+    <h3 class="title">พูดเรื่องนี้ก่อนเรื่องอื่นทั้งหมด</h3>
+    <p class="desc">เจอระหว่างเตรียมเอกสารนี้ — ควรเป็นหัวข้อแรกที่คุยกับทีม เพราะฟีเจอร์กำลัง fail อยู่จริงในตอนนี้</p>
+
+    <div class="gapcard crit">
+      <h4>🔴 Gemini model ที่ใช้อยู่ถูกยกเลิกไปแล้ว</h4>
+      <p><code>backend/app/gemini_client.py:11</code> ตั้งค่า <code>MODEL_NAME = "gemini-2.0-flash"</code> —
+      โมเดลนี้ Google ยกเลิกไปแล้วตั้งแต่ 1 มิ.ย. 2026 ฟีเจอร์ AI Smart Match enrichment น่าจะเรียก API แล้ว fail
+      อยู่ในตอนนี้จริงๆ ต้องเปลี่ยนเป็น <code>gemini-2.5-flash-lite</code> (ราคาเท่าเดิม ไม่กระทบงบ)</p>
+    </div>
+
+    <div class="panel">
+      <p class="desc" style="margin-bottom:0;">
+        <b>สังเกตแปลก:</b> commit ล่าสุดของ branch (<code>1cad3e1 — Switch Gemini model to 2.0-flash</code>)
+        เพิ่งสลับ<b>กลับไป</b>ใช้โมเดลนี้ด้วยเหตุผลเรื่อง free quota — โดยไม่รู้ว่าโมเดลถูกเลิกใช้ไปแล้ว
+        ควรเช็คกับทีมว่าใครเป็นคนแก้ล่าสุด และยืนยันให้ใช้ <code>gemini-2.5-flash-lite</code> แทนให้ตรงกัน
+      </p>
+    </div>
+  </section>
+
+  <!-- ============ 03 CAMERA ============ -->
+  <section id="camera">
+    <h2>03 — เรื่องกล้อง</h2>
+    <h3 class="title">เปลี่ยนยี่ห้อกล้อง หรือสร้าง Mini Hub เอง?</h3>
+    <p class="desc">
+      ข้อจำกัดปัจจุบัน: แอปต่อกล้องแบบ RTSP ตรงไปยัง LAN IP ของโรงแรม — ลูกค้าที่ไม่ได้อยู่ใน WiFi โรงแรม
+      ดูกล้องไม่ได้เลย สำรวจแล้วว่ามีทางแก้ 2 ทาง
+    </p>
+
+    <div class="tablewrap panel">
+      <table>
+        <tr><th>แพลตฟอร์ม</th><th>สถานะสำหรับ Startup งบจำกัด</th><th class="num">ต้นทุน</th></tr>
+        <tr><td>Tuya IoT Platform</td><td><span class="chip crit">ตัดออก</span> commercial license แยกต่างหาก</td><td class="num mono">~180,000 บาท/ปีแรก</td></tr>
+        <tr><td>Tapo Open API <span class="chip good">ใช้อยู่ตอนนี้</span></td><td><span class="chip crit">ตัดออก</span> เปิดเฉพาะพาร์ทเนอร์ระดับ Amazon/Google</td><td class="num mono">ไม่เปิดขายให้ startup</td></tr>
+        <tr><td>Reolink RTMP</td><td><span class="chip crit">ตัดออก</span> ยัง URL เป็น local IP เหมือนเดิม ไม่แก้ปัญหาจริง</td><td class="num mono">—</td></tr>
+        <tr><td>EZVIZ Open Platform</td><td><span class="chip good">ใช้ได้จริง</span> ออกแบบมาสำหรับ third-party business</td><td class="num mono">~$4.5/กล้อง/ปี + $0.4/GB</td></tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <p class="desc" style="margin-bottom:10px;"><b>เทียบต้นทุนต่อโรงแรม (เฉลี่ย 3 กล้อง/แห่ง)</b></p>
+      <div class="stats-row">
+        <div class="stat"><div class="n warn">~480.-</div><div class="d">EZVIZ ต่อปี/โรงแรม <b>ตลอดไป</b> — ปีที่ 5 จ่ายสะสมแล้ว ~2,400 บาท</div></div>
+        <div class="stat"><div class="n accent">~1,500–3,000.-</div><div class="d">Mini Hub <b>ครั้งเดียว</b>/โรงแรม ใช้ได้หลายปี — คุ้มทุนปีที่ 3-4</div></div>
+      </div>
+    </div>
+
+    <div class="decision">
+      <span class="tag">ข้อเสนอ</span>
+      <p>คง <b>Tapo เดิม + สร้าง Mini Hub เอง</b> เป็นแผนหลัก (คุ้มค่ากว่าระยะยาว, privacy ดีกว่าเพราะวิดีโอไม่ต้องผ่าน
+      cloud คนอื่น, ไม่ผูกกับผู้ให้บริการภายนอก) — เก็บ <b>EZVIZ</b> ไว้เป็นแผนสำรอง เฉพาะกรณีต้องรีบเปิดฟีเจอร์
+      "ดูนอกโรงแรม" ให้เร็วที่สุดโดยยังไม่มีเวลา/กำลังคนสร้าง Mini Hub</p>
+    </div>
+  </section>
+
+  <!-- ============ 04 INFRA & COST ============ -->
+  <section id="infra">
+    <h2>04 — Infra &amp; ต้นทุน</h2>
+    <h3 class="title">อะไรควรแยกไปให้ผู้ว่าจ้างจ่ายเอง</h3>
+    <p class="desc">
+      หลักการ: ค่าแรงพัฒนา (ออกแบบ, เขียนโค้ด, เชื่อมต่อระบบ) ควรเป็นเงินที่ทีมได้เต็มจำนวน ส่วนค่า Infrastructure
+      คือต้นทุนดำเนินธุรกิจต่อเนื่อง เกิดซ้ำทุกปี/เดือนไม่ว่าใครพัฒนา — ควรเป็นของผู้ว่าจ้างโดยตรง ไม่หักจากค่าแรงทีม
+    </p>
+
+    <div class="tablewrap panel">
+      <table>
+        <tr><th>รายการ</th><th class="num">ค่าใช้จ่าย</th><th>ความถี่</th><th>ผู้รับผิดชอบ</th></tr>
+        <tr><td>VPS Server (4 vCPU/8GB)</td><td class="num mono">440/เดือน</td><td>รายเดือน/ปี</td><td><span class="chip warn">ผู้ว่าจ้าง</span></td></tr>
+        <tr><td>Apple Developer Program</td><td class="num mono">~3,600/ปี</td><td>ต่ออายุทุกปี</td><td><span class="chip warn">ผู้ว่าจ้าง</span></td></tr>
+        <tr><td>Google Play Console</td><td class="num mono">~900</td><td>ครั้งเดียวตลอดชีพ</td><td><span class="chip warn">ผู้ว่าจ้าง</span></td></tr>
+        <tr><td>Domain name (.com/.app)</td><td class="num mono">~400–800/ปี</td><td>ต่ออายุทุกปี</td><td><span class="chip warn">ผู้ว่าจ้าง</span></td></tr>
+        <tr><td>กล้องต้นทุน (700–1,000/ตัว)</td><td class="num mono">ตามจำนวนจริง</td><td>ตามการขยาย</td><td><span class="chip good">โรงแรม</span></td></tr>
+      </table>
+    </div>
+
+    <div class="panel">
+      <p class="desc" style="margin-bottom:10px;">
+        <b>ค่า Maintenance รายเดือน</b> — งบ 20,000 ที่ตกลงกันไว้เป็นค่าแรงสร้างโปรเจกต์ <b>ครั้งเดียว</b> เท่านั้น
+        หลังส่งมอบแล้วระบบยังต้องเฝ้าระวังเซิร์ฟเวอร์ แก้บั๊ก ต่ออายุ certificate — ควรแยกเป็นค่า Maintenance
+        รายเดือนต่างหาก จ่ายให้ทีม dev โดยตรง (คนละก้อนกับ package ที่โรงแรมจ่ายในหัวข้อราคากล้อง)
+      </p>
+      <div class="tablewrap">
+        <table>
+          <tr><th>แพ็กเกจ</th><th class="num">ราคา/เดือน</th><th>ขอบเขต</th></tr>
+          <tr><td>Basic</td><td class="num mono">~2,000–3,000</td><td>Uptime monitoring, แก้บั๊กวิกฤต, ต่ออายุ SSL/Apple Dev</td></tr>
+          <tr><td>Standard</td><td class="num mono">~4,000–6,000</td><td>รวม Basic + แก้บั๊กทั่วไป + อัปเดต dependency ประจำ</td></tr>
+          <tr><td>Growth</td><td class="num mono">~8,000+</td><td>รวม Standard + feature เล็กใหม่ตามรอบ + ดูแลการ scale</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 05 SERVER ============ -->
+  <section id="server">
+    <h2>05 — เซิร์ฟเวอร์</h2>
+    <h3 class="title">จะเลือกตัวไหน และขยายยังไงเมื่อโตขึ้น</h3>
+
+    <div class="panel">
+      <div class="flow">
+        <div class="step done">
+          <div class="dot">1</div>
+          <div class="body"><h4>ตอนนี้: VPS เดียว 4 vCPU/8GB</h4><p>รองรับ Postgres, MinIO, LiveKit, Redis, Backend ในเครื่องเดียวได้สบาย (~440 บาท/เดือน)</p></div>
+        </div>
+        <div class="step">
+          <div class="dot">2</div>
+          <div class="body"><h4>เมื่อ user เพิ่มขึ้น: ขยายแนวตั้งก่อน</h4><p>อัปเกรดแพ็กเกจ VPS ให้ใหญ่ขึ้น — เร็วและถูกที่สุดสำหรับ scale ระดับต้น</p></div>
+        </div>
+        <div class="step flag">
+          <div class="dot">!</div>
+          <div class="body"><h4>ก่อนจะขยายแนวนอน (หลาย instance)</h4><p>ต้องย้าย rate limiter จาก in-memory ไปใช้ Redis ก่อน (<code>core/rate_limit.py</code>) — Redis มีอยู่แล้วในระบบ ไม่ต้องเพิ่มเทคโนโลยีใหม่</p></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="panel">
+      <p class="desc" style="margin-bottom:10px;"><b>ถ้ากล้องต้อง scale ข้ามเครือข่ายในอนาคต</b> — bandwidth วิดีโอจะไหลผ่านที่ไหนมีผล:</p>
+      <div class="tablewrap">
+        <table>
+          <tr><th>เส้นทาง</th><th>ผลต่อ VPS</th></tr>
+          <tr><td>ผ่าน VPS กลาง</td><td>20 โรงแรมดูพร้อมกัน ≈ 20–40 Mbps ขาออก — คอขวดต้นทุนอยู่ที่ VPS จุดเดียว</td></tr>
+          <tr><td>ผ่าน Mini Hub ต่อโรงแรม</td><td>bandwidth กระจายไปที่เน็ตของแต่ละโรงแรมเอง — ไม่รวมศูนย์ที่ VPS เดียว</td></tr>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- ============ 06 ASK THE TEAM ============ -->
+  <section id="ask">
+    <h2>06 — ถามทีม</h2>
+    <h3 class="title">งานที่จะชวนเพื่อนรับไปทำ + คำถามที่ต้องถามตรงๆ</h3>
+    <p class="desc">งานฝั่งกล้องที่ยังไม่ได้ลงมือจริง (เฟสถัดไป) — เสนอให้เพื่อนเลือกได้ว่าจะรับส่วนไหน</p>
+
+    <div class="offers">
+      <div class="offer">
+        <div><h4>Mini Server Hub ต่อโรงแรม</h4><p>Raspberry Pi ดึงสตรีมกล้อง on-demand → ส่งผ่าน Tailscale outbound-only ไป backend กลาง — แก้ปัญหา "ดูกล้องนอกโรงแรมไม่ได้"</p></div>
+        <span class="chip warn">ยังไม่เริ่ม</span>
+      </div>
+      <div class="offer">
+        <div><h4>Edge-server proxy สำหรับ RTSP credential</h4><p>ตอนนี้ <code>_build_stream_url</code> ส่ง <code>rtsp://user:pass@ip</code> ตรงถึง client — ควรมี short-lived token ก่อนขึ้นโปรดักชันจริง</p></div>
+        <span class="chip crit">ควรทำก่อนโปรดักชัน</span>
+      </div>
+      <div class="offer">
+        <div><h4>ตั้ง CI (GitHub Actions)</h4><p>เทสที่มีอยู่ ~24 ไฟล์ ไม่ได้รันอัตโนมัติเลยตอน push/PR — ต้องรันมือทุกครั้ง</p></div>
+        <span class="chip warn">ยังไม่เริ่ม</span>
+      </div>
+    </div>
+
+    <p class="desc" style="margin-top:24px;"><b>คำถามที่จะถามเพื่อนตรงๆ ในการคุยรอบนี้</b></p>
+    <div class="ask-list">
+      <div class="ask">
+        <div class="qn">Q1</div>
+        <div><p>อยากรับงานฝั่งกล้อง (Mini Hub + edge proxy) ไปทำเป็นเฟสถัดไปไหม?</p>
+        <p class="why">ถ้ารับ — ต้องคุยขอบเขตและไทม์ไลน์ให้ชัดก่อนเริ่ม</p></div>
+      </div>
+      <div class="ask">
+        <div class="qn">Q2</div>
+        <div><p>ถ้ารับงานกล้องเพิ่ม ค่า Maintenance รายเดือนจะแบ่งกันยังไง?</p>
+        <p class="why">เกี่ยวกับแพ็กเกจ Basic/Standard/Growth ในหัวข้อ 04</p></div>
+      </div>
+      <div class="ask">
+        <div class="qn">Q3</div>
+        <div><p>เซิร์ฟเวอร์ VPS จะเลือก provider ไหน — มีที่ถนัดอยู่แล้วไหม หรือให้ผู้ว่าจ้างเลือกเอง?</p>
+        <p class="why">เกี่ยวกับหัวข้อ 05 และผู้รับผิดชอบค่าใช้จ่ายในหัวข้อ 04</p></div>
+      </div>
+      <div class="ask">
+        <div class="qn">Q4</div>
+        <div><p>ถ้าจะเก็บ EZVIZ ไว้เป็นแผนสำรอง ใครจะเป็นคนติดต่อฝ่ายขายเพื่อขอราคา/quota จริง?</p>
+        <p class="why">ตัวเลขในหัวข้อ 03 เป็นแค่ประมาณการ ยังไม่ได้ยืนยันจาก EZVIZ โดยตรง</p></div>
+      </div>
+    </div>
+
+    <footer class="pagefoot">PetPal Dev Sync Agenda · เตรียมไว้สำหรับคุยกับทีม Dev · เป้าหมายขึ้นโปรดักชันจริงภายใน ~ม.ค. 2027 · ปรับปรุงล่าสุด 2026-07-18</footer>
+  </section>
+</main>
