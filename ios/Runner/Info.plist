@@ -103,9 +103,14 @@
 				<string>fbYOUR_FACEBOOK_APP_ID</string>
 				<!-- Google Sign-In: the REVERSED form of your iOS OAuth client ID
 				     from Google Cloud Console, e.g. com.googleusercontent.apps.xxxx -->
-				<string>com.googleusercontent.apps.YOUR_IOS_CLIENT_ID</string>
+				<string>com.googleusercontent.apps.675488361181-t4dt31iqctpvo0rqi3a5f14mlv8lmpto</string>
 			</array>
 		</dict>
 	</array>
+	<!-- Google Sign-In: the iOS OAuth client ID itself (NOT reversed) -- the
+	     native GIDSignIn SDK reads this directly to configure itself; without
+	     it, signIn() throws "No active configuration" and the app crashes. -->
+	<key>GIDClientID</key>
+	<string>675488361181-t4dt31iqctpvo0rqi3a5f14mlv8lmpto.apps.googleusercontent.com</string>
 </dict>
 </plist>
